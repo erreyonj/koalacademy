@@ -1,5 +1,11 @@
 # Koalacademy Course Documentation
 
+<p align="center">
+  <img src="../curriculum/assets/ka-main-smile-decal-no-bg.png" alt="Koalacademy logo" width="160" />
+</p>
+
+Brand colors for future design work live in [brand-palette.md](./brand-palette.md).
+
 ## What Koalacademy is
 
 Koalacademy is a 20-week music production curriculum designed for urban school districts. It
@@ -113,7 +119,9 @@ curriculum stands on its own without them.
 
 ```text
 curriculum/KOALACADEMY.md   Full course content — the source of truth
+curriculum/assets/          Logo and brand image assets
 docs/README.md              This file: course description, requirements, teaching notes
+docs/brand-palette.md       v1 color palette and logo reference for design tasks
 units/                      Per-unit folders for materials and activities
 apps/                       Blooprint suite concepts (native iOS)
 ```

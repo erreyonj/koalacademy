@@ -10,6 +10,7 @@ three songs they choose themselves.
 | If you want to… | Go to |
 | --- | --- |
 | Read the full course content | [curriculum/KOALACADEMY.md](curriculum/KOALACADEMY.md) |
+| See the K-8 adaptation for One City Schools | [curriculum/k-8-pilot/](curriculum/k-8-pilot/README.md) |
 | Understand the course, requirements, and who can teach it | [docs/README.md](docs/README.md) |
 | Find or add materials for a specific unit | [units/](units/) |
 | Read the companion iOS app concepts | [apps/README.md](apps/README.md) |
@@ -26,6 +27,7 @@ three songs they choose themselves.
 
 ```text
 curriculum/KOALACADEMY.md   Full course content — the source of truth
+curriculum/k-8-pilot/       K-8 adaptation for One City Schools (pilot, in progress)
 docs/README.md              Course description, requirements, teaching notes
 units/                      Per-unit folders for materials and activities
 apps/                       Blooprint suite concepts (native iOS)

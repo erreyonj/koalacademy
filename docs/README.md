@@ -117,6 +117,7 @@ curriculum stands on its own without them.
 
 ```text
 curriculum/KOALACADEMY.md   Full course content — the source of truth
+curriculum/k-8-pilot/       K-8 adaptation for One City Schools (pilot, in progress)
 curriculum/assets/          Logo and brand image assets
 docs/README.md              This file: course description, requirements, teaching notes
 docs/brand-palette.md       v1 color palette and logo reference for design tasks

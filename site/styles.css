@@ -1,0 +1,780 @@
+/* ==========================================================================
+   Koalacademy — K-8 Pilot landing
+   Flat koala / MPC hardware language. Mobile-first.
+   ========================================================================== */
+
+:root {
+  /* Core — logo */
+  --ka-mist: #c0cbe1;
+  --ka-slate: #99a4b8;
+  --ka-charcoal: #737a89;
+  --ka-ink: #000000;
+  --ka-snow: #ffffff;
+  --ka-pop: #f56e8f;
+
+  /* Extended — greens */
+  --ka-eucalyptus: #a8c3b0;
+  --ka-leaf: #5b8f7b;
+  --ka-canopy: #2f5648;
+
+  /* Extended — bamboo */
+  --ka-pith: #ede4d4;
+  --ka-bamboo: #d4c4a8;
+  --ka-culm: #a8906c;
+  --ka-bark: #6e5a42;
+
+  /* Hardware accents (from the MPC illustration — small doses only) */
+  --hw-sky: #a9c6e8;
+  --hw-screen: #bdd7ee;
+  --hw-green: #7fb08a;
+  --hw-yellow: #e3b23c;
+  --hw-red: #d96459;
+  --hw-body: #4a505c;
+  --hw-panel: #3a3f49;
+
+  --font-display: "Space Grotesk", "Avenir Next", sans-serif;
+  --font-body: "Outfit", "Avenir Next", sans-serif;
+
+  --line: color-mix(in srgb, var(--ka-charcoal) 30%, transparent);
+  --wrap: 42rem;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  color: var(--ka-ink);
+  background: var(--ka-mist);
+  overflow-x: clip;
+}
+
+img { display: block; max-width: 100%; height: auto; }
+
+a { color: var(--ka-canopy); text-underline-offset: 3px; }
+a:hover { color: var(--ka-leaf); }
+
+:focus-visible {
+  outline: 3px solid var(--ka-ink);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* ---------- type ---------- */
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+  line-height: 1.08;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+h2 {
+  font-size: clamp(1.75rem, 1.2rem + 2.6vw, 2.75rem);
+  font-weight: 700;
+  margin: 0.5rem 0 1.25rem;
+  text-wrap: balance;
+}
+
+h3 {
+  font-size: clamp(1.2rem, 1.05rem + 0.7vw, 1.5rem);
+  font-weight: 700;
+}
+
+.eyebrow {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ka-charcoal);
+  margin: 0;
+}
+
+.lede {
+  font-size: clamp(1.0625rem, 1rem + 0.35vw, 1.2rem);
+  max-width: 38rem;
+}
+
+.fine {
+  font-size: 0.9rem;
+  color: var(--ka-charcoal);
+  max-width: 34rem;
+}
+
+.nowrap { white-space: nowrap; }
+
+code {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.72em;
+  letter-spacing: 0.08em;
+  background: var(--ka-ink);
+  color: var(--ka-snow);
+  padding: 0.25em 0.55em;
+  border-radius: 4px;
+  vertical-align: middle;
+}
+
+/* ==========================================================================
+   Hero — full-bleed mist plane, brand first
+   ========================================================================== */
+
+.hero {
+  /* exact match to the illustration background so the art reads full-bleed */
+  background: var(--ka-mist);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-height: 100svh;
+  align-content: end;
+  overflow: hidden;
+}
+
+.hero-copy {
+  padding: clamp(2.5rem, 8vw, 5rem) clamp(1.25rem, 5vw, 4rem) 0;
+  max-width: 46rem;
+}
+
+.hero-kicker {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(0.72rem, 0.6rem + 0.5vw, 0.9rem);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ka-charcoal);
+  margin: 0 0 0.75rem;
+}
+
+.brand {
+  font-size: clamp(2.9rem, 1.3rem + 6.6vw, 5.6rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--ka-ink);
+}
+
+.brand-k { color: var(--ka-pop); }
+
+.hero-line {
+  font-size: clamp(1.1rem, 1rem + 0.7vw, 1.4rem);
+  line-height: 1.45;
+  max-width: 30em;
+  margin: 1rem 0 1.75rem;
+  color: color-mix(in srgb, var(--ka-ink) 82%, var(--ka-charcoal));
+}
+
+.hero-cta { margin-bottom: 0.5rem; }
+
+.cta {
+  display: inline-block;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--ka-snow);
+  background: var(--ka-ink);
+  border: 3px solid var(--ka-ink);
+  border-radius: 10px;
+  padding: 0.85rem 1.9rem;
+  box-shadow: 0 4px 0 var(--ka-charcoal);
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.cta:hover { color: var(--ka-pop); }
+
+.cta:active {
+  transform: translateY(4px);
+  box-shadow: 0 0 0 var(--ka-charcoal);
+}
+
+.hero-art {
+  margin-top: clamp(-1rem, -4vw, -3rem);
+  display: grid;
+  justify-items: center;
+}
+
+.hero-art img {
+  width: 100%;
+  max-width: 44rem;
+}
+
+@media (min-width: 60rem) {
+  .hero {
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+    align-items: center;
+    align-content: center;
+  }
+  .hero-copy {
+    padding: clamp(3rem, 6vw, 6rem) 0 clamp(3rem, 6vw, 6rem) clamp(2rem, 6vw, 6rem);
+  }
+  .hero-art {
+    margin: 0;
+    align-self: stretch;
+    align-items: end;
+  }
+  .hero-art img {
+    width: 100%;
+    max-width: 52rem;
+    margin-right: -4%;
+  }
+}
+
+/* ==========================================================================
+   Control surface — screen, knobs, pad nav
+   ========================================================================== */
+
+.deck {
+  background: var(--hw-panel);
+  border-top: 4px solid var(--ka-ink);
+  border-bottom: 4px solid var(--ka-ink);
+  padding: 1.5rem 1.25rem 1.75rem;
+}
+
+.deck-inner {
+  max-width: 56rem;
+  margin: 0 auto;
+  display: grid;
+  gap: 1.25rem;
+}
+
+/* LCD */
+.deck-screen {
+  background: var(--hw-screen);
+  border: 3px solid var(--ka-ink);
+  border-radius: 8px;
+  padding: 0.7rem 1rem;
+  box-shadow: inset 0 3px 0 rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+}
+
+.lcd {
+  font-family: "SF Mono", "Menlo", "Consolas", monospace;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--hw-panel);
+  white-space: nowrap;
+}
+
+/* knobs */
+.deck-knobs {
+  display: flex;
+  gap: 1.25rem;
+  justify-content: center;
+}
+
+.knob {
+  width: clamp(3rem, 10vw, 4rem);
+  height: auto;
+}
+
+.knob-base { fill: #22252c; }
+.knob-cap { fill: var(--hw-body); stroke: var(--ka-ink); stroke-width: 3; }
+
+.knob-mark {
+  fill: var(--ka-snow);
+  transform-box: view-box;
+  transform-origin: 32px 30px;
+  transform: rotate(var(--rot, 0deg));
+}
+
+/* pads */
+.deck-pads {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  max-width: 24rem;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.pad {
+  aspect-ratio: 1;
+  min-height: 64px;
+  border: 3px solid var(--ka-ink);
+  border-radius: 10px;
+  box-shadow: 0 5px 0 var(--ka-ink);
+  display: grid;
+  place-items: end center;
+  padding-bottom: 0.5rem;
+  text-decoration: none;
+  transition: transform 100ms ease, box-shadow 100ms ease, filter 150ms ease;
+}
+
+.pad-label {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--ka-ink);
+  line-height: 1.15;
+  padding: 0 0.25rem;
+}
+
+.pad-sky { background: var(--hw-sky); }
+.pad-grn { background: var(--hw-green); }
+.pad-pop { background: var(--ka-pop); }
+
+.pad-dim {
+  background: #2e323b;
+  box-shadow: 0 2px 0 var(--ka-ink);
+  border-color: #22252c;
+}
+
+.pad:not(.pad-dim):hover { filter: brightness(1.08); }
+
+.pad:not(.pad-dim):active,
+.pad.pressed {
+  transform: translateY(5px);
+  box-shadow: 0 0 0 var(--ka-ink);
+}
+
+.pad.active:not(.pad-dim) {
+  outline: 3px solid var(--ka-snow);
+  outline-offset: 2px;
+}
+
+@media (min-width: 60rem) {
+  .deck { padding: 2rem 2rem 2.25rem; }
+  .deck-inner {
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "screen pads"
+      "knobs  pads";
+    align-items: center;
+    gap: 1.5rem 3rem;
+  }
+  .deck-screen { grid-area: screen; align-self: end; }
+  .deck-knobs { grid-area: knobs; justify-content: flex-start; align-self: start; padding-top: 0.5rem; }
+  .deck-pads { grid-area: pads; max-width: 21rem; margin: 0; }
+  .lcd { font-size: 1rem; }
+}
+
+/* ==========================================================================
+   Main scroll — soft washes + faint pad-grid pattern
+   ========================================================================== */
+
+main {
+  background-color: #eef1f7;
+  background-image:
+    repeating-linear-gradient(0deg,  color-mix(in srgb, var(--ka-charcoal) 7%, transparent) 0 1px, transparent 1px 56px),
+    repeating-linear-gradient(90deg, color-mix(in srgb, var(--ka-charcoal) 7%, transparent) 0 1px, transparent 1px 56px),
+    linear-gradient(180deg, #dfe5f0 0%, #f2f4f9 22%, #e9edf5 58%, #dbe2ee 100%);
+}
+
+.section {
+  padding: clamp(3.5rem, 9vw, 6.5rem) 1.25rem;
+  scroll-margin-top: 1rem;
+}
+
+.wrap {
+  max-width: var(--wrap);
+  margin: 0 auto;
+}
+
+/* dividers — little hardware button chips */
+.divider {
+  display: flex;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 0.25rem 0;
+}
+
+.chip {
+  width: 1.9rem;
+  height: 0.8rem;
+  border: 2px solid var(--ka-ink);
+  border-radius: 4px;
+  box-shadow: 0 2px 0 var(--ka-ink);
+}
+
+.chip-charcoal { background: var(--ka-charcoal); }
+.chip-yellow { background: var(--hw-yellow); }
+.chip-red { background: var(--hw-red); }
+
+/* ==========================================================================
+   02 — Two bands
+   ========================================================================== */
+
+.bands {
+  margin-top: 2.5rem;
+}
+
+.band { padding: clamp(2.25rem, 6vw, 3.5rem) 1.25rem; }
+
+.band-k5 {
+  background: var(--ka-pith);
+  border-top: 3px solid var(--ka-ink);
+  border-bottom: 3px solid var(--ka-ink);
+  color: color-mix(in srgb, var(--ka-bark) 60%, var(--ka-ink));
+}
+
+.band-k5 h3 { color: var(--ka-bark); }
+
+.band-68 {
+  background: color-mix(in srgb, var(--ka-eucalyptus) 42%, var(--ka-snow));
+  border-bottom: 3px solid var(--ka-ink);
+  color: color-mix(in srgb, var(--ka-canopy) 55%, var(--ka-ink));
+}
+
+.band-68 h3 { color: var(--ka-canopy); }
+
+.wrap-half {
+  max-width: var(--wrap);
+  margin: 0 auto;
+}
+
+.band h3 { margin-bottom: 0.75rem; }
+
+/* strand chips */
+.strands {
+  list-style: none;
+  margin: 1.5rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.strands li {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+
+.strands code { background: var(--ka-bark); flex-shrink: 0; min-width: 5.8em; text-align: center; }
+
+.strands span { font-size: 0.95rem; }
+
+/* 6-8 unit arc */
+.arc {
+  list-style: none;
+  margin: 1.5rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.arc li {
+  padding: 0.5rem 0;
+  border-top: 1px solid color-mix(in srgb, var(--ka-canopy) 35%, transparent);
+  font-size: 0.98rem;
+}
+
+.arc strong {
+  font-family: var(--font-display);
+  color: var(--ka-canopy);
+  margin-right: 0.5rem;
+}
+
+@media (min-width: 64rem) {
+  .bands {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  .band-k5 { border-bottom: 3px solid var(--ka-ink); border-right: 3px solid var(--ka-ink); }
+  .band-68 { border-top: 3px solid var(--ka-ink); }
+  .wrap-half { max-width: 34rem; }
+}
+
+/* ==========================================================================
+   03 — Grade snapshots (flat accordion)
+   ========================================================================== */
+
+.grade-list {
+  margin-top: 2rem;
+  border-top: 2px solid var(--ka-ink);
+}
+
+.grade-list details {
+  border-bottom: 2px solid var(--ka-ink);
+}
+
+.grade-list summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.85rem 0.25rem;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.grade-list summary::-webkit-details-marker { display: none; }
+
+.grade-key {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.15rem;
+  width: 2.9rem;
+  height: 2.9rem;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border: 3px solid var(--ka-ink);
+  border-radius: 9px;
+  box-shadow: 0 3px 0 var(--ka-ink);
+  color: var(--ka-ink);
+  transition: transform 100ms ease, box-shadow 100ms ease;
+}
+
+.gk-warm { background: var(--ka-bamboo); }
+.gk-cool { background: var(--hw-green); }
+
+.grade-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1rem, 0.9rem + 0.6vw, 1.25rem);
+}
+
+.grade-list summary:hover .grade-key { filter: brightness(1.06); }
+
+.grade-list details[open] .grade-key {
+  transform: translateY(3px);
+  box-shadow: 0 0 0 var(--ka-ink);
+}
+
+.grade-list details[open] summary .grade-title { color: var(--ka-canopy); }
+
+.grade-list details p {
+  margin: 0;
+  padding: 0 0.25rem 1.25rem 3.9rem;
+  max-width: 36rem;
+  color: color-mix(in srgb, var(--ka-ink) 85%, var(--ka-charcoal));
+}
+
+@media (max-width: 30rem) {
+  .grade-list details p { padding-left: 0.25rem; }
+}
+
+/* ==========================================================================
+   04 — Vanguard Songs
+   ========================================================================== */
+
+.section-vanguard {
+  background: color-mix(in srgb, var(--ka-mist) 55%, var(--ka-snow));
+  border-top: 3px solid var(--ka-ink);
+  border-bottom: 3px solid var(--ka-ink);
+}
+
+.big-question {
+  margin: 2.5rem 0;
+  padding: 0;
+  border-left: 6px solid var(--ka-pop);
+  padding-left: 1.25rem;
+}
+
+.big-question p {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1.35rem, 1.1rem + 1.4vw, 2rem);
+  line-height: 1.25;
+  margin: 0 0 0.5rem;
+  text-wrap: balance;
+}
+
+.big-question footer {
+  font-size: 0.9rem;
+  color: var(--ka-charcoal);
+}
+
+.footprint {
+  list-style: none;
+  margin: 2rem 0 1.5rem;
+  padding: 0;
+  display: grid;
+  gap: 0;
+  border-top: 2px solid var(--ka-ink);
+}
+
+.footprint li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas:
+    "band dots"
+    "desc desc";
+  align-items: center;
+  gap: 0.35rem 1rem;
+  padding: 1rem 0.25rem;
+  border-bottom: 2px solid var(--ka-ink);
+}
+
+.fp-band {
+  grid-area: band;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.3rem;
+}
+
+.fp-dots { grid-area: dots; display: flex; gap: 0.4rem; }
+
+.fp-dots i {
+  width: 0.95rem;
+  height: 0.95rem;
+  background: var(--ka-leaf);
+  border: 2px solid var(--ka-ink);
+  border-radius: 4px;
+}
+
+.fp-desc { grid-area: desc; font-size: 0.98rem; max-width: 36rem; }
+
+@media (min-width: 48rem) {
+  .footprint li {
+    grid-template-columns: 5rem 7rem 1fr;
+    grid-template-areas: "band dots desc";
+  }
+}
+
+/* ==========================================================================
+   05 — How class feels
+   ========================================================================== */
+
+.games {
+  list-style: none;
+  margin: 2rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 1.75rem;
+}
+
+.game-head {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.35rem;
+}
+
+.game-head code { background: var(--ka-leaf); }
+
+.games p { margin: 0; max-width: 36rem; color: color-mix(in srgb, var(--ka-ink) 85%, var(--ka-charcoal)); }
+
+.sub-head { margin-top: 3.5rem; }
+
+.decisions {
+  list-style: none;
+  margin: 1.25rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0;
+  border-top: 1px solid var(--line);
+}
+
+.decisions li {
+  padding: 0.85rem 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.98rem;
+  max-width: 38rem;
+}
+
+.decisions strong { font-family: var(--font-display); font-weight: 700; }
+
+@media (min-width: 48rem) {
+  .games { grid-template-columns: 1fr 1fr; gap: 2.25rem 3rem; }
+}
+
+/* ==========================================================================
+   06 — Outcomes
+   ========================================================================== */
+
+.section-outcomes {
+  background: var(--ka-canopy);
+  color: var(--ka-snow);
+  border-top: 3px solid var(--ka-ink);
+}
+
+.section-outcomes .eyebrow { color: var(--ka-eucalyptus); }
+.section-outcomes h2 { color: var(--ka-snow); }
+
+.outcomes {
+  list-style: none;
+  margin: 2rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 1.75rem;
+}
+
+.outcomes li {
+  border-top: 2px solid var(--ka-eucalyptus);
+  padding-top: 1rem;
+}
+
+.outcomes h3 { color: var(--ka-eucalyptus); margin-bottom: 0.4rem; }
+
+.outcomes p { margin: 0; font-size: 0.98rem; color: color-mix(in srgb, var(--ka-snow) 88%, var(--ka-eucalyptus)); }
+
+@media (min-width: 60rem) {
+  .outcomes { grid-template-columns: repeat(3, 1fr); gap: 2.5rem; }
+}
+
+/* ==========================================================================
+   Footer
+   ========================================================================== */
+
+.footer {
+  background: var(--ka-ink);
+  color: var(--ka-snow);
+  padding: 3.5rem 1.25rem 4rem;
+}
+
+.footer-inner { text-align: center; }
+
+.footer-mark { margin: 0 auto 1rem; width: 84px; }
+
+.footer-brand {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.6rem;
+  letter-spacing: -0.02em;
+  margin: 0 0 0.4rem;
+}
+
+.footer-line { margin: 0 0 0.75rem; color: var(--ka-mist); }
+
+.footer-fine { margin: 0; font-size: 0.85rem; color: var(--ka-charcoal); }
+
+/* ==========================================================================
+   Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: no-preference) {
+  .reveal {
+    opacity: 0;
+    transform: translateY(22px);
+    transition: opacity 600ms ease, transform 600ms ease;
+  }
+  .reveal.in {
+    opacity: 1;
+    transform: none;
+  }
+  .hero-copy > * {
+    animation: hero-rise 700ms ease backwards;
+  }
+  .hero-copy > :nth-child(1) { animation-delay: 60ms; }
+  .hero-copy > :nth-child(2) { animation-delay: 160ms; }
+  .hero-copy > :nth-child(3) { animation-delay: 280ms; }
+  .hero-copy > :nth-child(4) { animation-delay: 400ms; }
+
+  @keyframes hero-rise {
+    from { opacity: 0; transform: translateY(18px); }
+    to { opacity: 1; transform: none; }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .knob-mark { transform: none !important; }
+  .pad, .cta, .grade-key { transition: none; }
+}

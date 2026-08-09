@@ -4,8 +4,6 @@
   <img src="../curriculum/assets/ka-main-smile-decal-no-bg.png" alt="Koalacademy logo" width="160" />
 </p>
 
-Brand colors for future design work live in [brand-palette.md](./brand-palette.md).
-
 ## What Koalacademy is
 
 Koalacademy is a 20-week music production curriculum designed for urban school districts. It

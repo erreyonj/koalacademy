@@ -22,7 +22,7 @@
 | --- | --- | --- | --- |
 | 6 | TBD | TBD | TBD |
 | 7 | TBD | TBD | TBD |
-| 8 | "Forever YHWH" — Jordan G. Welch (cover) *(candidate, from the original framework)* | TBD | TBD |
+| 8 | "Forever YHWH" — Jordan G. Welch (cover) *(candidate, from the original framework)* | "A Thousand Miles" - Vanessa Carlton |  |
 
 ## Selection worksheet
 

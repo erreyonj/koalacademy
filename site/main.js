@@ -4,6 +4,86 @@
 
   var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+  /* ---- Sitewide drawer ---- */
+  var menuBtn = document.getElementById("menu-btn");
+  var drawer = document.getElementById("drawer");
+  var scrim = document.getElementById("drawer-scrim");
+  var drawerLcd = document.getElementById("drawer-lcd");
+
+  if (menuBtn && drawer) {
+    var lastFocus = null;
+
+    var focusables = function () {
+      return Array.prototype.slice
+        .call(drawer.querySelectorAll("a[href], button, summary, [tabindex]:not([tabindex='-1'])"))
+        .filter(function (el) {
+          return el.offsetParent !== null;
+        });
+    };
+
+    var setDrawer = function (open) {
+      document.body.classList.toggle("drawer-open", open);
+      menuBtn.setAttribute("aria-expanded", open ? "true" : "false");
+      menuBtn.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+      drawer.setAttribute("aria-hidden", open ? "false" : "true");
+      if (open) {
+        lastFocus = document.activeElement;
+        window.setTimeout(function () {
+          var first = focusables()[0];
+          if (first) first.focus();
+        }, 60);
+      } else if (lastFocus && typeof lastFocus.focus === "function") {
+        lastFocus.focus();
+      }
+    };
+
+    menuBtn.addEventListener("click", function () {
+      setDrawer(!document.body.classList.contains("drawer-open"));
+    });
+
+    if (scrim) {
+      scrim.addEventListener("click", function () {
+        setDrawer(false);
+      });
+    }
+
+    document.addEventListener("keydown", function (e) {
+      if (!document.body.classList.contains("drawer-open")) return;
+      if (e.key === "Escape") {
+        setDrawer(false);
+        menuBtn.focus();
+        return;
+      }
+      if (e.key !== "Tab") return;
+      var items = focusables();
+      items.unshift(menuBtn);
+      if (!items.length) return;
+      var first = items[0];
+      var last = items[items.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    });
+
+    /* LCD readout follows the open submenu */
+    if (drawerLcd) {
+      var groups = Array.prototype.slice.call(drawer.querySelectorAll(".drawer-group"));
+      var idle = drawerLcd.textContent;
+      groups.forEach(function (group) {
+        group.addEventListener("toggle", function () {
+          var open = groups.filter(function (g) {
+            return g.open;
+          })[0];
+          drawerLcd.textContent = open ? (open.dataset.lcd || idle) : idle;
+        });
+      });
+    }
+  }
+
   var lcd = document.getElementById("lcd");
   var pads = Array.prototype.slice.call(document.querySelectorAll(".pad[data-section]"));
   var sections = Array.prototype.slice.call(document.querySelectorAll("[data-lcd]"));
@@ -88,10 +168,13 @@
   /* ---- Scroll reveal ---- */
   if (!reduceMotion && "IntersectionObserver" in window) {
     var targets = Array.prototype.slice.call(
-      document.querySelectorAll(".section .wrap, .band .wrap-half")
+      document.querySelectorAll(".section .wrap, .band .wrap-half, .song-stage .song-inner, .book-grid > li")
     );
     targets.forEach(function (el) {
       el.classList.add("reveal");
+    });
+    Array.prototype.slice.call(document.querySelectorAll(".book-grid > li")).forEach(function (el, i) {
+      el.style.transitionDelay = Math.min(i, 6) * 60 + "ms";
     });
     var revealer = new IntersectionObserver(
       function (entries) {

@@ -13,6 +13,64 @@
 </head>
 <body>
 
+<a class="skip-link" href="#year">Skip to content</a>
+
+<!-- ============================== SITE CHROME ============================== -->
+<button class="menu-btn" id="menu-btn" type="button" aria-expanded="false" aria-controls="drawer" aria-label="Open menu">
+  <span class="menu-bars" aria-hidden="true"><i></i><i></i><i></i></span>
+  <span>Menu</span>
+</button>
+
+<div class="drawer-scrim" id="drawer-scrim"></div>
+
+<aside class="drawer" id="drawer" aria-label="Site menu" aria-hidden="true">
+  <div class="drawer-head">
+    <div class="drawer-screen"><span class="lcd" id="drawer-lcd">MENU — SELECT</span></div>
+    <div class="drawer-knobs" aria-hidden="true">
+      <svg class="knob" viewBox="0 0 64 64"><circle cx="32" cy="34" r="26" class="knob-base"/><circle cx="32" cy="30" r="26" class="knob-cap"/><rect x="30" y="8" width="4" height="14" rx="2" class="knob-mark"/></svg>
+      <svg class="knob" viewBox="0 0 64 64"><circle cx="32" cy="34" r="26" class="knob-base"/><circle cx="32" cy="30" r="26" class="knob-cap"/><rect x="30" y="8" width="4" height="14" rx="2" class="knob-mark"/></svg>
+    </div>
+  </div>
+  <nav class="drawer-nav" aria-label="Main">
+    <a class="drawer-item" href="index.html" aria-current="page"><span class="led led-sky"></span>Home</a>
+
+    <details class="drawer-group" name="ka-drawer" data-lcd="SYLLABI — MASTER + K–8">
+      <summary class="drawer-item"><span class="led"></span>Syllabi<span class="drawer-toggle-mark" aria-hidden="true">+</span></summary>
+      <div class="drawer-sub">
+        <a class="sub-wide" href="syllabi/master.html">Master Syllabus</a>
+        <div class="sub-grid">
+          <a class="sub-pad" href="syllabi/grade-k.html">K</a>
+          <a class="sub-pad" href="syllabi/grade-1.html">1</a>
+          <a class="sub-pad" href="syllabi/grade-2.html">2</a>
+          <a class="sub-pad" href="syllabi/grade-3.html">3</a>
+          <a class="sub-pad" href="syllabi/grade-4.html">4</a>
+          <a class="sub-pad" href="syllabi/grade-5.html">5</a>
+          <a class="sub-pad sub-pad-cool" href="syllabi/grade-6.html">6</a>
+          <a class="sub-pad sub-pad-cool" href="syllabi/grade-7.html">7</a>
+          <a class="sub-pad sub-pad-cool" href="syllabi/grade-8.html">8</a>
+          <span class="sub-pad sub-pad-dim" aria-hidden="true"></span>
+        </div>
+      </div>
+    </details>
+
+    <details class="drawer-group" name="ka-drawer" data-lcd="VANGUARD — 4 BANDS">
+      <summary class="drawer-item"><span class="led led-yellow"></span>Vanguard Songs<span class="drawer-toggle-mark" aria-hidden="true">+</span></summary>
+      <div class="drawer-sub">
+        <div class="sub-grid sub-grid-2">
+          <a class="sub-pad" href="songs/k-1.html">K + 1</a>
+          <a class="sub-pad" href="songs/2-3.html">2 + 3</a>
+          <a class="sub-pad" href="songs/4-5.html">4 + 5</a>
+          <a class="sub-pad sub-pad-cool" href="songs/6-plus.html">6 +</a>
+        </div>
+      </div>
+    </details>
+
+    <a class="drawer-item" href="materials.html"><span class="led led-pop"></span>Materials</a>
+    <a class="drawer-item" href="portal.html"><span class="led led-yellow"></span>Project Portal</a>
+  </nav>
+  <p class="drawer-fine">K–8 Music Pilot · One City Schools, Madison, WI. Pages marked scaffold are placeholders for the pilot year.</p>
+</aside>
+
 <!-- ============================== HERO ============================== -->
 <header class="hero" id="top">
   <div class="hero-copy">
@@ -124,38 +182,47 @@
       <details name="grades">
         <summary><span class="grade-key gk-warm">K</span><span class="grade-title">Music through play</span></summary>
         <p>Kindergartners keep a steady beat with their bodies, freeze on silences, hunt for sounds around the room, echo short songs, and learn that music has parts that repeat and change. Everything is movement, voice, and games.</p>
+        <p class="detail-link"><a href="syllabi/grade-k.html">Full syllabus</a></p>
       </details>
       <details name="grades">
         <summary><span class="grade-key gk-warm">1</span><span class="grade-title">The beat becomes theirs</span></summary>
         <p>First graders keep the beat without the teacher counting, echo short rhythms, describe sounds with a growing timbre vocabulary, and start hearing A/B section changes without cues.</p>
+        <p class="detail-link"><a href="syllabi/grade-1.html">Full syllabus</a></p>
       </details>
       <details name="grades">
         <summary><span class="grade-key gk-warm">2</span><span class="grade-title">Internalizing the pulse</span></summary>
         <p>Silent Ball arrives — passes land on the downbeat only. Rhythms stretch to two bars with multiple rests, and the first real notation reading begins: matching heard rhythms to simple written ones.</p>
+        <p class="detail-link"><a href="syllabi/grade-2.html">Full syllabus</a></p>
       </details>
       <details name="grades">
         <summary><span class="grade-key gk-warm">3</span><span class="grade-title">Playing with knowledge</span></summary>
         <p>Third graders play with what they know, not just how they move: trivia games enter as review, listening responses become full sentences, and reading simple 4/4 rhythms becomes expected rather than introduced.</p>
+        <p class="detail-link"><a href="syllabi/grade-3.html">Full syllabus</a></p>
       </details>
       <details name="grades">
         <summary><span class="grade-key gk-warm">4</span><span class="grade-title">Vocabulary as material</span></summary>
         <p>Musical Taboo forces students to describe concepts by their properties. Note names land on the staff, Silent Ball moves to off-beats, and exit tickets become a routine written artifact.</p>
+        <p class="detail-link"><a href="syllabi/grade-4.html">Full syllabus</a></p>
       </details>
       <details name="grades">
         <summary><span class="grade-key gk-warm">5</span><span class="grade-title">The bridge year</span></summary>
         <p>Fifth grade consolidates everything the strands built — internal 4/4 counting, subdivision, staff reading, full-song form, timbre vocabulary — so sixth grade can walk into production without a theory front-load. First exposure to what sampling <em>is</em> happens here, by ear, without devices.</p>
+        <p class="detail-link"><a href="syllabi/grade-5.html">Full syllabus</a></p>
       </details>
       <details name="grades">
         <summary><span class="grade-key gk-cool">6</span><span class="grade-title">Enter production</span></summary>
         <p>Sixth grade enters the Koalacademy curriculum: theory in service of making, sampling history, drum design, song form, sampling rights, and an original project sampled from songs the students choose. The listening lens: intentional listening — emotion and basic structure.</p>
+        <p class="detail-link"><a href="syllabi/grade-6.html">Full syllabus</a></p>
       </details>
       <details name="grades">
         <summary><span class="grade-key gk-cool">7</span><span class="grade-title">Structure and identity</span></summary>
         <p>Seventh grade sharpens the lens toward deeper structural awareness, contrast, and stylistic identity. Extended theory — modes, relative and parallel keys — lands here, tied to real sample-matching work.</p>
+        <p class="detail-link"><a href="syllabi/grade-7.html">Full syllabus</a></p>
       </details>
       <details name="grades">
         <summary><span class="grade-key gk-cool">8</span><span class="grade-title">Interpretive discourse</span></summary>
         <p>Eighth grade runs the course closest to its original form, carrying the full final-project arc with the least scaffolding. The lens: restraint vs. complexity, artistic intent, and meaning — by spring, discussion approaches high-school level.</p>
+        <p class="detail-link"><a href="syllabi/grade-8.html">Full syllabus</a></p>
       </details>
     </div>
   </div>
@@ -196,6 +263,7 @@
     </ul>
 
     <p class="fine">Song lists lock before the year starts and don't change mid-year. Selections favor a clear beat, strong section contrast, distinguishable timbres, and lyrics that hold up in a classroom.</p>
+    <p class="detail-link"><a href="songs/k-1.html">Anchors by grade band</a></p>
   </div>
 </section>
 

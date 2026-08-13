@@ -1,0 +1,16 @@
+{
+  "name": "koalacademy-site",
+  "version": "1.0.0",
+  "description": "Koalacademy K-8 music pilot site",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check:embeds": "node scripts/check-embeds.mjs"
+  },
+  "devDependencies": {
+    "vite": "^7.1.0"
+  }
+}

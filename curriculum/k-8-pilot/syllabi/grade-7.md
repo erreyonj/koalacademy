@@ -36,7 +36,14 @@ Per-unit device days, reserved or rented — see
 
 ## Vanguard Songs
 
-Three anchors — TBD in [vanguard-songs/song-list.md](../vanguard-songs/song-list.md).
+Three anchors — see [vanguard-songs/song-list.md](../vanguard-songs/song-list.md):
+
+1. **"I'm With You"** — Avril Lavigne *(locked)*
+2. **"Chicago"** — Michael Jackson *(locked)*
+3. TBD
+
+Students receive the 6-8 [student guide](../vanguard-songs/student-guide.md) and keep a
+listening journal.
 
 ## Assessment and grading
 

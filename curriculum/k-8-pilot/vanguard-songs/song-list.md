@@ -21,8 +21,8 @@
 | Grade | Song 1 | Song 2 | Song 3 |
 | --- | --- | --- | --- |
 | 6 | TBD | TBD | TBD |
-| 7 | TBD | TBD | TBD |
-| 8 | "Forever YHWH" — Jordan G. Welch (cover) *(candidate, from the original framework)* | "A Thousand Miles" - Vanessa Carlton |  |
+| 7 | "I'm With You" - Avril Lavigne | TBD | TBD |
+| 8 | "Forever YHWH" — Jordan G. Welch (cover) | "A Thousand Miles" - Vanessa Carlton | "DO 4 LOVE" - Snoh Aalegra |
 
 ## Selection worksheet
 

@@ -43,8 +43,9 @@ performance intention, production minimalism. Remaining two TBD in
 
 ## Assessment and grading
 
-As grades 6-7: project spine, listening journal, exit tickets, corrective written work
-([resources/written-work.md](../resources/written-work.md)). Gradebook mapping TBD.
+As grades 6-7: project spine, listening journal, and exit tickets as graded work; theory
+worksheets lean corrective ([resources/written-work.md](../resources/written-work.md)).
+Gradebook mapping TBD.
 
 ## Standards alignment
 

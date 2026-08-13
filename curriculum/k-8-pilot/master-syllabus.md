@@ -50,8 +50,9 @@ moments per band, and 6-8 device-day clusters.
 ## Assessment and grading
 
 Assessment leans on observation of play, exit tickets, listening journals, and projects.
-Written work is corrective and evidence-generating, not a core tenet — full stance and the
-gradebook mix in [resources/written-work.md](resources/written-work.md).
+Written work leans corrective, and from grade 2 up also supplies gradebook evidence and
+progress checks — full stance and the gradebook mix in
+[resources/written-work.md](resources/written-work.md).
 
 TBD: One City report card categories, grading scale, and progress-report language.
 

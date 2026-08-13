@@ -42,7 +42,8 @@ TBD.
 
 ## Assessment and grading
 
-Observation plus one or two collected pages per quarter (corrective fill-ins, matching). See
+Observation plus one or two collected pages per quarter (matching, fill-ins) for progress
+and gradebook evidence; targeted correctives when a gap shows up. See
 [resources/written-work.md](../resources/written-work.md), 2-3 band.
 
 ## Vanguard Song

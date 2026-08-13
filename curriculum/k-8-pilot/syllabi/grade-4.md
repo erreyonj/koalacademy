@@ -7,7 +7,7 @@
 
 Fourth graders work with vocabulary as material: Musical Taboo forces them to describe
 concepts by their properties, note names land on the staff, Silent Ball moves to off-beats,
-and exit tickets become the routine written artifact.
+and exit tickets become a routine written artifact.
 
 ## Meeting cadence
 
@@ -41,8 +41,9 @@ TBD.
 
 ## Assessment and grading
 
-Weekly exit tickets, quarterly written checks, listening journal. Self-checking worksheets
-where possible. See [resources/written-work.md](../resources/written-work.md), 4-5 band.
+Weekly exit tickets, quarterly written checks, listening journal — for progress and
+grades. Self-checking worksheets where useful; targeted correctives when a gap shows up.
+See [resources/written-work.md](../resources/written-work.md), 4-5 band.
 
 ## Vanguard Songs
 

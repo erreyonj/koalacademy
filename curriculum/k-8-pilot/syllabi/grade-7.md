@@ -40,8 +40,9 @@ Three anchors — TBD in [vanguard-songs/song-list.md](../vanguard-songs/song-li
 
 ## Assessment and grading
 
-As grade 6: project spine, journals, exit tickets, corrective written work
-([resources/written-work.md](../resources/written-work.md)). Gradebook mapping TBD.
+As grade 6: project spine, journals, and exit tickets as graded work; theory worksheets
+lean corrective ([resources/written-work.md](../resources/written-work.md)). Gradebook
+mapping TBD.
 
 ## Standards alignment
 

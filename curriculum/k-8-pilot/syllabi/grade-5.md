@@ -44,8 +44,8 @@ against the 6th-grade entry expectations.
 
 ## Assessment and grading
 
-Exit tickets, journal, quarterly checks, performance rubric TBD. See
-[resources/written-work.md](../resources/written-work.md), 4-5 band.
+Exit tickets, journal, quarterly checks for progress and grades; performance rubric TBD.
+See [resources/written-work.md](../resources/written-work.md), 4-5 band.
 
 ## Vanguard Songs
 

@@ -25,7 +25,7 @@ TBD — quarter/trimester arc pending calendar.
 | `PITCH` | Major vs. minor mood by ear; scale as a ladder concept |
 | `TIMBRE` | Two-property descriptions; classifying classroom instruments |
 | `FORM` | Predicting the next section; naming A/B/C aloud |
-| `NOTATE` | Fill-in-the-missing-beat pages as correctives; symbol names solid |
+| `NOTATE` | Fill-in-the-missing-beat pages (progress checks and correctives); symbol names solid |
 | `LISTEN` | One to two Vanguard Songs; sentence-frame journal lines begin |
 | `CREATE` | Compose and notate (iconically) a two-bar pattern |
 
@@ -41,8 +41,8 @@ TBD.
 
 ## Assessment and grading
 
-Observation, quarterly written checks, first listening-journal lines. See
-[resources/written-work.md](../resources/written-work.md), 2-3 band.
+Observation, quarterly written checks for progress and grades, first listening-journal
+lines. See [resources/written-work.md](../resources/written-work.md), 2-3 band.
 
 ## Vanguard Songs
 

@@ -44,8 +44,9 @@ listening journal.
 
 ## Assessment and grading
 
-Follows the Koalacademy project spine plus journals and exit tickets; written theory work is
-corrective only ([resources/written-work.md](../resources/written-work.md), 6-8 band).
+Follows the Koalacademy project spine plus journals and exit tickets as graded work;
+theory worksheets lean corrective
+([resources/written-work.md](../resources/written-work.md), 6-8 band).
 Gradebook mapping TBD.
 
 ## Standards alignment

@@ -35,8 +35,8 @@ progression. The target spiral lives in [scope-and-sequence.md](../scope-and-seq
 
 ## Written work
 
-Written work is a corrective and progress-tracking measure, not a core tenet of the course.
-The full stance, including what it looks like per grade band, is in
+Written work leans corrective; from grade 2 up it also grades and tracks progress. The full
+stance, including what it looks like per grade band, is in
 [resources/written-work.md](../resources/written-work.md).
 
 ## Instruction pattern

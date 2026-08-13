@@ -1,8 +1,10 @@
 # Your Vanguard Songs — Student Guide
 
-> **Status: scaffold.** Song titles are blank pending [song-list.md](song-list.md). This doc
-> is written *to students* and should be printed or read aloud, not just filed. Two register
-> bands below; K-2 gets no handout — their version is spoken and modeled by the teacher.
+> **Status: partial lock.** Grade 8 songs are filled in below; grade 7 has two of
+> three. Grade 6 and K–5 blanks stay until [song-list.md](song-list.md) locks them.
+> This doc is written *to students* and should be printed or read aloud, not just
+> filed. Two register bands below; K-2 gets no handout — their version is spoken
+> and modeled by the teacher.
 
 ---
 
@@ -50,11 +52,23 @@ way a novel is the text of an English class. Every concept we learn — form, rh
 production, sampling — will eventually be pointed back at these three songs, and your job is
 to keep finding what you couldn't hear before.
 
-Your Vanguard Songs this year:
+Your Vanguard Songs this year (copy from the board for your grade):
 
-1. ________________________________________
-2. ________________________________________
-3. ________________________________________
+**Grade 6** — TBD (three anchors lock before day one)
+
+**Grade 7**
+
+1. "I'm With You" — Avril Lavigne
+2. "Chicago" — Michael Jackson
+3. ________________________________________ *(TBD)*
+
+**Grade 8**
+
+1. "Forever YHWH" — Jordan G. Welch (cover)
+2. "A Thousand Miles" — Vanessa Carlton
+3. "DO 4 LOVE" — Snoh Aalegra
+
+Full list: [song-list.md](song-list.md).
 
 ### Why the same songs all year
 

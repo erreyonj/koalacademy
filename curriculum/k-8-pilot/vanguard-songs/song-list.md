@@ -1,9 +1,10 @@
 # Vanguard Songs — Per-Grade Assignments
 
-> **Status: scaffold.** Songs are TBD except where a candidate is noted. Selection criteria
-> live in [framework.md](framework.md) — for K-5 favor clear beat, strong section contrast,
-> distinguishable timbres, and appropriate/singable lyrics. Songs lock before the year starts
-> and do not change mid-year.
+> **Status: partial lock.** Grade 8 is locked. Grade 7 has two of three locked
+> (third TBD). Grades K–6 remain TBD. Selection criteria live in
+> [framework.md](framework.md) — for K-5 favor clear beat, strong section
+> contrast, distinguishable timbres, and appropriate/singable lyrics. Locked
+> songs do not change mid-year.
 
 ## K-5 (one to two anchors per grade)
 
@@ -21,8 +22,8 @@
 | Grade | Song 1 | Song 2 | Song 3 |
 | --- | --- | --- | --- |
 | 6 | TBD | TBD | TBD |
-| 7 | TBD | TBD | TBD |
-| 8 | "Forever YHWH" — Jordan G. Welch (cover) *(candidate, from the original framework)* | TBD | TBD |
+| 7 | "I'm With You" — Avril Lavigne | "Chicago" — Michael Jackson | TBD |
+| 8 | "Forever YHWH" — Jordan G. Welch (cover) | "A Thousand Miles" — Vanessa Carlton | "DO 4 LOVE" — Snoh Aalegra |
 
 ## Selection worksheet
 
@@ -40,4 +41,5 @@ For each candidate, answer before locking:
 
 | Date | Change |
 | --- | --- |
+| 2026-08-13 | Locked grade 8 (all three). Locked grade 7 songs 1–2; song 3 still TBD. |
 | — | Initial scaffold; all songs TBD except grade 8 candidate |

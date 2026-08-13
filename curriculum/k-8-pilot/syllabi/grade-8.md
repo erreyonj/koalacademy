@@ -36,10 +36,15 @@ Per-unit device days, reserved or rented — see
 
 ## Vanguard Songs
 
-Three anchors. Candidate from the original framework: Jordan G. Welch's cover of
-"Forever YHWH" as a primary discourse piece — arrangement restraint, harmonic pacing,
-performance intention, production minimalism. Remaining two TBD in
-[vanguard-songs/song-list.md](../vanguard-songs/song-list.md).
+Three anchors — locked in [vanguard-songs/song-list.md](../vanguard-songs/song-list.md):
+
+1. **"Forever YHWH"** — Jordan G. Welch (cover) — primary discourse piece: arrangement
+   restraint, harmonic pacing, performance intention, production minimalism
+2. **"A Thousand Miles"** — Vanessa Carlton
+3. **"DO 4 LOVE"** — Snoh Aalegra
+
+Students receive the 6-8 [student guide](../vanguard-songs/student-guide.md) and keep a
+listening journal.
 
 ## Assessment and grading
 

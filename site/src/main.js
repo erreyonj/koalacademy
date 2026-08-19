@@ -3,10 +3,12 @@
 import "./styles.css";
 import { mountChrome, initDrawer } from "./nav.js";
 import { initEmbeds } from "./embeds.js";
+import { initTooltips } from "./tooltips.js";
 
 mountChrome();
 initDrawer();
 initEmbeds();
+initTooltips();
 
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 

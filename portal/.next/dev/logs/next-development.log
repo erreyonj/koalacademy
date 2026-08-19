@@ -1,0 +1,2 @@
+{"timestamp":"00:00:00.640","source":"Server","level":"LOG","message":""}
+{"timestamp":"00:04:42.256","source":"Server","level":"ERROR","message":"⨯ \"unhandledRejection:\" Error: ENOENT: no such file or directory, scandir '/Users/eelders/Desktop/Code/koalacademy/portal/src/app'"}

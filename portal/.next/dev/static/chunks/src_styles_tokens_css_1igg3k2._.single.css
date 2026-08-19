@@ -1,0 +1,32 @@
+/* [project]/src/styles/tokens.css [app-client] (css) */
+:root {
+  --ka-mist: #c0cbe1;
+  --ka-slate: #99a4b8;
+  --ka-charcoal: #737a89;
+  --ka-ink: #000;
+  --ka-snow: #fff;
+  --ka-pop: #f56e8f;
+  --ka-eucalyptus: #a8c3b0;
+  --ka-leaf: #5b8f7b;
+  --ka-canopy: #2f5648;
+  --ka-pith: #ede4d4;
+  --ka-bamboo: #d4c4a8;
+  --ka-culm: #a8906c;
+  --ka-bark: #6e5a42;
+  --hw-sky: #a9c6e8;
+  --hw-screen: #bdd7ee;
+  --hw-green: #7fb08a;
+  --hw-yellow: #e3b23c;
+  --hw-red: #d96459;
+  --hw-body: #4a505c;
+  --hw-panel: #3a3f49;
+  --font-display: var(--font-space-grotesk), "Avenir Next", sans-serif;
+  --font-body: var(--font-outfit), "Avenir Next", sans-serif;
+  --font-mono: "SF Mono", "Menlo", "Consolas", monospace;
+  --line: color-mix(in srgb, var(--ka-charcoal) 30%, transparent);
+  --wrap: 42rem;
+  --slide-wrap: 46rem;
+  --tap-min: 44px;
+}
+
+/*# sourceMappingURL=src_styles_tokens_css_1igg3k2._.single.css.map*/

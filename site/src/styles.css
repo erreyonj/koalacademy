@@ -1122,7 +1122,7 @@ body.drawer-open { overflow: hidden; }
     linear-gradient(180deg, color-mix(in srgb, var(--ka-eucalyptus) 75%, var(--ka-snow)) 0%, color-mix(in srgb, var(--ka-eucalyptus) 30%, var(--ka-snow)) 100%);
 }
 
-.page-hero--materials {
+.page-hero--resources {
   background:
     radial-gradient(120% 90% at 12% 0%, color-mix(in srgb, var(--ka-snow) 55%, transparent) 0%, transparent 60%),
     linear-gradient(180deg, var(--ka-bamboo) 0%, var(--ka-pith) 100%);
@@ -1401,7 +1401,7 @@ button.embed-frame[disabled] { cursor: default; }
 .song-lens strong { font-family: var(--font-display); }
 
 /* ==========================================================================
-   Materials — booklist catalog
+   Resources — booklist catalog
    ========================================================================== */
 
 .book-grid {
@@ -1538,3 +1538,155 @@ button.embed-frame[disabled] { cursor: default; }
 }
 
 .standby-actions .cta { border-color: var(--ka-snow); box-shadow: 0 4px 0 var(--ka-snow); }
+
+/* ==========================================================================
+   WI DPI standards alignment — legend + grade-band matrices
+   ========================================================================== */
+
+.page-hero--standards {
+  background:
+    radial-gradient(120% 90% at 12% 0%, color-mix(in srgb, var(--ka-snow) 60%, transparent) 0%, transparent 60%),
+    linear-gradient(180deg, var(--hw-sky) 0%, color-mix(in srgb, var(--hw-screen) 40%, var(--ka-snow)) 100%);
+}
+
+/* The four grade-band columns need more room than the 42rem prose column. */
+.wrap-chart {
+  max-width: 76rem;
+  margin: 0 auto;
+}
+
+.wrap-chart > h2 {
+  font-size: clamp(1.35rem, 1.15rem + 1vw, 1.85rem);
+  margin: 3.25rem 0 0.5rem;
+}
+
+.wrap-chart > h2:first-child { margin-top: 0; }
+
+.wrap-chart > p {
+  margin: 0 0 1rem;
+  max-width: 44rem;
+}
+
+.standard-statement {
+  font-style: italic;
+  color: color-mix(in srgb, var(--ka-ink) 75%, var(--ka-charcoal));
+}
+
+/* ---------- flags ---------- */
+
+.flag {
+  border: 2px solid var(--ka-ink);
+  padding: 0.2em 0.5em;
+}
+
+.flag-core { background: var(--hw-green); color: var(--ka-ink); }
+.flag-dev { background: var(--hw-yellow); color: var(--ka-ink); }
+.flag-gap { background: var(--hw-red); color: var(--ka-snow); }
+
+.flag-legend {
+  list-style: none;
+  margin: 1.5rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.9rem;
+}
+
+.flag-legend li {
+  display: flex;
+  align-items: baseline;
+  gap: 0.8rem;
+}
+
+.flag-legend .flag { flex-shrink: 0; min-width: 4.6em; text-align: center; }
+
+.flag-legend span { font-size: 0.95rem; }
+
+/* ---------- matrix ---------- */
+
+.matrix {
+  width: 100%;
+  min-width: 58rem;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  background: var(--ka-snow);
+}
+
+.matrix caption {
+  text-align: left;
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ka-charcoal);
+  padding: 0 0 0.6rem;
+}
+
+.matrix th {
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-align: left;
+  padding: 0.7rem 0.9rem;
+  background: var(--ka-pith);
+  border: 1px solid var(--ka-ink);
+  border-bottom-width: 2px;
+  white-space: nowrap;
+}
+
+.matrix th[scope="row"] {
+  width: 9.5rem;
+  white-space: normal;
+  vertical-align: top;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  background: color-mix(in srgb, var(--ka-pith) 55%, var(--ka-snow));
+  border-bottom-width: 1px;
+}
+
+.matrix td {
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--line);
+  vertical-align: top;
+}
+
+.matrix td.is-dev { background: color-mix(in srgb, var(--hw-yellow) 15%, transparent); }
+.matrix td.is-gap { background: color-mix(in srgb, var(--hw-red) 13%, transparent); }
+.matrix td.is-empty { background: color-mix(in srgb, var(--ka-charcoal) 10%, transparent); }
+
+.cell-id {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ka-charcoal);
+  margin-bottom: 0.3rem;
+}
+
+.cell-desc {
+  margin: 0 0 0.55rem;
+  max-width: none;
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.cell-codes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem;
+  margin: 0;
+}
+
+.cell-codes + .cell-note { margin-top: 0.5rem; }
+
+.cell-codes code { font-size: 0.62rem; letter-spacing: 0.06em; }
+
+.cell-note {
+  margin: 0;
+  max-width: none;
+  font-size: 0.85rem;
+  color: var(--ka-charcoal);
+}

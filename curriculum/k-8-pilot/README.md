@@ -24,6 +24,7 @@ pass, once meeting cadence per grade is confirmed.
 | [playbook/lesson-structure.md](playbook/lesson-structure.md) | Partial — blocks drafted, cadence TBD |
 | [scope-and-sequence.md](scope-and-sequence.md) | Scaffold — strands defined, grade rows TBD |
 | [master-syllabus.md](master-syllabus.md) | Scaffold |
+| [koalacademy-WI-standards-alignment.md](koalacademy-WI-standards-alignment.md) | Written — all 70 WI General Music indicators mapped and flagged |
 | [syllabi/](syllabi/) | Scaffold — nine grade files |
 | [vanguard-songs/framework.md](vanguard-songs/framework.md) | Written — includes K-5 extension |
 | [vanguard-songs/song-list.md](vanguard-songs/song-list.md) | Scaffold — songs TBD |
@@ -38,6 +39,8 @@ pass, once meeting cadence per grade is confirmed.
 README.md                       This file: orientation and status
 master-syllabus.md              K-8 program-level syllabus (scaffold)
 scope-and-sequence.md           Vertical concept map, K-8 (scaffold)
+koalacademy-WI-standards-alignment.md
+                                WI DPI General Music alignment report and chart source
 ideas-inbox.md                  Raw parking lot for unsorted ideas
 syllabi/                        One syllabus per grade, K through 8
 playbook/                       Games, routines, class structure, teaching notes

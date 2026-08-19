@@ -67,10 +67,11 @@ function chromeMarkup(key) {
   <nav class="drawer-nav" aria-label="Main">
     <a class="drawer-item" href="/index.html"${current("/index.html", key)}><span class="led led-sky"></span>Home</a>
 
-    <details class="drawer-group" name="ka-drawer" data-lcd="SYLLABI — MASTER + K–8"${inSyllabi ? " open" : ""}>
+    <details class="drawer-group" name="ka-drawer" data-lcd="SYLLABI — MASTER + WI + K–8"${inSyllabi ? " open" : ""}>
       <summary class="drawer-item"><span class="led"></span>Syllabi<span class="drawer-toggle-mark" aria-hidden="true">+</span></summary>
       <div class="drawer-sub">
         <a class="sub-wide" href="/syllabi/master.html"${current("/syllabi/master.html", key)}>Master Syllabus</a>
+        <a class="sub-wide" href="/syllabi/wi-dpi-standards-alignment.html"${current("/syllabi/wi-dpi-standards-alignment.html", key)}>WI DPI Alignment</a>
         <div class="sub-grid">
           ${gradePads}
           <span class="sub-pad sub-pad-dim" aria-hidden="true"></span>
@@ -87,7 +88,7 @@ function chromeMarkup(key) {
       </div>
     </details>
 
-    <a class="drawer-item" href="/materials.html"${current("/materials.html", key)}><span class="led led-pop"></span>Materials</a>
+    <a class="drawer-item" href="/resources.html"${current("/resources.html", key)}><span class="led led-pop"></span>Resources</a>
     <a class="drawer-item" href="/portal.html"${current("/portal.html", key)}><span class="led led-yellow"></span>Project Portal</a>
   </nav>
   <p class="drawer-fine">K–8 Music Pilot · One City Schools, Madison, WI. Pages marked scaffold are placeholders for the pilot year.</p>

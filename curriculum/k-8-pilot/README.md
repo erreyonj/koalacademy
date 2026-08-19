@@ -31,6 +31,7 @@ pass, once meeting cadence per grade is confirmed.
 | [vanguard-songs/student-guide.md](vanguard-songs/student-guide.md) | Scaffold |
 | [resources/written-work.md](resources/written-work.md) | Written — stance documented |
 | [resources/booklist.md](resources/booklist.md) | Seeded — candidates unverified |
+| [resources/portal-v1.md](resources/portal-v1.md) | Proposal — portal V1 spec and stack recommendation |
 | [ideas-inbox.md](ideas-inbox.md) | Living — parking lot |
 
 ## Folder map
@@ -45,7 +46,7 @@ ideas-inbox.md                  Raw parking lot for unsorted ideas
 syllabi/                        One syllabus per grade, K through 8
 playbook/                       Games, routines, class structure, teaching notes
 vanguard-songs/                 Anchor-song framework, per-grade lists, student guide
-resources/                      Written-work stance and the booklist
+resources/                      Written-work stance, the booklist, and the portal V1 spec
 ```
 
 ## Relationship to the rest of the repository

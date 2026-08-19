@@ -1,3 +1,7 @@
 node_modules/
 site/dist/
+portal/.next/
+portal/out/
+portal/next-env.d.ts
+portal/tsconfig.tsbuildinfo
 .DS_Store

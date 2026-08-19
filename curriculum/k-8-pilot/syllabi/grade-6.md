@@ -57,7 +57,10 @@ TBD.
 
 ### Wisconsin DPI Music Standards
 
-TBD.
+The 6-8 column in
+[koalacademy-WI-standards-alignment.md](../koalacademy-WI-standards-alignment.md) shows every
+6-8 indicator addressed by written lessons. How the three grades divide that work is TBD
+alongside the differentiation question below.
 
 ## Open questions
 

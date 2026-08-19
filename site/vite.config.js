@@ -6,13 +6,14 @@ const root = fileURLToPath(new URL(".", import.meta.url));
 
 const pages = [
   "index",
-  "materials",
+  "resources",
   "portal",
   "songs/k-1",
   "songs/2-3",
   "songs/4-5",
   "songs/6-plus",
   "syllabi/master",
+  "syllabi/wi-dpi-standards-alignment",
   "syllabi/grade-k",
   "syllabi/grade-1",
   "syllabi/grade-2",

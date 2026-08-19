@@ -66,7 +66,9 @@ TBD.
 
 ### Wisconsin DPI Music Standards
 
-TBD.
+Band-level mapping is done — see the 3-5 column in
+[koalacademy-WI-standards-alignment.md](../koalacademy-WI-standards-alignment.md). Which
+indicators this grade carries, and when, is TBD with pacing.
 
 ## Notes
 

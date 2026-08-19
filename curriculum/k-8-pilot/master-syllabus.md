@@ -74,7 +74,14 @@ Connecting anchor standards per grade.
 
 ### Wisconsin DPI Music Standards
 
-TBD — map to Wisconsin Standards for Music per grade band.
+Mapped — see
+[koalacademy-WI-standards-alignment.md](koalacademy-WI-standards-alignment.md) for all seventy
+General Music performance indicators matched to lesson codes and K-5 strands, flagged `CORE`,
+`DEV`, or `GAP`. Published as a chart at `/syllabi/wi-dpi-standards-alignment`.
+
+Headline: grades 6-8 address every indicator in their band; K-5 is aligned in intent but
+largely unpaced; the eight open gaps are audience and performer roles, concert etiquette, and
+music's relationship to history and culture in K-5.
 
 ## Family communication
 
@@ -82,6 +89,8 @@ TBD — syllabus-night one-pager, what "music class" looks like this year, perfo
 
 ## Related documents
 
+- WI DPI standards alignment:
+  [koalacademy-WI-standards-alignment.md](koalacademy-WI-standards-alignment.md)
 - Full 6-8 course content: [curriculum/KOALACADEMY.md](../KOALACADEMY.md)
 - Course description and requirements: [docs/README.md](../../docs/README.md)
 - Idea parking lot: [ideas-inbox.md](ideas-inbox.md)

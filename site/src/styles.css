@@ -126,6 +126,45 @@ code {
   vertical-align: middle;
 }
 
+/* ---------- lesson-code tooltips ---------- */
+
+[data-tooltip] {
+  position: relative;
+  cursor: help;
+}
+
+[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 22rem;
+  width: max-content;
+  padding: 0.45em 0.7em;
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: 0.82rem;
+  letter-spacing: 0;
+  text-transform: none;
+  line-height: 1.35;
+  color: var(--ka-snow);
+  background: var(--hw-panel);
+  border: 2px solid var(--ka-ink);
+  border-radius: 6px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25);
+  white-space: normal;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 140ms ease;
+  z-index: 30;
+}
+
+[data-tooltip]:hover::after,
+[data-tooltip]:focus::after {
+  opacity: 1;
+}
+
 /* ==========================================================================
    Hero — full-bleed mist plane, brand first
    ========================================================================== */
@@ -1580,7 +1619,9 @@ button.embed-frame[disabled] { cursor: default; }
 }
 
 .flag-core { background: var(--hw-green); color: var(--ka-ink); }
+.flag-embed { background: var(--ka-culm); color: var(--ka-snow); }
 .flag-dev { background: var(--hw-yellow); color: var(--ka-ink); }
+.flag-out { background: var(--ka-mist); color: var(--ka-ink); }
 .flag-gap { background: var(--hw-red); color: var(--ka-snow); }
 
 .flag-legend {
@@ -1650,7 +1691,9 @@ button.embed-frame[disabled] { cursor: default; }
   vertical-align: top;
 }
 
+.matrix td.is-embed { background: color-mix(in srgb, var(--ka-culm) 14%, transparent); }
 .matrix td.is-dev { background: color-mix(in srgb, var(--hw-yellow) 15%, transparent); }
+.matrix td.is-out { background: color-mix(in srgb, var(--ka-mist) 22%, transparent); }
 .matrix td.is-gap { background: color-mix(in srgb, var(--hw-red) 13%, transparent); }
 .matrix td.is-empty { background: color-mix(in srgb, var(--ka-charcoal) 10%, transparent); }
 

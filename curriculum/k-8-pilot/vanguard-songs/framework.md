@@ -81,6 +81,25 @@ domains, including but not limited to:
 - Grade-appropriate discussion protocols
 - Longitudinal reflection: "What do I hear now that I didn't hear before?"
 
+### 5. Cultural and historical discourse
+
+Anchor songs are the program's main vehicle for cultural and historical context. Because the
+same recording returns all year, context arrives attached to music students already know rather
+than as a separate history unit — the basis of the CONNECT alignment in
+[koalacademy-WI-standards-alignment.md](../koalacademy-WI-standards-alignment.md).
+
+Three recurring lenses, asked at whatever depth the grade supports:
+
+- **Who made this, and what was their job?** Performer, writer, producer, arranger, engineer,
+  music director — the roles are different, and students rarely know that.
+- **Where and when does it come from?** Era, place, and the tradition the music sits inside.
+- **What tradition is being drawn on here?** Especially where a texture or technique carries a
+  lineage, as a gospel choir arrangement does.
+
+Threads that recur reliably are written into the per-song entries in
+[song-list.md](song-list.md), the same way lesson-level threads are written into **Discourse**
+blocks in [KOALACADEMY.md](../../KOALACADEMY.md).
+
 ## Assessment alignment
 
 Vanguard Songs naturally support formative and summative assessment without requiring
@@ -137,6 +156,9 @@ surface-level lenses that map to the K-5 strands in
   directly on the grade's Vanguard Song), say how it feels (`LISTEN`).
 - **Movement is the response format.** K-2 responds with bodies and single words; 3-5 adds
   drawing, sentence frames, and short journal lines.
+- **Discourse when the song supports it.** Who made it, where it comes from, and what job that
+  person had — a sentence or two inside the listening block, not a separate period. This is what
+  covers the K-5 CONNECT indicators.
 - **Song selection criteria for K-5:** clear steady beat, strong section contrast, rich but
   distinguishable timbres, lyrics (if any) appropriate and singable, and enough depth that
   the teacher isn't sick of it by March.

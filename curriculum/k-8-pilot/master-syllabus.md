@@ -75,13 +75,17 @@ Connecting anchor standards per grade.
 ### Wisconsin DPI Music Standards
 
 Mapped — see
-[koalacademy-WI-standards-alignment.md](koalacademy-WI-standards-alignment.md) for all seventy
-General Music performance indicators matched to lesson codes and K-5 strands, flagged `CORE`,
-`DEV`, or `GAP`. Published as a chart at `/syllabi/wi-dpi-standards-alignment`.
+[koalacademy-WI-standards-alignment.md](koalacademy-WI-standards-alignment.md) for all
+fifty-two K-8 General Music performance indicators matched to lesson codes and K-5 strands,
+flagged `CORE`, `EMBED`, `DEV`, or `OUT`. Published as a chart at
+`/syllabi/wi-dpi-standards-alignment`. The 9-12 band is out of scope: the school ends at
+grade 8.
 
-Headline: grades 6-8 address every indicator in their band; K-5 is aligned in intent but
-largely unpaced; the eight open gaps are audience and performer roles, concert etiquette, and
-music's relationship to history and culture in K-5.
+Headline: grades 6-8 address every indicator in their band. K-5 is aligned in intent but
+largely unpaced — twelve cells wait on scope-and-sequence pacing rather than on new content.
+Historical and cultural context is delivered as documented discourse inside lessons and
+Vanguard listening rather than as standalone history units, and concert etiquette is
+deliberately out of scope for a non-performance program. No indicator is left unexplained.
 
 ## Family communication
 

@@ -62,8 +62,8 @@ TBD.
 
 The 6-8 column in
 [koalacademy-WI-standards-alignment.md](../koalacademy-WI-standards-alignment.md) shows every
-6-8 indicator addressed by written lessons; grade 8 runs closest to the 9-12 column. How the
-three grades divide that work is TBD alongside differentiation.
+6-8 indicator in scope addressed by written lessons, with grade 8 carrying the deepest
+interpretive work. How the three grades divide that work is TBD alongside differentiation.
 
 ## Open questions
 

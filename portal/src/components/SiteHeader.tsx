@@ -32,6 +32,14 @@ export function SiteHeader({ activeBand }: SiteHeaderProps) {
               {band.short}
             </Link>
           ))}
+          <a
+            className="site-link-external"
+            href="https://koalacademy-web.netlify.app/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Site
+          </a>
         </nav>
       </div>
     </header>

@@ -19,6 +19,8 @@ Notes:
 
 - Blocks are swappable, not optional in aggregate: every class has an entry, one focus, one
   active block, and an exit. The middle varies.
+- Entry and attention routines sit inside CREW / CRISP culture — see
+  [routines-and-protocols.md](routines-and-protocols.md).
 - For K-1, halve the mini-lesson and let the game carry the concept.
 - Written work, when used, replaces part of the activity block as a corrective — see
   [../resources/written-work.md](../resources/written-work.md).

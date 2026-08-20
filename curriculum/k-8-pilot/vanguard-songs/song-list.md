@@ -10,20 +10,20 @@
 
 | Grade | Song 1 | Song 2 (3-5 only, optional) |
 | --- | --- | --- |
-| K | TBD | — |
-| 1 | TBD | — |
-| 2 | TBD | — |
-| 3 | TBD | TBD |
-| 4 | TBD | TBD |
-| 5 | TBD | TBD |
+| K | [6th Grade Companion] | — |
+| 1 | [6th Grade Companion] | — |
+| 2 | [6th Grade Companion] | — |
+| 3 | [7th Grade Companion] | - |
+| 4 | [7th Grade Companion] | - |
+| 5 | [7th Grade Companion] | - |
 
 ## 6-8 (three anchors per grade)
 
 | Grade | Song 1 | Song 2 | Song 3 |
 | --- | --- | --- | --- |
-| 6 | TBD | TBD | TBD |
-| 7 | "I'm With You" — Avril Lavigne | "Chicago" — Michael Jackson | TBD |
-| 8 | "Forever YHWH" — Jordan G. Welch (cover) | "A Thousand Miles" — Vanessa Carlton | "DO 4 LOVE" — Snoh Aalegra |
+| 6 | "Let's Dream In The Moonlight" - Samara Joy, [K-2 Companion] | "I'm With You" - Avril Lavigne | "Happy" - NAO |
+| 7 | "Birds of a Feather" - Billie Eilish | "Chicago" — Michael Jackson, Primary [3-5 Companion] | "California Dreaming" - Jose Feliciano |
+| 8 | "Forever YHWH" — Jordan G. Welch (cover), Primary | "A Thousand Miles" — Vanessa Carlton | "DO 4 LOVE" — Snoh Aalegra |
 
 ## Per-song discourse threads
 

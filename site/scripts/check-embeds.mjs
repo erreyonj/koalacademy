@@ -15,7 +15,7 @@ import { SONGS } from "../src/songs-data.js";
 
 const UA =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36";
-const REFERER = "https://koalacademy.netlify.app/";
+const REFERER = "https://koalacademy-web.netlify.app/";
 
 async function check(id) {
   const oembedUrl =

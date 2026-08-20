@@ -4,7 +4,7 @@ Classroom games for the K-8 pilot, each written to the same template so new game
 cleanly. Strand codes are defined in [scope-and-sequence.md](../scope-and-sequence.md).
 
 Every game is taught with the I do / We do / You do pattern described in
-[routines-and-attention.md](routines-and-attention.md): the teacher demonstrates first, the
+[routines-and-protocols.md](routines-and-protocols.md): the teacher demonstrates first, the
 class runs a guided round together, then students play for real.
 
 ## Template

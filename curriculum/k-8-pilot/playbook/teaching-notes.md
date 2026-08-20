@@ -42,4 +42,4 @@ The full stance, including what it looks like per grade band, is in
 ## Instruction pattern
 
 Everything — games, lessons, procedures — is taught I do / We do / You do. See
-[routines-and-attention.md](routines-and-attention.md).
+[routines-and-protocols.md](routines-and-protocols.md).

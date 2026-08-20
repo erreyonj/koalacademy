@@ -1,10 +1,9 @@
 # Your Vanguard Songs — Student Guide
 
-> **Status: partial lock.** Grade 8 songs are filled in below; grade 7 has two of
-> three. Grade 6 and K–5 blanks stay until [song-list.md](song-list.md) locks them.
-> This doc is written *to students* and should be printed or read aloud, not just
-> filed. Two register bands below; K-2 gets no handout — their version is spoken
-> and modeled by the teacher.
+> **Status: partial lock.** Grades 6–8 songs are filled in below from
+> [song-list.md](song-list.md). K–2 hears their Companion spoken and modeled (no
+> handout). This doc is written *to students* and should be printed or read aloud,
+> not just filed.
 
 ---
 
@@ -16,10 +15,13 @@ A Vanguard Song is a song our class keeps all year. We don't listen to it once a
 we come back to it again and again, and every time we know more music, we hear more inside
 it.
 
-Your Vanguard Song(s) this year:
+Your song is a **Companion** — the same recording middle school uses as one of their
+Vanguards. You will not analyze it as deeply as they do; you will live with it all year
+through beat, sound, form, and feeling.
 
-- ________________________________________
-- ________________________________________
+Your Vanguard Song this year:
+
+- "Chicago" — Michael Jackson *(shared with grade 7)*
 
 ### How we use it
 
@@ -49,22 +51,30 @@ and one sentence frame ("Today I noticed ________ in the music.").
 
 Your grade has three anchor recordings for the year. They are the texts of this course the
 way a novel is the text of an English class. Every concept we learn — form, rhythm, harmony,
-production, sampling — will eventually be pointed back at these three songs, and your job is
-to keep finding what you couldn't hear before.
+production, sampling — will eventually be pointed back at these songs, and your job is to
+keep finding what you couldn't hear before.
 
-Your Vanguard Songs this year (copy from the board for your grade):
+One song is **Primary** — the default song lessons return to. The other two are still yours:
+if Primary is not the source material you want to work from, you can choose one of the other
+options. Primary gets the deepest analysis; the others stay familiar all year.
 
-**Grade 6** — TBD (three anchors lock before day one)
+Your Vanguard Songs this year:
+
+**Grade 6**
+
+1. "Let's Dream In The Moonlight" — Samara Joy *(Primary; also K–2 Companion)*
+2. "I'm With You" — Avril Lavigne
+3. "Happy" — NAO
 
 **Grade 7**
 
-1. "I'm With You" — Avril Lavigne
-2. "Chicago" — Michael Jackson
-3. ________________________________________ *(TBD)*
+1. "Birds of a Feather" — Billie Eilish
+2. "Chicago" — Michael Jackson *(Primary; also 3–5 Companion)*
+3. "California Dreaming" — José Feliciano
 
 **Grade 8**
 
-1. "Forever YHWH" — Jordan G. Welch (cover)
+1. "Forever YHWH" — Jordan G. Welch (cover) *(Primary)*
 2. "A Thousand Miles" — Vanessa Carlton
 3. "DO 4 LOVE" — Snoh Aalegra
 
@@ -75,6 +85,9 @@ Full list: [song-list.md](song-list.md).
 Producers and musicians study a small number of records deeply rather than skimming hundreds.
 Familiarity is the point: when you know a song this well, you stop hearing *a song* and start
 hearing *decisions* — why the drums drop out there, why the hook waits, why less was more.
+
+If we make it to a performance, your piece will be Primary or (for younger grades) a
+Companion — material you have already lived with all year.
 
 ### Your listening journal
 

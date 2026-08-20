@@ -1,5 +1,5 @@
 /** Grade bands a lesson can appear under. One index page is generated per band. */
-export const BAND_IDS = ["k-1", "2-3", "4-5", "6", "7", "8"] as const;
+export const BAND_IDS = ["k-2", "3-5", "6-8"] as const;
 
 export type BandId = (typeof BAND_IDS)[number];
 
@@ -18,7 +18,7 @@ export type Strand = (typeof STRANDS)[number];
 
 export interface Band {
   id: BandId;
-  /** Display label, e.g. "Grades 2-3". */
+  /** Display label, e.g. "Grades 3–5". */
   label: string;
   /** Short label for the header pad. */
   short: string;
@@ -29,54 +29,33 @@ export interface Band {
 
 export const BANDS: readonly Band[] = [
   {
-    id: "k-1",
-    label: "Kindergarten + Grade 1",
-    short: "K–1",
+    id: "k-2",
+    label: "Grades K–2",
+    short: "K–2",
     track: "unplugged",
     blurb: "Games, movement, and voice. Teacher-projected.",
   },
   {
-    id: "2-3",
-    label: "Grades 2 + 3",
-    short: "2–3",
+    id: "3-5",
+    label: "Grades 3–5",
+    short: "3–5",
     track: "unplugged",
-    blurb: "Strand work with the first written correctives.",
+    blurb: "Strand work, notation, and the run-up to Koalacademy.",
   },
   {
-    id: "4-5",
-    label: "Grades 4 + 5",
-    short: "4–5",
-    track: "unplugged",
-    blurb: "Notation, form, and the run-up to Koalacademy.",
-  },
-  {
-    id: "6",
-    label: "Grade 6",
-    short: "6",
+    id: "6-8",
+    label: "Grades 6–8",
+    short: "6–8",
     track: "production",
-    blurb: "Koalacademy, first pass. Theory in service of making.",
-  },
-  {
-    id: "7",
-    label: "Grade 7",
-    short: "7",
-    track: "production",
-    blurb: "Koalacademy with deeper sampling and drum design.",
-  },
-  {
-    id: "8",
-    label: "Grade 8",
-    short: "8",
-    track: "production",
-    blurb: "Koalacademy at full depth, ending in a live performance.",
+    blurb: "Koalacademy production. Theory in service of making.",
   },
 ];
 
 /**
  * Frontmatter as authored in content/lessons/*.mdx.
  *
- * `bands` is a list because grades 6-8 share one Koalacademy spine — the same
- * lesson appears on three index pages rather than being copied three times.
+ * `bands` is a list so a lesson can appear under more than one WI DPI band
+ * without being copied. Most lessons belong to exactly one of K–2, 3–5, or 6–8.
  */
 export interface LessonFrontmatter {
   code: string;

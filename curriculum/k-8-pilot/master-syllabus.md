@@ -29,7 +29,7 @@ Strand definitions and the K-8 vertical map: [scope-and-sequence.md](scope-and-s
 ## Instructional approach
 
 - Every game, lesson, and procedure is taught **I do / We do / You do**
-  ([playbook/routines-and-attention.md](playbook/routines-and-attention.md))
+  ([playbook/routines-and-protocols.md](playbook/routines-and-protocols.md))
 - Demonstrations are **guitar-first**, piano as visual aid
   ([playbook/teaching-notes.md](playbook/teaching-notes.md))
 - Theory is **spiraled across the year**, not front-loaded; classes accelerate based on

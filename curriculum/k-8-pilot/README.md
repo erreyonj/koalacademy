@@ -19,7 +19,7 @@ pass, once meeting cadence per grade is confirmed.
 | Doc | Status |
 | --- | --- |
 | [playbook/games.md](playbook/games.md) | Written — six games documented |
-| [playbook/routines-and-attention.md](playbook/routines-and-attention.md) | Written |
+| [playbook/routines-and-protocols.md](playbook/routines-and-protocols.md) | Written |
 | [playbook/teaching-notes.md](playbook/teaching-notes.md) | Written — standing decisions |
 | [playbook/lesson-structure.md](playbook/lesson-structure.md) | Partial — blocks drafted, cadence TBD |
 | [scope-and-sequence.md](scope-and-sequence.md) | Scaffold — strands defined, grade rows TBD |

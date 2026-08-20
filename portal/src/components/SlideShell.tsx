@@ -16,7 +16,9 @@ interface SlideShellProps extends LessonWithNeighbours {
  */
 export function SlideShell({ lesson, band, prev, next, children }: SlideShellProps) {
   const context = lesson.component
-    ? `Unit ${lesson.unit} · ${lesson.component}`
+    ? lesson.unit != null
+      ? `Unit ${lesson.unit} · ${lesson.component}`
+      : lesson.component
     : lesson.strand
       ? `Strand · ${lesson.strand}`
       : bandsLabel(lesson.bands);

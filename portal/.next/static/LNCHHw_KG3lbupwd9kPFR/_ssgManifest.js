@@ -1,1 +1,0 @@
-self.__SSG_MANIFEST=new Set(["\u002Fgrades\u002F[band]","\u002Flessons\u002F[code]"]);self.__SSG_MANIFEST_CB&&self.__SSG_MANIFEST_CB()

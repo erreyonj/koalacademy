@@ -1,7 +1,0 @@
-{
-  "/_global-error/page": "/_global-error",
-  "/_not-found/page": "/_not-found",
-  "/grades/[band]/page": "/grades/[band]",
-  "/lessons/[code]/page": "/lessons/[code]",
-  "/page": "/"
-}

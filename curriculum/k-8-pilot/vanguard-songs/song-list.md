@@ -1,37 +1,47 @@
 # Vanguard Songs — Per-Grade Assignments
 
-> **Status: partial lock.** Grade 8 is locked. Grade 7 has two of three locked
-> (third TBD). Grades K–6 remain TBD. Selection criteria live in
-> [framework.md](framework.md) — for K-5 favor clear beat, strong section
-> contrast, distinguishable timbres, and appropriate/singable lyrics. Locked
-> songs do not change mid-year.
+> **Status: locked titles for 6–8.** Grade 8 discourse thread seeded. K–5 use
+> Companion tracks from grades 6–7 Primaries. Selection criteria live in
+> [framework.md](framework.md). Locked songs do not change mid-year.
 
-## K-5 (one to two anchors per grade)
+## Primary / Companion legend
 
-| Grade | Song 1 | Song 2 (3-5 only, optional) |
+| Tag | Meaning |
+| --- | --- |
+| **Primary** | Default lesson reference for that middle-school grade. Deep analysis and discourse threads attach here unless another of the three fits the day's lens better. |
+| **[K-2 Companion]** / **[3-5 Companion]** | Same recording feeds the younger band as their yearlong Vanguard. K-2 and 3-5 do not carry a separate deep canon. |
+| *(no tag)* | Choice alternative for 6–8 scholars who prefer a different source than Primary; lighter recurring familiarity, not full discourse depth. |
+
+If the pilot reaches performance, every grade performs either its **Primary** (6–8) or its **Companion** (K–5).
+
+## K-5 (Companion anchors)
+
+| Grade | Song 1 | Song 2 |
 | --- | --- | --- |
-| K | TBD | — |
-| 1 | TBD | — |
-| 2 | TBD | — |
-| 3 | TBD | TBD |
-| 4 | TBD | TBD |
-| 5 | TBD | TBD |
+| K | Companion: "Let's Dream In The Moonlight" — Samara Joy (grade 6 Primary) | — |
+| 1 | Companion: "Let's Dream In The Moonlight" — Samara Joy (grade 6 Primary) | — |
+| 2 | Companion: "Let's Dream In The Moonlight" — Samara Joy (grade 6 Primary) | — |
+| 3 | Companion: "Chicago" — Michael Jackson (grade 7 Primary) | — |
+| 4 | Companion: "Chicago" — Michael Jackson (grade 7 Primary) | — |
+| 5 | Companion: "Chicago" — Michael Jackson (grade 7 Primary) | — |
 
 ## 6-8 (three anchors per grade)
 
 | Grade | Song 1 | Song 2 | Song 3 |
 | --- | --- | --- | --- |
-| 6 | TBD | TBD | TBD |
-| 7 | "I'm With You" — Avril Lavigne | "Chicago" — Michael Jackson | TBD |
-| 8 | "Forever YHWH" — Jordan G. Welch (cover) | "A Thousand Miles" — Vanessa Carlton | "DO 4 LOVE" — Snoh Aalegra |
+| 6 | "Let's Dream In The Moonlight" — Samara Joy, **Primary** [K-2 Companion] | "I'm With You" — Avril Lavigne | "Happy" — NAO |
+| 7 | "Birds of a Feather" — Billie Eilish | "Chicago" — Michael Jackson, **Primary** [3-5 Companion] | "California Dreaming" — José Feliciano |
+| 8 | "Forever YHWH" — Jordan G. Welch (cover), **Primary** | "A Thousand Miles" — Vanessa Carlton | "DO 4 LOVE" — Snoh Aalegra |
 
 ## Per-song discourse threads
 
-Cultural, historical, and industry context that recurs when a locked anchor is discussed. Same
-convention as the **Discourse** blocks on lessons in [KOALACADEMY.md](../../KOALACADEMY.md), and
-the source of the CONNECT rows in
+Cultural, historical, and industry context that recurs when a locked Primary is discussed.
+Same convention as the **Discourse** blocks on lessons in [KOALACADEMY.md](../../KOALACADEMY.md),
+and the source of the CONNECT rows in
 [koalacademy-WI-standards-alignment.md](../koalacademy-WI-standards-alignment.md). Written per
-song as repertoire locks; the entry below is the reference pattern.
+song as repertoire locks; the entry below is the reference pattern. Non-primary and Companion
+sittings stay lighter — strand lenses, not full discourse depth — unless a day's material
+points there.
 
 ### Grade 8 — "Forever YHWH" (Jordan G. Welch cover)
 
@@ -66,6 +76,7 @@ For each candidate, answer before locking:
 
 | Date | Change |
 | --- | --- |
+| 2026-08-20 | Primary / Companion system; K–5 rows point at grade 6–7 Companions; locked grade 6–7 titles. |
 | 2026-08-19 | Added per-song discourse threads; seeded grade 8 "Forever YHWH" as the pattern. |
 | 2026-08-13 | Locked grade 8 (all three). Locked grade 7 songs 1–2; song 3 still TBD. |
 | — | Initial scaffold; all songs TBD except grade 8 candidate |

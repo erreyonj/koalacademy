@@ -30,6 +30,7 @@ pass, once meeting cadence per grade is confirmed.
 | [vanguard-songs/student-guide.md](vanguard-songs/student-guide.md) | Scaffold |
 | [resources/written-work.md](resources/written-work.md) | Written — stance documented |
 | [resources/booklist.md](resources/booklist.md) | Seeded — candidates unverified |
+| [classroom-setup.md](classroom-setup.md) | Snapshot — basement walkthrough inventory and buy list |
 | [ideas-inbox.md](ideas-inbox.md) | Living — parking lot |
 
 ## Folder map
@@ -39,6 +40,7 @@ README.md                       This file: orientation and status
 master-syllabus.md              K-8 program-level syllabus (scaffold)
 scope-and-sequence.md           Vertical concept map, K-8 (scaffold)
 ideas-inbox.md                  Raw parking lot for unsorted ideas
+classroom-setup.md              Room inventory, layout, and materials task list
 syllabi/                        One syllabus per grade, K through 8
 playbook/                       Games, routines, class structure, teaching notes
 vanguard-songs/                 Anchor-song framework, per-grade lists, student guide

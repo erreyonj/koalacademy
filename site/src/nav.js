@@ -13,10 +13,9 @@ const GRADES = [
 ];
 
 const BANDS = [
-  ["K + 1", "/songs/k-1.html", false],
-  ["2 + 3", "/songs/2-3.html", false],
-  ["4 + 5", "/songs/4-5.html", false],
-  ["6 +", "/songs/6-plus.html", true],
+  ["K–2", "/songs/k-2.html", false],
+  ["3–5", "/songs/3-5.html", false],
+  ["6–8", "/songs/6-8.html", true],
 ];
 
 const KNOB = `<svg class="knob" viewBox="0 0 64 64"><circle cx="32" cy="34" r="26" class="knob-base"/><circle cx="32" cy="30" r="26" class="knob-cap"/><rect x="30" y="8" width="4" height="14" rx="2" class="knob-mark"/></svg>`;
@@ -79,7 +78,7 @@ function chromeMarkup(key) {
       </div>
     </details>
 
-    <details class="drawer-group" name="ka-drawer" data-lcd="VANGUARD — 4 BANDS"${inSongs ? " open" : ""}>
+    <details class="drawer-group" name="ka-drawer" data-lcd="VANGUARD — 3 BANDS"${inSongs ? " open" : ""}>
       <summary class="drawer-item"><span class="led led-yellow"></span>Vanguard Songs<span class="drawer-toggle-mark" aria-hidden="true">+</span></summary>
       <div class="drawer-sub">
         <div class="sub-grid sub-grid-2">
@@ -89,7 +88,7 @@ function chromeMarkup(key) {
     </details>
 
     <a class="drawer-item" href="/resources.html"${current("/resources.html", key)}><span class="led led-pop"></span>Resources</a>
-    <a class="drawer-item" href="/portal.html"${current("/portal.html", key)}><span class="led led-yellow"></span>Project Portal</a>
+    <a class="drawer-item" href="https://koalacademy-portal.netlify.app/" target="_blank" rel="noopener"><span class="led led-yellow"></span>Project Portal</a>
   </nav>
   <p class="drawer-fine">K–8 Music Pilot · One City Schools, Madison, WI. Pages marked scaffold are placeholders for the pilot year.</p>
 </aside>`;

@@ -12,6 +12,20 @@ vs. complexity, artistic intent, and meaning* (see
 [vanguard-songs/framework.md](../vanguard-songs/framework.md)). By spring, discussion should
 approach high-school level, preparing students for advanced electives or independent work.
 
+## Meeting cadence
+
+**60 minutes** (2:20–3:20). Use the [60-minute assembly](../playbook/lesson-structure.md),
+production-day or unplugged depending on the You-do.
+
+| Section | Typical window |
+| --- | --- |
+| 8 Gold | Wed 2:20–3:20 |
+| 8 Blue | Thu 2:20–3:20 |
+
+On Day 6, last period is 6 Blue instead of 8 Blue if that Day 6 falls on Thursday. Wednesday
+and Thursday 10:25–11:25 are 8th-grade expeditions (not a core syllabus class). Full grid:
+[music-6-day-schedule.md](../resources/calendars/music-6-day-schedule.md).
+
 ## Year mapping
 
 Same component structure as [grade-6.md](grade-6.md); pacing TBD. Grade 8 carries the full
@@ -26,13 +40,14 @@ final-project arc with the least scaffolding.
 | TBD | Sampling Rights | `SRP.1`-`SRP.5` | Case law discussion (`SRP.5`) |
 | TBD | Digital Drumming | `D4.1`-`D4.5` | FX and processing (`D4.5`) |
 | TBD | Defining Your Sound | `DYS.1`-`DYS.5` | Full playlist analysis |
-| TBD | Artist Appreciation | `AW.1`-`AW.5` | Final project; device days |
+| TBD | Artist Appreciation | `AW.1`-`AW.5` | Final project; production days |
 | TBD | Advanced FX / Performance | `AEP`, `PERFORMANCE` | Live recording and performance |
 
 ## Devices
 
-Per-unit device days, reserved or rented — see
-[playbook/teaching-notes.md](../playbook/teaching-notes.md).
+Thirty iPads, 1:1 on production days. Production vs. unplugged is a lesson choice, not a
+rental calendar. Student keyboards have no MIDI out; the teacher keyboard does, by
+appointment — see [playbook/teaching-notes.md](../playbook/teaching-notes.md).
 
 ## Vanguard Songs
 

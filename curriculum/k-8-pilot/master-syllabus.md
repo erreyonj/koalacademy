@@ -2,9 +2,9 @@
 
 One City Schools, Madison, WI — pilot year.
 
-> **Status: scaffold.** Program-level structure is set; pacing, calendar, and standards
-> alignment fill in once meeting cadence and the school calendar are confirmed. Per-grade
-> syllabi live in [syllabi/](syllabi/).
+> **Status: scaffold.** Period lengths and the 6-day rotation are locked. Year-long pacing
+> and NCAS alignment still fill in against the school calendar. Per-grade syllabi live in
+> [syllabi/](syllabi/).
 
 ## Program description
 
@@ -22,7 +22,7 @@ skills grow.
 | Band | Organized by | Core method |
 | --- | --- | --- |
 | K-5 | Strands: `BEAT` `PITCH` `TIMBRE` `FORM` `NOTATE` `LISTEN` `CREATE` | Games, movement, voice, found sound ([playbook/](playbook/)) |
-| 6-8 | Koalacademy units and lesson codes (`BMT`, `KSN`, `US`, `D4`, ...) | Production with Koala Sampler on per-unit device days |
+| 6-8 | Koalacademy units and lesson codes (`BMT`, `KSN`, `US`, `D4`, ...) | Production with Koala Sampler on 1:1 iPads (production days) |
 
 Strand definitions and the K-8 vertical map: [scope-and-sequence.md](scope-and-sequence.md).
 
@@ -34,18 +34,29 @@ Strand definitions and the K-8 vertical map: [scope-and-sequence.md](scope-and-s
   ([playbook/teaching-notes.md](playbook/teaching-notes.md))
 - Theory is **spiraled across the year**, not front-loaded; classes accelerate based on
   demonstrated prior knowledge ([scope-and-sequence.md](scope-and-sequence.md))
-- Classes assemble from modular blocks fitting 30 or 45 minutes
+- Classes assemble from modular blocks fitting 30, 55, or 60 minutes
   ([playbook/lesson-structure.md](playbook/lesson-structure.md))
 
 ## Meeting cadence
 
-TBD — minutes per class and classes per week, per grade. Blocks are designed to flex until
-this is confirmed.
+Locked — minutes and the 6-day rotation. Days per week are section-specific (Blue / Gold),
+not a single number per grade. Full grid:
+[resources/calendars/music-6-day-schedule.md](resources/calendars/music-6-day-schedule.md).
+
+| Band | Period | Assembly |
+| --- | --- | --- |
+| K-2 | 27-30 min | 30-minute (listening is a Vanguard-day activity, not daily) |
+| 3-4 | 60 min | 60-minute |
+| 5 | 55 min | 55-minute |
+| 6-8 | 60 min | 60-minute unplugged, or production-day when the You-do is Koala |
+
+Instructional days follow a Day 1-6 cycle. First day of school is Wednesday 9/2/2026 =
+Day 1. On Day 6, keep that weekday's K-5 blocks and put 6th Grade Blue in the last period.
 
 ## Year at a glance
 
 TBD — pending school calendar. Will define quarters/trimesters, performance or share-out
-moments per band, and 6-8 device-day clusters.
+moments per band, and 6-8 production-day clusters.
 
 ## Assessment and grading
 
@@ -61,8 +72,9 @@ TBD: One City report card categories, grading scale, and progress-report languag
 - Teacher: guitar; classroom piano (secondary); soft ball; balloons; card and question sets
   for games; playback system
 - K-5 students: none beyond classroom supplies (unplugged-first)
-- 6-8 students: iOS devices with Koala Sampler on scheduled device days (rented if needed),
-  headphones — see [playbook/teaching-notes.md](playbook/teaching-notes.md)
+- 6-8 students: 1:1 iPads (30 in the building) with Koala Sampler and headphones on
+  production days — see [playbook/teaching-notes.md](playbook/teaching-notes.md). Student
+  keyboards have no MIDI out; the teacher keyboard does, by appointment.
 - Books and reproducibles: [resources/booklist.md](resources/booklist.md)
 
 ## Standards alignment
@@ -96,5 +108,7 @@ TBD — syllabus-night one-pager, what "music class" looks like this year, perfo
 - WI DPI standards alignment:
   [koalacademy-WI-standards-alignment.md](koalacademy-WI-standards-alignment.md)
 - Full 6-8 course content: [curriculum/KOALACADEMY.md](../KOALACADEMY.md)
+- Music 6-day schedule:
+  [resources/calendars/music-6-day-schedule.md](resources/calendars/music-6-day-schedule.md)
 - Course description and requirements: [docs/README.md](../../docs/README.md)
 - Idea parking lot: [ideas-inbox.md](ideas-inbox.md)

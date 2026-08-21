@@ -1,8 +1,9 @@
 # Scope and Sequence — K-8
 
-> **Status: scaffold.** Strands and their upward mapping are defined. Per-grade progressions
-> and the year-long theory spiral are TBD — filled in once meeting cadence is confirmed and
-> after the first weeks reveal each class's prior knowledge.
+> **Status: scaffold.** Strands and their upward mapping are defined. Period lengths and the
+> 6-day rotation are locked ([music-6-day-schedule.md](resources/calendars/music-6-day-schedule.md)).
+> Per-grade progressions and the year-long theory spiral fill in after the first weeks reveal
+> each class's prior knowledge.
 
 ## K-5 strand codes
 
@@ -44,14 +45,14 @@ accelerate through the spiral — the sequence is fixed, the speed is not.
 | Staff and rhythmic notation | `BMT.4`, week 4 | TBD — spiraled all year via `NOTATE` |
 | 4/4 counting | `BMT.4`, week 4 | TBD — week 1 via games (Beat Freeze, Silent Ball) |
 | 3/4 and 6/8 | `BMT.5`, week 5 | TBD — after 4/4 is automatic |
-| Basic drum sounds | `BMT.5`, week 5 | TBD — with `TIMBRE` work, before device days |
+| Basic drum sounds | `BMT.5`, week 5 | TBD — with `TIMBRE` work, before production days in Koala |
 | Blues scale, modes (`BMT.2`) | Week 2 | TBD — likely 7-8 only, on demand |
 | Relative/parallel keys (`BMT.3`) | Week 3 | TBD — likely 7-8 only, with sample-matching work |
 
 ## Per-strand progressions (TBD)
 
 Each strand needs a K-5 progression row: what mastery looks like at the end of K, 2, and 5.
-Skeleton below; fill after cadence is confirmed.
+Skeleton below; fill after the first weeks reveal prior knowledge.
 
 ### `BEAT`
 
@@ -114,4 +115,4 @@ Skeleton below; fill after cadence is confirmed.
 Grades 6-8 follow the existing course; see the thin syllabi in [syllabi/](syllabi/) which map
 the year to lesson codes in [KOALACADEMY.md](../KOALACADEMY.md). The open question for 6-8 is
 stretching a 20-week course across a ~36-week school year — the extra weeks likely absorb the
-respaced theory spiral, Vanguard Song listening, and device-day logistics.
+respaced theory spiral, Vanguard Song listening, and production-day logistics.

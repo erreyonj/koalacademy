@@ -6,8 +6,8 @@ lesson plans that depend on it need review.
 ## Guitar-first demonstration
 
 The teacher's main instrument is guitar. Musical examples, demonstrations, and attention
-getters lean guitar wherever possible. The classroom is believed to have a piano; it serves
-as the secondary instrument, mainly for:
+getters lean guitar wherever possible. The classroom has a piano and a teacher keyboard; they
+serve as the secondary instruments, mainly for:
 
 - Visualizing note placement and whole/half-step patterns (the keyboard diagram made physical)
 - Concepts the existing Koalacademy materials teach from a keyboard (`BMT.1`-`BMT.3`)
@@ -20,11 +20,20 @@ includes guitar demonstrations for the blues scale and modes — that pattern ge
 
 - **K-5:** No regular device access. K-5 is unplugged-first by design — games, movement,
   voice, found sounds, and classroom instruments. Any device use is an occasional extension,
-  never a dependency.
-- **6-8:** The existing Koalacademy course requires iOS devices with Koala Sampler. Access
-  will be secured per-unit as needed, including renting devices for specific class days if
-  necessary. Lesson pacing for 6-8 should cluster device-dependent work (`KSN`, `D4`
-  hands-on, project work weeks) so rental days are efficient.
+  never a dependency. Thirty iPads live in the building; they are not part of the K-5 daily
+  plan.
+- **6-8:** Thirty iPads with Koala Sampler are always available, so 1:1 is the default on
+  production days. Production vs. unplugged is a pedagogical choice, not a rental calendar.
+  Cluster Koala-heavy work (`KSN`, `D4` hands-on, project weeks) because the work needs an
+  uninterrupted You-do, not because devices have to be reserved.
+
+See [lesson-structure.md](lesson-structure.md) for the 60-minute production-day assembly.
+
+## MIDI keyboards
+
+Student keyboards do not have MIDI out, so they cannot drive Koala Sampler. Class default is
+pads and the in-app Keyboard view (`KSN.2`). The teacher keyboard does have MIDI out;
+students who need it schedule time at the teacher station.
 
 ## Theory pacing
 
@@ -42,4 +51,4 @@ stance, including what it looks like per grade band, is in
 ## Instruction pattern
 
 Everything — games, lessons, procedures — is taught I do / We do / You do. See
-[routines-and-attention.md](routines-and-attention.md).
+[routines-and-protocols.md](routines-and-protocols.md).

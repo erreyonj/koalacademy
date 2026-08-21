@@ -18,7 +18,7 @@ it from this list.
   (tracked as a prep TODO in games.md; content collection starts here)
 - Taboo card decks per grade band; student-authored cards as a review assignment
 - Transition cues: a specific short guitar riff per transition so the music is the
-  instruction (see routines-and-attention.md TODO)
+  instruction (see routines-and-protocols.md TODO)
 - Listening page template for grades 3-5 and journal template for 6-8 (see
   vanguard-songs/student-guide.md TODOs)
 - Guitar-first theory visuals — fretboard diagrams as the counterpart to the keyboard

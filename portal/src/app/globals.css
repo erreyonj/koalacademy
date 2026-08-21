@@ -370,6 +370,23 @@ h1, h2, h3 {
   font-family: var(--font-display);
 }
 
+.slide-body figure {
+  margin: 1.25rem 0 0;
+}
+
+.slide-body figure img {
+  border: 3px solid var(--ka-ink);
+  border-radius: 10px;
+}
+
+.slide-body figcaption {
+  margin: 0.4rem 0 0;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  color: var(--ka-charcoal);
+}
+
 /* ---------- callout: the "Do" block ---------- */
 
 .do-block {

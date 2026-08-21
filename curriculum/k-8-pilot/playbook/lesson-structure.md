@@ -1,8 +1,16 @@
 # Lesson Structure
 
-> **Status: partial.** Meeting cadence (minutes and days per week, per grade) is not yet
-> confirmed. Classes are therefore built from modular blocks that assemble into a 30- or
-> 45-minute period. Once the schedule is known, lock one assembly per grade band and move on.
+Period lengths are locked from the posted
+[music 6-day schedule](../resources/calendars/music-6-day-schedule.md). Classes
+assemble from the same modular blocks; which blocks fit depends on the band.
+
+| Band | Clock | Default assembly |
+| --- | --- | --- |
+| K–2 | 30 min (printed windows are often 27–28) | 30-minute — no daily listening |
+| 3–4 | 60 min | 60-minute |
+| 5 | 55 min | 55-minute (60-minute with five minutes off activity or listening) |
+| 6–8 unplugged | 60 min | 60-minute |
+| 6–8 production | 60 min | Production day — collapse warm-up and listening |
 
 ## The blocks
 
@@ -24,8 +32,12 @@ Notes:
 - For K-1, halve the mini-lesson and let the game carry the concept.
 - Written work, when used, replaces part of the activity block as a corrective — see
   [../resources/written-work.md](../resources/written-work.md).
+- K–2 printed windows are often 27–28 minutes. Keep entry and exit tight; do not add a
+  listening block to "use the extra time" that is not actually there.
 
 ## 30-minute assembly
+
+Default for **K–2**.
 
 | Min | Block |
 | --- | --- |
@@ -36,27 +48,49 @@ Notes:
 | 27-30 | Reflection / exit |
 
 Listening is not a daily block at 30 minutes; run it as the activity one day per week
-(Vanguard Song day).
+(Vanguard Song day). If the printed window is 27 minutes, cut the activity, not the exit.
 
-## 45-minute assembly
+## 60-minute assembly
+
+Default for **grades 3–4** and **6–8 unplugged** days.
 
 | Min | Block |
 | --- | --- |
 | 0-3 | Entry routine |
 | 3-8 | Warm-up |
 | 8-20 | Mini-lesson |
-| 20-35 | Activity / game |
-| 35-42 | Listening |
-| 42-45 | Reflection / exit |
+| 20-42 | Activity / game |
+| 42-55 | Listening |
+| 55-60 | Reflection / exit |
 
-## 6-8 device days
+## 55-minute assembly
 
-On rented- or reserved-device days (see [teaching-notes.md](teaching-notes.md)), collapse
-warm-up and listening to protect a 25-30 minute uninterrupted work block. Device handout and
-collection are taught as routines with their own I do / We do / You do.
+Default for **grade 5** (8:20–9:15). Same shape as 60 minutes; take the five minutes from
+activity or listening, not from entry or exit.
 
-## TODO after cadence is confirmed
+| Min | Block |
+| --- | --- |
+| 0-3 | Entry routine |
+| 3-8 | Warm-up |
+| 8-20 | Mini-lesson |
+| 20-40 | Activity / game |
+| 40-50 | Listening |
+| 50-55 | Reflection / exit |
 
-- Lock one assembly per grade band and note deviations per grade in each syllabus
-- Define the weekly rhythm (e.g. which day is Vanguard Song day, which is game-heavy)
-- Time the entry/exit routines against real class sizes and adjust the blocks
+## 6-8 production days
+
+Thirty iPads are in the room, so 1:1 is always available — see
+[teaching-notes.md](teaching-notes.md). Production vs. unplugged is a choice for the
+lesson, not a rental calendar.
+
+On production days, collapse warm-up and listening to protect a long uninterrupted You-do.
+Device handout and collection are taught as routines with their own I do / We do / You do.
+
+| Min | Block |
+| --- | --- |
+| 0-3 | Entry routine |
+| 3-8 | Mini-lesson / I do (teacher iPad projected) |
+| 8-12 | Device handout (We do, then You do) |
+| 12-50 | Activity — You-do on iPads |
+| 50-55 | Share one or two pads / patterns |
+| 55-60 | Devices away; reflection / exit |

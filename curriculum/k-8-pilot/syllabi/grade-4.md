@@ -1,7 +1,8 @@
 # Grade 4 Music — Syllabus
 
-> **Status: scaffold.** Sections marked TBD fill in after meeting cadence and calendar are
-> confirmed. Program-wide context: [master-syllabus.md](../master-syllabus.md).
+> **Status: scaffold.** Period length and the 6-day rotation are locked. Year-long pacing
+> fills in against the school calendar. Program-wide context:
+> [master-syllabus.md](../master-syllabus.md).
 
 ## Course description
 
@@ -11,7 +12,16 @@ and exit tickets become the routine written artifact.
 
 ## Meeting cadence
 
-TBD.
+**60 minutes**, once in a typical week. Use the
+[60-minute assembly](../playbook/lesson-structure.md).
+
+| Section | Typical window |
+| --- | --- |
+| 4 Gold | Mon 10:25–11:25 |
+| 4 Blue | Tue 10:25–11:25 |
+
+Day 6 keeps these weekday blocks. Full grid:
+[music-6-day-schedule.md](../resources/calendars/music-6-day-schedule.md).
 
 ## Year at a glance
 

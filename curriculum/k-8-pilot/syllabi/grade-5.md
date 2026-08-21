@@ -1,7 +1,8 @@
 # Grade 5 Music — Syllabus
 
-> **Status: scaffold.** Sections marked TBD fill in after meeting cadence and calendar are
-> confirmed. Program-wide context: [master-syllabus.md](../master-syllabus.md).
+> **Status: scaffold.** Period length and the 6-day rotation are locked. Year-long pacing
+> fills in against the school calendar. Program-wide context:
+> [master-syllabus.md](../master-syllabus.md).
 
 ## Course description
 
@@ -13,7 +14,16 @@ without devices.
 
 ## Meeting cadence
 
-TBD.
+**55 minutes**. Use the [55-minute assembly](../playbook/lesson-structure.md).
+
+| Section | Typical window |
+| --- | --- |
+| 5 Blue Gold (combined) | Wed 8:20–9:15 |
+| 5 Blue | Fri 8:20–9:15 |
+
+Wednesday is both 5th-grade sections together. Friday is 5 Blue only, as posted. Day 6
+keeps these weekday blocks. Full grid:
+[music-6-day-schedule.md](../resources/calendars/music-6-day-schedule.md).
 
 ## Year at a glance
 

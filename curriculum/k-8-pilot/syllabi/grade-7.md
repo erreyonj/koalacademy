@@ -12,6 +12,19 @@ in [vanguard-songs/framework.md](../vanguard-songs/framework.md)). Extended theo
 modes, `BMT.3` relative/parallel keys) likely lands here rather than in 6th — see
 [scope-and-sequence.md](../scope-and-sequence.md).
 
+## Meeting cadence
+
+**60 minutes** (2:20–3:20). Use the [60-minute assembly](../playbook/lesson-structure.md),
+production-day or unplugged depending on the You-do.
+
+| Section | Typical window |
+| --- | --- |
+| 7 Gold | Mon 2:20–3:20 |
+| 7 Blue | Tue 2:20–3:20 |
+
+Tuesday 9:20–10:20 is 7th-grade expeditions (not a core syllabus class). Full grid:
+[music-6-day-schedule.md](../resources/calendars/music-6-day-schedule.md).
+
 ## Year mapping
 
 Same component structure as [grade-6.md](grade-6.md); pacing and the grade-7 emphasis within
@@ -26,13 +39,14 @@ each component TBD.
 | TBD | Song Forms | `SONGFORM.1`-`SONGFORM.5` | Contrast and stylistic identity |
 | TBD | Sampling Rights | `SRP.1`-`SRP.5` | Gray areas (`SRP.4`) |
 | TBD | Defining Your Sound | `DYS.1`-`DYS.5` | Style articulation |
-| TBD | Artist Appreciation | `AW.1`-`AW.5` | Final project; device days |
+| TBD | Artist Appreciation | `AW.1`-`AW.5` | Final project; production days |
 | TBD | Advanced FX / Performance | `AEP`, `PERFORMANCE` | Live performance |
 
 ## Devices
 
-Per-unit device days, reserved or rented — see
-[playbook/teaching-notes.md](../playbook/teaching-notes.md).
+Thirty iPads, 1:1 on production days. Production vs. unplugged is a lesson choice, not a
+rental calendar. Student keyboards have no MIDI out; the teacher keyboard does, by
+appointment — see [playbook/teaching-notes.md](../playbook/teaching-notes.md).
 
 ## Vanguard Songs
 

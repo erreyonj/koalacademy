@@ -1,7 +1,8 @@
 # Grade 2 Music — Syllabus
 
-> **Status: scaffold.** Sections marked TBD fill in after meeting cadence and calendar are
-> confirmed. Program-wide context: [master-syllabus.md](../master-syllabus.md).
+> **Status: scaffold.** Period length and the 6-day rotation are locked. Year-long pacing
+> fills in against the school calendar. Program-wide context:
+> [master-syllabus.md](../master-syllabus.md).
 
 ## Course description
 
@@ -12,7 +13,16 @@ and one-measure fill-ins.
 
 ## Meeting cadence
 
-TBD.
+About **27–30 minutes**, **three times** in a typical week. Use the
+[30-minute assembly](../playbook/lesson-structure.md).
+
+| Section | Typical windows |
+| --- | --- |
+| 2 Gold | Tue 12:15–12:42, Wed 12:45–1:15, Thu 12:15–12:42 |
+| 2 Blue | Tue 12:47–1:15, Wed 12:15–12:42, Thu 12:45–1:15 |
+
+Day 6 keeps these weekday blocks. Full grid:
+[music-6-day-schedule.md](../resources/calendars/music-6-day-schedule.md).
 
 ## Year at a glance
 

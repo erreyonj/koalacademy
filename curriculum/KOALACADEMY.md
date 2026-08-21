@@ -253,29 +253,32 @@ use to build their first beats.
 
 **Focus:** Orient students in Koala Sampler and get sound into the app.
 
+Student-facing draft: [portal/content/lessons/ksn-1.mdx](../portal/content/lessons/ksn-1.mdx).
+Runs as a 60-minute **production day** (1:1 iPads). Student keyboards have no MIDI out;
+pads are the class default. Teacher MIDI keyboard is by appointment, not this lesson.
+
 **Outline**
 
 1. Introduction
    - What Koala Sampler is and what it is for
    - Why fluency with the application matters for the rest of the course
+   - Sample services: discuss Splice; all needed samples are provided for class lessons
 2. Navigating the Sample tab
-   - The purpose of the Sample tab
-   - Functions available within the tab:
-     - Sample selection and loading
-     - Pitch shifting and time stretching
-     - Volume and panning adjustments
-     - Playback modes
+   - SAMPLE vs SEQUENCE vs PERFORM; stay on SAMPLE
+   - Banks A–D; empty pads vs loaded pads
+   - Waveform editor, **VOL** / **PITCH** / **PAN**, EDIT vs DELETE
+   - **TOOLS** survey (LABEL today; crop, chop, stems, export later)
+   - **^ SAMPLES** drawer: BASICS, class folders, ADD LOCATION
 3. The drum pads in Koala
-   - Introduction to the drum pads
-   - The function of each pad
-   - How the pads can be used to create rhythms and beats
+   - 4×4 grid; one sound per pad
+   - How pads become the instrument for later rhythm work
 4. Recording audio into Koala
-   - Introduction to recording audio into the application
-   - The recording process
-   - Recording options available within the application
+   - PRESS AND HOLD A RED PAD TO RECORD
+   - Input meter, mic, headphones
+   - Label the pad after recording
 5. Conclusion
-   - Summary of key points
-   - How this material is used throughout the course
+   - One named pad, volume set, Samples drawer found
+   - MIDI into Koala is a teacher-station workflow, not class-wide
 
 ### KSN.2 — Sequence Tab
 

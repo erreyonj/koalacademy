@@ -13,15 +13,15 @@ classroom routines rather than devices.
 
 This is a documentation-first pass. The goal is to capture every game, routine, teaching
 decision, and framework in durable docs, and to stand up syllabus scaffolds with the right
-shape. Year-long pacing, day-to-day plans, and standards alignment get filled in on the next
-pass, once meeting cadence per grade is confirmed.
+shape. Period lengths and the 6-day rotation are locked. Year-long pacing, day-to-day plans,
+and NCAS alignment still fill in against the school calendar.
 
 | Doc | Status |
 | --- | --- |
 | [playbook/games.md](playbook/games.md) | Written — six games documented |
 | [playbook/routines-and-protocols.md](playbook/routines-and-protocols.md) | Written |
-| [playbook/teaching-notes.md](playbook/teaching-notes.md) | Written — standing decisions |
-| [playbook/lesson-structure.md](playbook/lesson-structure.md) | Partial — blocks drafted, cadence TBD |
+| [playbook/teaching-notes.md](playbook/teaching-notes.md) | Written — standing decisions (1:1 iPads, MIDI) |
+| [playbook/lesson-structure.md](playbook/lesson-structure.md) | Written — assemblies locked per band |
 | [scope-and-sequence.md](scope-and-sequence.md) | Scaffold — strands defined, grade rows TBD |
 | [master-syllabus.md](master-syllabus.md) | Scaffold |
 | [syllabi/](syllabi/) | Scaffold — nine grade files |
@@ -30,7 +30,8 @@ pass, once meeting cadence per grade is confirmed.
 | [vanguard-songs/student-guide.md](vanguard-songs/student-guide.md) | Scaffold |
 | [resources/written-work.md](resources/written-work.md) | Written — stance documented |
 | [resources/booklist.md](resources/booklist.md) | Seeded — candidates unverified |
-| [classroom-setup.md](classroom-setup.md) | Snapshot — basement walkthrough inventory and buy list |
+| [resources/calendars/music-6-day-schedule.md](resources/calendars/music-6-day-schedule.md) | Written — posted music schedule transcribed |
+| [resources/portal-v1.md](resources/portal-v1.md) | Proposal — portal V1 spec and stack recommendation |
 | [ideas-inbox.md](ideas-inbox.md) | Living — parking lot |
 
 ## Folder map
@@ -44,7 +45,8 @@ classroom-setup.md              Room inventory, layout, and materials task list
 syllabi/                        One syllabus per grade, K through 8
 playbook/                       Games, routines, class structure, teaching notes
 vanguard-songs/                 Anchor-song framework, per-grade lists, student guide
-resources/                      Written-work stance and the booklist
+resources/                      Written-work stance, the booklist, the portal V1 spec
+resources/calendars/            6-day music schedule and the school year calendar
 ```
 
 ## Relationship to the rest of the repository

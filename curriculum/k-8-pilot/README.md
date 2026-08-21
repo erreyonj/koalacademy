@@ -44,6 +44,7 @@ scope-and-sequence.md           Vertical concept map, K-8 (scaffold)
 koalacademy-WI-standards-alignment.md
                                 WI DPI General Music alignment report and chart source
 ideas-inbox.md                  Raw parking lot for unsorted ideas
+classroom-setup.md              Room inventory, layout, and materials task list
 syllabi/                        One syllabus per grade, K through 8
 playbook/                       Games, routines, class structure, teaching notes
 vanguard-songs/                 Anchor-song framework, per-grade lists, student guide

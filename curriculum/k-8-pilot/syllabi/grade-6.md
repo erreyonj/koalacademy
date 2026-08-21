@@ -12,29 +12,42 @@ from songs the students choose. The 6th-grade lens on it all is *introduction to
 listening* — emotional recognition and basic structure (see the Vanguard vertical alignment
 in [vanguard-songs/framework.md](../vanguard-songs/framework.md)).
 
+## Meeting cadence
+
+**60 minutes** (2:20–3:20). Use the [60-minute assembly](../playbook/lesson-structure.md),
+production-day or unplugged depending on the You-do.
+
+| Section | Typical window |
+| --- | --- |
+| 6 Gold | Fri 2:20–3:20 |
+| 6 Blue | Day 6, 2:20–3:20 |
+
+On Day 6, 6 Blue takes the last period instead of that weekday's usual 6–8 section. Full
+grid: [music-6-day-schedule.md](../resources/calendars/music-6-day-schedule.md).
+
 ## Year mapping
 
 The existing course is 20 weeks; the school year is roughly 36. Extra weeks absorb the
 respaced theory spiral ([scope-and-sequence.md](../scope-and-sequence.md)), Vanguard Song
-listening, games, and device-day logistics. Exact pacing TBD.
+listening, games, and production-day logistics. Exact pacing TBD.
 
 | Stretch | Component | Codes | Notes |
 | --- | --- | --- | --- |
 | TBD | Basic Music Theory | `BMT.1`-`BMT.5` | **Not front-loaded** — spiraled per scope-and-sequence |
-| TBD | Koala Sampler Navigation | `KSN.1`-`KSN.5` | Device days required |
+| TBD | Koala Sampler Navigation | `KSN.1`-`KSN.5` | Production days (1:1 iPads) |
 | TBD | Understanding Sampling | `US.1`-`US.5` | Listening-based; no devices needed |
-| TBD | Digital Drumming | `D4.1`-`D4.5` | Device days required |
+| TBD | Digital Drumming | `D4.1`-`D4.5` | Production days |
 | TBD | Song Forms | `SONGFORM.1`-`SONGFORM.5` | Pairs with Form Detective foundations |
 | TBD | Sampling Rights | `SRP.1`-`SRP.5` | Discussion-based |
 | TBD | Defining Your Sound | `DYS.1`-`DYS.5` | Playlist project |
-| TBD | Artist Appreciation | `AW.1`-`AW.5` | Final project begins; device days |
-| TBD | Advanced FX / Performance | `AEP`, `PERFORMANCE` | Device days; live performance |
+| TBD | Artist Appreciation | `AW.1`-`AW.5` | Final project begins; production days |
+| TBD | Advanced FX / Performance | `AEP`, `PERFORMANCE` | Production days; live performance |
 
 ## Devices
 
-No 1:1 access assumed. Device-dependent components (`KSN`, `D4`, `AW` work weeks, `AEP`,
-`PERFORMANCE`) cluster onto reserved or rented device days — see
-[playbook/teaching-notes.md](../playbook/teaching-notes.md).
+Thirty iPads, 1:1 on production days. Production vs. unplugged is a lesson choice, not a
+rental calendar. Student keyboards have no MIDI out; the teacher keyboard does, by
+appointment — see [playbook/teaching-notes.md](../playbook/teaching-notes.md).
 
 ## Vanguard Songs
 

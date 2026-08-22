@@ -17,6 +17,7 @@ const nextConfig: NextConfig = {
   pageExtensions: ["ts", "tsx", "mdx"],
   images: { unoptimized: true },
   trailingSlash: true,
+  transpilePackages: ["vexflow"],
 };
 
 const withMDX = createMDX({

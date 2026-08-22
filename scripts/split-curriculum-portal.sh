@@ -3,6 +3,14 @@
 #   curriculum/**  -> branch from main
 #   portal/**      -> branch from portalv1-dev
 #
+#
+#
+# COMMANDS:
+#
+# ./scripts/split-curriculum-portal.sh --dry-run
+# ./scripts/split-curriculum-portal.sh --message-curriculum "Update core curriculum outline." --message-portal "Add student-facing portal lesson." --push
+#
+#
 # All curriculum/KOALACADEMY.md hunks go to main, including Portal draft
 # pointers (GitHub blob URLs on portalv1). Classify by path only.
 #

@@ -558,6 +558,150 @@ h1, h2, h3 {
   font-size: 0.9rem;
 }
 
+/* ---------- floating lesson toolbar (MPC options pad) ---------- */
+
+.section-lesson {
+  padding-bottom: 6.5rem;
+}
+
+.lesson-toolbar {
+  position: fixed;
+  right: max(1rem, env(safe-area-inset-right));
+  bottom: max(1rem, env(safe-area-inset-bottom));
+  z-index: 40;
+}
+
+.lesson-toolbar-panel {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 0.7rem);
+  width: min(16.5rem, calc(100vw - 2rem));
+  padding: 0.7rem;
+  background: var(--hw-panel);
+  border: 3px solid var(--ka-ink);
+  border-radius: 10px;
+  box-shadow: 0 5px 0 var(--ka-ink);
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(0.65rem);
+  transition: transform 180ms ease, opacity 160ms ease, visibility 160ms linear;
+}
+
+.lesson-toolbar.is-open .lesson-toolbar-panel {
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
+  transform: none;
+}
+
+.lesson-toolbar-lcd {
+  background: var(--hw-screen);
+  border: 3px solid var(--ka-ink);
+  border-radius: 8px;
+  padding: 0.45rem 0.65rem;
+  box-shadow: inset 0 3px 0 rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+}
+
+.lesson-toolbar-lcd .lcd {
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+}
+
+.lesson-toolbar-nav {
+  display: grid;
+  gap: 0.45rem;
+  margin-top: 0.65rem;
+}
+
+.lesson-toolbar-item {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: var(--tap-min);
+  padding: 0.55rem 0.7rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--ka-ink);
+  background: var(--ka-mist);
+  border: 3px solid var(--ka-ink);
+  border-radius: 8px;
+  box-shadow: 0 4px 0 var(--ka-ink);
+  transition: transform 100ms ease, box-shadow 100ms ease, filter 150ms ease;
+}
+
+.lesson-toolbar-item:hover {
+  filter: brightness(1.06);
+  color: var(--ka-ink);
+}
+
+.lesson-toolbar-item:active {
+  transform: translateY(4px);
+  box-shadow: 0 0 0 var(--ka-ink);
+}
+
+.lesson-toolbar-item .led,
+.lesson-toolbar-pad .led {
+  width: 0.65rem;
+  height: 0.65rem;
+  flex-shrink: 0;
+  border: 2px solid var(--ka-ink);
+  border-radius: 3px;
+  background: var(--hw-green);
+}
+
+.led-sky { background: var(--hw-sky); }
+.led-yellow { background: var(--hw-yellow); }
+.led-green { background: var(--hw-green); }
+
+.lesson-toolbar-pad {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin: 0;
+  min-height: var(--tap-min);
+  padding: 0.62rem 0.9rem;
+  white-space: nowrap;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ka-ink);
+  background: var(--hw-sky);
+  border: 3px solid var(--ka-ink);
+  border-radius: 10px;
+  box-shadow: 0 5px 0 var(--ka-ink);
+  cursor: pointer;
+  transition: transform 100ms ease, box-shadow 100ms ease, filter 150ms ease, background 150ms ease;
+}
+
+.lesson-toolbar-pad:hover { filter: brightness(1.08); }
+
+.lesson-toolbar-pad:active,
+.lesson-toolbar.is-open .lesson-toolbar-pad {
+  transform: translateY(5px);
+  box-shadow: 0 0 0 var(--ka-ink);
+}
+
+.lesson-toolbar.is-open .lesson-toolbar-pad {
+  background: var(--hw-green);
+}
+
+.lesson-toolbar.is-open .lesson-toolbar-pad .led {
+  background: var(--hw-yellow);
+}
+
+.resource-slot {
+  scroll-margin-top: 1.5rem;
+}
+
 /* ---------- footer ---------- */
 
 .footer {
@@ -589,7 +733,10 @@ h1, h2, h3 {
   .band-card,
   .lesson-row,
   .embed-btn,
-  .lesson-nav-link {
+  .lesson-nav-link,
+  .lesson-toolbar-panel,
+  .lesson-toolbar-item,
+  .lesson-toolbar-pad {
     transition: none;
   }
 }

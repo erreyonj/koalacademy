@@ -34,6 +34,11 @@ Related material lives outside this file:
   (the teaching sequence).
 - Outlines use numbered sections with nested bullets. Depth reflects teaching structure, not
   strict lecture timing.
+- A lesson may close with a **Discourse** block: the cultural, historical, or industry
+  conversation that reliably arises from the material, and where in the outline it surfaces.
+  Discourse is not a separate lesson or unit — it is context the lesson demands at the moment
+  it comes up. These blocks are what the Wisconsin CONNECT alignment is built on; see
+  [k-8-pilot/koalacademy-WI-standards-alignment.md](k-8-pilot/koalacademy-WI-standards-alignment.md).
 
 ### Pacing
 
@@ -284,6 +289,10 @@ pads are the class default. Teacher MIDI keyboard is by appointment, not this le
 
 **Focus:** Move from single sounds to arranged patterns.
 
+Student-facing draft: [portal/content/lessons/ksn-2.mdx](../portal/content/lessons/ksn-2.mdx).
+Runs as a 60-minute **production day** (1:1 iPads). Pads remain the class default; the
+in-app Keyboard view is introduced here. Velocity and Arpeggiator are surveyed, not assigned.
+
 **Outline**
 
 1. Overview of the Sequence tab
@@ -291,6 +300,8 @@ pads are the class default. Teacher MIDI keyboard is by appointment, not this le
    - How it differs from the Sample tab
 2. Sample mapping options
    - The three mapping options: Grid, Keyboard, and Note Repeat views
+   - Embed link to Vanguard: Chicago for note repeat ex right at 0:11
+   - Velocity and Arpeggiator exist; not today's assignment
    - Each option and its respective functions
 3. Transport functions
    - Play, Record, and Tempo controls
@@ -301,10 +312,11 @@ pads are the class default. Teacher MIDI keyboard is by appointment, not this le
    - Using the quantize function
 5. Saving and exporting sequences
    - Saving sequences within Koala Sampler
-   - Exporting sequences as audio files
+   - Exporting sequences as audio files (named, not assigned; file work is `KSN.5`)
 6. Conclusion
    - Summary of key points
    - How understanding the Sequence tab enhances production work
+   - Exit ticket includes exporting settings file to class folder to keep setup options such as defaulting the sequence queue option to "SEQ END" so students don't have to worry about queueing a new section on beat
 
 ### KSN.3 — Perform Tab
 
@@ -481,6 +493,25 @@ foundation of the track.
 6. Sample analysis exercise
    - Walkthrough of an analysis exercise for students to practice sampling techniques
    - Practical application of the concepts discussed in the lesson
+
+**Discourse:** Surfaces in section 4, where explaining Timbaland's signature style requires
+explaining what audiences expected of it.
+
+- **Expectation as context.** By 2001 a Timbaland placement carried an expectation of
+  strangeness. Reaction footage to productions like "Dirt Off Your Shoulder" shows what that
+  anticipation looked like from the artist's side, and makes the point visually before the class
+  hears "We Need a Resolution."
+- **Exceeding the expectation.** The Resolution sample did not just meet that expectation, it
+  went past it with a sound listeners had no reference for. Expectation plus surprise is the
+  mechanism worth naming, because students can aim for it in their own work.
+- **How a record spread before social media.** The single's virality ran on radio, video
+  rotation, and word of mouth. Worth contrasting with how students encounter music now.
+- **Audience and the language of "crossover."** Aaliyah was firmly popular with Black audiences
+  and was not what the industry then called a crossover artist. The term itself is worth
+  unpacking: it treats a white audience as the default and everything else as a starting point
+  to be crossed over from.
+- **Why it stays in discourse.** The production's signature is distinct enough that the record
+  is still argued about today, which is the durability a personal sound buys (`DYS.1`).
 
 ### US.3 — Case Study: "Through the Wire"
 

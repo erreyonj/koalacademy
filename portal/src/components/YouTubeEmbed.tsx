@@ -7,6 +7,8 @@ interface YouTubeEmbedProps {
   id: string;
   title: string;
   artist?: string;
+  /** Optional start time in seconds. */
+  start?: number;
 }
 
 /**
@@ -16,16 +18,21 @@ interface YouTubeEmbedProps {
  * The "Watch on YouTube" link is not decoration: it keeps the lesson reachable
  * if a rights holder later disables embedding.
  */
-export function YouTubeEmbed({ id, title, artist }: YouTubeEmbedProps) {
+export function YouTubeEmbed({ id, title, artist, start }: YouTubeEmbedProps) {
   const [live, setLive] = useState(false);
   const label = artist ? `${title} — ${artist}` : title;
+  const startQuery = start != null ? `&start=${start}` : "";
+  const watchHref =
+    start != null
+      ? `https://www.youtube.com/watch?v=${id}&t=${start}s`
+      : `https://www.youtube.com/watch?v=${id}`;
 
   return (
     <div className="embed">
       {live ? (
         <div className="embed-frame">
           <iframe
-            src={`https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0`}
+            src={`https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0${startQuery}`}
             title={label}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
@@ -39,11 +46,7 @@ export function YouTubeEmbed({ id, title, artist }: YouTubeEmbedProps) {
         </button>
       )}
       <p className="embed-link">
-        <a
-          href={`https://www.youtube.com/watch?v=${id}`}
-          target="_blank"
-          rel="noopener"
-        >
+        <a href={watchHref} target="_blank" rel="noopener">
           Watch on YouTube
         </a>
       </p>

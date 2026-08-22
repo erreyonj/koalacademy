@@ -258,7 +258,7 @@ use to build their first beats.
 
 **Focus:** Orient students in Koala Sampler and get sound into the app.
 
-Student-facing draft: [portal/content/lessons/ksn-1.mdx](../portal/content/lessons/ksn-1.mdx).
+Portal draft: [portal/content/lessons/ksn-1.mdx](https://github.com/erreyonj/koalacademy/blob/portalv1/portal/content/lessons/ksn-1.mdx).
 Runs as a 60-minute **production day** (1:1 iPads). Student keyboards have no MIDI out;
 pads are the class default. Teacher MIDI keyboard is by appointment, not this lesson.
 
@@ -289,7 +289,7 @@ pads are the class default. Teacher MIDI keyboard is by appointment, not this le
 
 **Focus:** Move from single sounds to arranged patterns.
 
-Student-facing draft: [portal/content/lessons/ksn-2.mdx](../portal/content/lessons/ksn-2.mdx).
+Portal draft: [portal/content/lessons/ksn-2.mdx](https://github.com/erreyonj/koalacademy/blob/portalv1/portal/content/lessons/ksn-2.mdx).
 Runs as a 60-minute **production day** (1:1 iPads). Pads remain the class default; the
 in-app Keyboard view is introduced here. Velocity and Arpeggiator are surveyed, not assigned.
 

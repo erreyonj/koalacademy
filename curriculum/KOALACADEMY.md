@@ -289,6 +289,10 @@ pads are the class default. Teacher MIDI keyboard is by appointment, not this le
 
 **Focus:** Move from single sounds to arranged patterns.
 
+Student-facing draft: [portal/content/lessons/ksn-2.mdx](../portal/content/lessons/ksn-2.mdx).
+Runs as a 60-minute **production day** (1:1 iPads). Pads remain the class default; the
+in-app Keyboard view is introduced here. Velocity and Arpeggiator are surveyed, not assigned.
+
 **Outline**
 
 1. Overview of the Sequence tab
@@ -296,6 +300,8 @@ pads are the class default. Teacher MIDI keyboard is by appointment, not this le
    - How it differs from the Sample tab
 2. Sample mapping options
    - The three mapping options: Grid, Keyboard, and Note Repeat views
+   - Embed link to Vanguard: Chicago for note repeat ex right at 0:11
+   - Velocity and Arpeggiator exist; not today's assignment
    - Each option and its respective functions
 3. Transport functions
    - Play, Record, and Tempo controls
@@ -306,10 +312,11 @@ pads are the class default. Teacher MIDI keyboard is by appointment, not this le
    - Using the quantize function
 5. Saving and exporting sequences
    - Saving sequences within Koala Sampler
-   - Exporting sequences as audio files
+   - Exporting sequences as audio files (named, not assigned; file work is `KSN.5`)
 6. Conclusion
    - Summary of key points
    - How understanding the Sequence tab enhances production work
+   - Exit ticket includes exporting settings file to class folder to keep setup options such as defaulting the sequence queue option to "SEQ END" so students don't have to worry about queueing a new section on beat
 
 ### KSN.3 — Perform Tab
 

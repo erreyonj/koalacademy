@@ -66,7 +66,11 @@ export default function ResourcesPage() {
                 time for.
               </p>
               <div className="empty-note">
-                <p>No skills links for this lesson yet.</p>
+                <p>
+                  <Link href="/tools/notation/">Notation sandbox</Link> — clef,
+                  key, time, notes, and rests on a 1–2 bar staff. Download SVG
+                  or PNG for slides and worksheets.
+                </p>
               </div>
             </section>
           </article>

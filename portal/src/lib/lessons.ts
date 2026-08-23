@@ -44,8 +44,14 @@ function parseFrontmatter(slug: string, data: Record<string, unknown>): Lesson {
   };
 }
 
+/** Intro first (low sequence), newest last. Code is the tiebreaker inside a band. */
+function compareLessons(a: Lesson, b: Lesson): number {
+  if (a.sequence !== b.sequence) return a.sequence - b.sequence;
+  return a.code.localeCompare(b.code, undefined, { numeric: true, sensitivity: "base" });
+}
+
 /**
- * Every lesson in content/lessons, sorted by sequence.
+ * Every lesson in content/lessons, sorted intro → newest.
  *
  * Reads the filesystem, so this only ever runs at build time — the site is
  * statically exported and ships no server.
@@ -62,7 +68,7 @@ export function getAllLessons(): Lesson[] {
       const { data } = matter(source);
       return parseFrontmatter(slug, data as Record<string, unknown>);
     })
-    .sort((a, b) => a.sequence - b.sequence || a.slug.localeCompare(b.slug));
+    .sort(compareLessons);
 }
 
 export function getBand(id: string): Band | undefined {
@@ -70,7 +76,9 @@ export function getBand(id: string): Band | undefined {
 }
 
 export function getLessonsForBand(bandId: BandId): Lesson[] {
-  return getAllLessons().filter((lesson) => lesson.bands.includes(bandId));
+  return getAllLessons()
+    .filter((lesson) => lesson.bands.includes(bandId))
+    .sort(compareLessons);
 }
 
 export function getLesson(slug: string): Lesson | undefined {
@@ -78,9 +86,8 @@ export function getLesson(slug: string): Lesson | undefined {
 }
 
 /**
- * Prev/next are derived from the band's running order rather than declared in
- * frontmatter, so inserting a lesson mid-sequence never requires editing its
- * neighbours.
+ * Prev/next follow the band list (sequence ascending). A new lesson takes the
+ * next integer — do not renumber older ones to splice it in.
  */
 export function getLessonWithNeighbours(slug: string): LessonWithNeighbours | undefined {
   const lesson = getLesson(slug);

@@ -62,7 +62,7 @@ export interface LessonFrontmatter {
   title: string;
   focus: string;
   bands: BandId[];
-  /** Position within a band's running order. Drives prev/next. */
+  /** Band list order: 0 is the intro, each new lesson takes the next integer. Newest last. Also drives prev/next. */
   sequence: number;
   /** 6-8 only: Koalacademy unit number and component name. */
   unit?: number;

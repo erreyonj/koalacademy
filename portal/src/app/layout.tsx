@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Outfit, Space_Grotesk } from "next/font/google";
+import { AppShell } from "@/components/app-shell";
+import { cn } from "@/lib/utils";
 import "./globals.css";
 
 const outfit = Outfit({
@@ -36,8 +38,16 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${outfit.variable} ${spaceGrotesk.variable}`}>
-      <body>{children}</body>
+    <html
+      lang="en"
+      className={cn(outfit.variable, spaceGrotesk.variable, "font-sans")}
+    >
+      <body>
+        <a className="skip-link" href="#main">
+          Skip to content
+        </a>
+        <AppShell>{children}</AppShell>
+      </body>
     </html>
   );
 }

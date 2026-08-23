@@ -2,8 +2,6 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { LessonNav } from "./LessonNav";
 import { LessonToolbar } from "./LessonToolbar";
-import { SiteHeader } from "./SiteHeader";
-import { SiteFooter } from "./SiteFooter";
 import { bandsLabel } from "@/lib/lessons";
 import type { LessonWithNeighbours } from "@/lib/types";
 
@@ -26,11 +24,7 @@ export function SlideShell({ lesson, band, prev, next, children }: SlideShellPro
 
   return (
     <>
-      <a className="skip-link" href="#main">
-        Skip to content
-      </a>
       <LessonToolbar />
-      <SiteHeader activeBand={band.id} />
 
       <header className="page-hero">
         <div className="page-hero-inner">
@@ -42,7 +36,7 @@ export function SlideShell({ lesson, band, prev, next, children }: SlideShellPro
         </div>
       </header>
 
-      <main id="main" className="section section-lesson">
+      <div className="section section-lesson">
         <div className="wrap">
           <div className="deck-screen">
             <span className="lcd">{context}</span>
@@ -58,9 +52,7 @@ export function SlideShell({ lesson, band, prev, next, children }: SlideShellPro
             </Link>
           </p>
         </div>
-      </main>
-
-      <SiteFooter />
+      </div>
     </>
   );
 }

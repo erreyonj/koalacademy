@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { NotationSandbox } from "@/components/notation/NotationSandbox";
-import { SiteFooter } from "@/components/SiteFooter";
-import { SiteHeader } from "@/components/SiteHeader";
 
 export const metadata: Metadata = {
   title: "Notation sandbox",
@@ -13,11 +11,6 @@ export const metadata: Metadata = {
 export default function NotationToolPage() {
   return (
     <div className="notation-page">
-      <a className="skip-link" href="#main">
-        Skip to content
-      </a>
-      <SiteHeader />
-
       <header className="page-hero">
         <div className="page-hero-inner">
           <p className="eyebrow">Skills · Notation</p>
@@ -30,18 +23,16 @@ export default function NotationToolPage() {
         </div>
       </header>
 
-      <main id="main" className="section">
+      <div className="section">
         <div className="wrap">
           <NotationSandbox />
           <p>
-            <Link className="back-link" href="/resources/#skills">
-              ← Skills
+            <Link className="back-link" href="/toolkit/">
+              ← Toolkit
             </Link>
           </p>
         </div>
-      </main>
-
-      <SiteFooter />
+      </div>
     </div>
   );
 }

@@ -1,7 +1,5 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { SiteHeader } from "@/components/SiteHeader";
-import { SiteFooter } from "@/components/SiteFooter";
 
 export const metadata: Metadata = {
   title: "Lesson resources",
@@ -12,11 +10,6 @@ export const metadata: Metadata = {
 export default function ResourcesPage() {
   return (
     <>
-      <a className="skip-link" href="#main">
-        Skip to content
-      </a>
-      <SiteHeader />
-
       <header className="page-hero">
         <div className="page-hero-inner">
           <p className="eyebrow">Lesson Toolbar</p>
@@ -29,7 +22,7 @@ export default function ResourcesPage() {
         </div>
       </header>
 
-      <main id="main" className="section">
+      <div className="section">
         <div className="wrap">
           <div className="deck-screen">
             <span className="lcd">Resources — Standby</span>
@@ -76,14 +69,12 @@ export default function ResourcesPage() {
           </article>
 
           <p>
-            <Link className="back-link" href="/">
-              ← All grades
+            <Link className="back-link" href="/toolkit/">
+              ← Toolkit
             </Link>
           </p>
         </div>
-      </main>
-
-      <SiteFooter />
+      </div>
     </>
   );
 }

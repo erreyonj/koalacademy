@@ -46,4 +46,5 @@
      reading column is wider and the base size larger than the marketing site. */
   --slide-wrap: 46rem;
   --tap-min: 44px;
+  --header-height: 4.5rem;
 }

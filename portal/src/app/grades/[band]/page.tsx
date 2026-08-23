@@ -1,8 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { SiteHeader } from "@/components/SiteHeader";
-import { SiteFooter } from "@/components/SiteFooter";
 import { getBand, getLessonsForBand } from "@/lib/lessons";
 import { BAND_IDS, type BandId } from "@/lib/types";
 
@@ -29,11 +27,6 @@ export default async function BandPage({ params }: PageProps) {
 
   return (
     <>
-      <a className="skip-link" href="#main">
-        Skip to content
-      </a>
-      <SiteHeader activeBand={band.id} />
-
       <header className="page-hero">
         <div className="page-hero-inner">
           <p className="eyebrow">
@@ -44,7 +37,7 @@ export default async function BandPage({ params }: PageProps) {
         </div>
       </header>
 
-      <main id="main" className="section">
+      <div className="section">
         <div className="wrap">
           {lessons.length === 0 ? (
             <div className="empty-note">
@@ -68,14 +61,12 @@ export default async function BandPage({ params }: PageProps) {
           )}
 
           <p>
-            <Link className="back-link" href="/">
+            <Link className="back-link" href="/lessons/">
               ← All grades
             </Link>
           </p>
         </div>
-      </main>
-
-      <SiteFooter />
+      </div>
     </>
   );
 }

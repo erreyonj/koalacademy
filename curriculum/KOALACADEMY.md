@@ -203,27 +203,44 @@ signatures. C major and C minor are parallel keys: same starting note, different
 **Focus:** Introduce notation and the staff so students can communicate musical ideas precisely,
 and establish counting in 4/4.
 
+Student-facing draft: [portal/content/lessons/bmt-4.mdx](../portal/content/lessons/bmt-4.mdx).
+
 **Outline**
 
 1. The music staff
-   - Definition and explanation of the music staff
-   - Treble and bass clefs
-   - Notes and their corresponding positions on the staff
-   - Rests and their corresponding positions on the staff
+   - Definition: five lines and four spaces; pitch up and down, time left to right
+   - Two labeled stills (`bmt-4-labeled-staff-1.png`, `bmt-4-labeled-staff-2.png`):
+     clef, time signature, a single note, one measure / bar, and the empty key-signature
+     slot on C
+   - After the stills, open the notation sandbox in a **new tab** and leave the lesson
+     up (`/tools/notation/`). Remaining visuals — bass clef, note placement, rests,
+     other key signatures, rhythmic examples — are built live there, not frozen in the
+     lesson. Same two-tab move for students reading later.
 2. Common key signatures
-   - Introduction to the concept of key signatures
-   - Major and minor key signatures
-   - Diagrams of common key signatures
+   - The cluster of sharps or flats after the clef; C looks empty because it has none
+   - Major and minor names; A minor shares C's blank signature
+   - G, F, and a relative minor demonstrated on the sandbox staff
 3. The 4/4 time signature
-   - Explanation of time signature
-   - Introduction to 4/4
-   - Rhythmic notation in 4/4
-   - Counting and playing basic rhythms in 4/4
+   - Top number: how many beats in a measure. Bottom number: what kind of note gets
+     one beat. 4/4 is four quarter-note beats; count 1-2-3-4
+   - Both listening examples are 4/4 and do not feel the same
+   - [Latch — Disclosure](https://www.youtube.com/watch?v=YT5Kk9YX7ks): almost
+     mechanically straight
+   - [Ocelot — Hiatus Kaiyote](https://www.youtube.com/watch?v=KjihW7-l-rQ): raw,
+     sluggish Dilla feel
 4. Understanding rhythm
-   - Definition of rhythm
-   - Importance of rhythm in music
-   - How rhythm is based on feeling and math simultaneously
-   - Playing and counting basic rhythms in 4/4
+   - Pulse plus pattern; feeling and math at once
+   - Quarter notes, eighths, rests, and syncopation against a 4/4 count
+   - Live guitar demonstration of challenging rhythm situations: heavy syncopation
+     and deliberate miscounting to throw off student timekeeping. Students keep the
+     pulse (count or clap) and notice where they lose it
+
+**Discourse:** Surfaces in section 3, where Latch and Ocelot share 4/4 and do not
+share a feel.
+
+- **Grid vs sluggish.** Disclosure sits almost mechanically on the beat. Hiatus
+  Kaiyote drags — a raw Dilla-style pocket. Same meter, different body. The name is
+  enough; the ears do the rest.
 
 ### BMT.5 — 3/4 and 6/8 Time, and Basic Drum Sounds
 
@@ -258,7 +275,7 @@ use to build their first beats.
 
 **Focus:** Orient students in Koala Sampler and get sound into the app.
 
-Portal draft: [portal/content/lessons/ksn-1.mdx](https://github.com/erreyonj/koalacademy/blob/portalv1/portal/content/lessons/ksn-1.mdx).
+Student-facing draft: [portal/content/lessons/ksn-1.mdx](../portal/content/lessons/ksn-1.mdx).
 Runs as a 60-minute **production day** (1:1 iPads). Student keyboards have no MIDI out;
 pads are the class default. Teacher MIDI keyboard is by appointment, not this lesson.
 
@@ -289,7 +306,7 @@ pads are the class default. Teacher MIDI keyboard is by appointment, not this le
 
 **Focus:** Move from single sounds to arranged patterns.
 
-Portal draft: [portal/content/lessons/ksn-2.mdx](https://github.com/erreyonj/koalacademy/blob/portalv1/portal/content/lessons/ksn-2.mdx).
+Student-facing draft: [portal/content/lessons/ksn-2.mdx](../portal/content/lessons/ksn-2.mdx).
 Runs as a 60-minute **production day** (1:1 iPads). Pads remain the class default; the
 in-app Keyboard view is introduced here. Velocity and Arpeggiator are surveyed, not assigned.
 

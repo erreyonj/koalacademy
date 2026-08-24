@@ -54,15 +54,15 @@ export default function ResourcesPage() {
             <section id="skills" className="resource-slot">
               <h2>.Skills</h2>
               <p>
-                Drills and practice paths that sit outside the period: extra
-                reps, technique, and follow-up work the lesson does not have
-                time for.
+                Topic search across the course. Open a lesson from Options to
+                see the tags for that slide, or browse the full hub.
               </p>
               <div className="empty-note">
                 <p>
-                  <Link href="/tools/notation/">Notation sandbox</Link> — clef,
-                  key, time, notes, and rests on a 1–2 bar staff. Download SVG
-                  or PNG for slides and worksheets.
+                  <Link href="/skills/">Skills hub</Link> — search tags and
+                  lesson titles. The{" "}
+                  <Link href="/tools/notation/">notation sandbox</Link> still
+                  lives in Toolkit.
                 </p>
               </div>
             </section>

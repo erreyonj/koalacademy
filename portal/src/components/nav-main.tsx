@@ -9,6 +9,7 @@ import {
   LayoutDashboard,
   ListMusic,
   NotebookPen,
+  Search,
   Wrench,
   type LucideIcon,
 } from "lucide-react";
@@ -35,6 +36,7 @@ import {
   isActivePath,
   isDashboardPath,
   isLessonsSection,
+  isSkillsPath,
   isToolkitSection,
 } from "@/lib/nav";
 
@@ -116,6 +118,19 @@ export function NavMain() {
               </SidebarMenuSubItem>
             ))}
           </NavSection>
+
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              isActive={isSkillsPath(pathname)}
+              tooltip="Skills"
+            >
+              <Link href="/skills/">
+                <Search />
+                <span>Skills</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
 
           {ITEMS.map((item) => (
             <SidebarMenuItem key={item.href}>

@@ -51,11 +51,20 @@ export const BANDS: readonly Band[] = [
   },
 ];
 
+/** Extra watching that sits beside a lesson. Skills search reads this; Investigate owns the product later. */
+export interface InvestigateLink {
+  title: string;
+  url: string;
+}
+
 /**
  * Frontmatter as authored in content/lessons/*.mdx.
  *
  * `bands` is a list so a lesson can appear under more than one WI DPI band
  * without being copied. Most lessons belong to exactly one of K–2, 3–5, or 6–8.
+ *
+ * `skills` are stable lowercase ids (spaces allowed). Treat the string as the
+ * key — a later progress table will use the same values.
  */
 export interface LessonFrontmatter {
   code: string;
@@ -69,6 +78,9 @@ export interface LessonFrontmatter {
   component?: string;
   /** K-5 only: the strand this session belongs to. */
   strand?: Strand;
+  /** Topic tags. Empty when the lesson has not been tagged yet. */
+  skills: string[];
+  investigate: InvestigateLink[];
 }
 
 export interface Lesson extends LessonFrontmatter {

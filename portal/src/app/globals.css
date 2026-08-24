@@ -904,6 +904,301 @@ h1, h2, h3 {
   }
 }
 
+/* ---------- Circle of Fifths ---------- */
+
+.cof-page .wrap {
+  max-width: 64rem;
+}
+
+.cof-page .page-hero-inner {
+  max-width: 64rem;
+}
+
+.cof {
+  display: grid;
+  gap: 1rem;
+}
+
+.cof-stage {
+  display: grid;
+  gap: 1rem;
+  padding: 0.85rem;
+  background: var(--ka-snow);
+  border: 3px solid var(--ka-ink);
+  border-radius: 10px;
+}
+
+.cof-readout {
+  min-width: 0;
+}
+
+.cof-readout-body {
+  animation: cof-readout-in 450ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.cof-readout.is-instant .cof-readout-body {
+  animation: none;
+}
+
+@keyframes cof-readout-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.35rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.cof-title {
+  margin: 0.15rem 0 0.35rem;
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 1.2rem + 1.8vw, 2.35rem);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.1;
+}
+
+.cof-signature,
+.cof-scale,
+.cof-blurb {
+  margin: 0.35rem 0;
+  color: var(--ka-charcoal);
+}
+
+.cof-triads {
+  margin: 0.7rem 0 0.45rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: 0.02em;
+}
+
+.cof-triad {
+  color: var(--ka-charcoal);
+}
+
+.cof-triad-dot {
+  color: var(--ka-slate);
+}
+
+.cof-triad.is-relative,
+.cof-relative {
+  color: var(--ka-pop);
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.cof-relative {
+  display: inline-block;
+  min-height: var(--tap-min);
+  margin: 0.15rem 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+}
+
+.cof-scale-label {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ka-charcoal);
+}
+
+.cof-blurb {
+  font-size: 0.95rem;
+  max-width: 36rem;
+}
+
+.cof-wheel-col {
+  display: grid;
+  justify-items: center;
+  gap: 0.85rem;
+  padding-inline: 2.25rem;
+}
+
+.cof-callout {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+}
+
+.cof-callout-pitch {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.cof-callout-role {
+  font-size: 0.78rem;
+  color: var(--ka-charcoal);
+}
+
+.cof-wheel {
+  --cof-size: min(22rem, calc(100vw - 4.5rem));
+  --cof-radius: calc(var(--cof-size) * 0.38);
+  position: relative;
+  width: var(--cof-size);
+  height: var(--cof-size);
+  border-radius: 50%;
+  background:
+    radial-gradient(
+      circle closest-side at 50% 50%,
+      var(--ka-snow) 0 84%,
+      var(--ka-canopy) 85% 100%
+    );
+  border: 3px solid var(--ka-ink);
+}
+
+.cof-ring,
+.cof-hub,
+.cof-tab {
+  position: absolute;
+}
+
+.cof-ring {
+  inset: 0;
+  transition: transform 450ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.cof-ring.is-instant {
+  transition: none;
+}
+
+.cof-slot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--tap-min);
+  height: var(--tap-min);
+  margin: calc(var(--tap-min) / -2) 0 0 calc(var(--tap-min) / -2);
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--ka-charcoal);
+  appearance: none;
+  transform-origin: center center;
+}
+
+.cof-slot > span {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+}
+
+.cof-slot.is-selected {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.cof-slot.is-fourth,
+.cof-slot.is-fifth {
+  color: var(--ka-ink);
+  cursor: pointer;
+  border-radius: 999px;
+}
+
+.cof-slot.is-fourth:hover,
+.cof-slot.is-fifth:hover,
+.cof-slot.is-fourth:focus-visible,
+.cof-slot.is-fifth:focus-visible {
+  background: color-mix(in srgb, var(--ka-eucalyptus) 55%, var(--ka-snow));
+}
+
+.cof-hub {
+  inset: 28%;
+  border-radius: 50%;
+  background: var(--ka-mist);
+  border: 2px solid var(--ka-ink);
+  pointer-events: none;
+}
+
+.cof-tab {
+  top: 50%;
+  right: -0.35rem;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  transform: translateY(-50%);
+  padding: 0.35rem 0.35rem 0.35rem 0.7rem;
+  background: var(--ka-ink);
+  color: var(--ka-snow);
+  border-radius: 10px 12px 12px 10px;
+  box-shadow: 0 3px 0 color-mix(in srgb, var(--ka-ink) 70%, transparent);
+}
+
+.cof-tab-letter {
+  font-family: var(--font-display);
+  font-size: 1.45rem;
+  font-weight: 700;
+  min-width: 1.6rem;
+  text-align: center;
+}
+
+.cof-gear {
+  display: grid;
+  place-items: center;
+  width: var(--tap-min);
+  height: var(--tap-min);
+  padding: 0;
+  color: var(--hw-sky);
+  background: var(--hw-panel);
+  border: 2px solid var(--ka-snow);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.cof-gear:hover,
+.cof-gear:focus-visible {
+  color: var(--ka-snow);
+  background: var(--ka-leaf);
+}
+
+.cof-gear svg {
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+.cof-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 0.45rem;
+}
+
+.cof-jump {
+  margin: 0;
+  min-width: 8.5rem;
+}
+
+.cof-controls-slot {
+  flex: 1 1 4rem;
+  min-height: var(--tap-min);
+}
+
+@media (min-width: 48rem) {
+  .cof-stage {
+    grid-template-columns: minmax(0, 1fr) minmax(20rem, 24rem);
+    align-items: center;
+  }
+}
+
 /* ---------- footer ---------- */
 
 .footer {
@@ -940,8 +1235,11 @@ h1, h2, h3 {
   .lesson-toolbar-item,
   .lesson-toolbar-pad,
   [data-sidebar="menu-button"],
-  [data-sidebar="menu-sub-button"] {
+  [data-sidebar="menu-sub-button"],
+  .cof-ring,
+  .cof-readout-body {
     transition: none;
+    animation: none;
   }
 }
 

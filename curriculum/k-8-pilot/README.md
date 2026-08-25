@@ -31,7 +31,8 @@ and NCAS alignment still fill in against the school calendar.
 | [resources/written-work.md](resources/written-work.md) | Written — stance documented |
 | [resources/booklist.md](resources/booklist.md) | Seeded — candidates unverified |
 | [resources/calendars/music-6-day-schedule.md](resources/calendars/music-6-day-schedule.md) | Written — posted music schedule transcribed |
-| [resources/portal-v1.md](resources/portal-v1.md) | Proposal — portal V1 spec and stack recommendation |
+| [resources/portal-v1.1.md](resources/portal-v1.1.md) | Living — portal slide hub status, 9/2 access, closed questions |
+| [resources/portal-v1.md](resources/portal-v1.md) | Historical — original V1 proposal (superseded by v1.1) |
 | [ideas-inbox.md](ideas-inbox.md) | Living — parking lot |
 
 ## Folder map

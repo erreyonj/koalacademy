@@ -1,12 +1,8 @@
 # Student Portal — V1
 
-> **Superseded.** Living status is
-> [portal-v1.1.md](portal-v1.1.md). Keep this file as the frozen original proposal.
->
-> **Status: proposal (historical).** This document fixed the scope of a first release,
-> recommended a stack, and recorded what the later features (accounts, progress tracking,
-> minigames) need so V1 does not have to be thrown away to reach them. The slide hub has
-> since shipped; see v1.1 for what is live.
+> **Status: proposal.** Nothing is built. This document fixes the scope of a first release,
+> recommends a stack, and records what the later features (accounts, progress tracking,
+> minigames) need so V1 does not have to be thrown away to reach them.
 
 ## Purpose
 
@@ -57,7 +53,7 @@ single page is easier to build, easier to link into, and far better on a phone.
 | Header | Lesson code or strand, grade band, one-line focus statement |
 | Concept | The teaching text, short and in the register of the grade band |
 | Listening | Click-to-load YouTube embed, reusing the pattern in [site/src/embeds.js](../../../site/src/embeds.js) |
-| Do | The game or activity for the day, linking to [playbook/games.md](../playbook/games.md) |
+| Do | The game or activity for the day, linking to [playbook/games.md](../playbook/games.md). **Superseded:** this block is now **Activate**; lessons also open with **Do Now**. See [portal-v1.1.md](portal-v1.1.md). |
 | Breaks | Gifs and memes between blocks — attention resets, not decoration |
 | Links | Vanguard Song pages, resources, worksheets, anything the lesson points at |
 | Footer | Previous and next lesson in the sequence |

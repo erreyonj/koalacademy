@@ -26,6 +26,11 @@ export function skillHref(id: string): string {
   return `/skills/?skill=${encodeURIComponent(id)}`;
 }
 
+/** Display form for a skill tag, e.g. `key signatures` → `#key-signatures`. */
+export function skillHashtag(id: string): string {
+  return `#${id.replace(/\s+/g, "-")}`;
+}
+
 /** Canonical tags plus every skill found on lessons, first-seen order. */
 export function catalogSkills(lessons: Lesson[]): string[] {
   const seen = new Set<string>();

@@ -1,13 +1,14 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import { Activate } from "@/components/Activate";
 import { Break } from "@/components/Break";
-import { Do } from "@/components/Do";
+import { DoNow } from "@/components/DoNow";
 import { NotationExcerpt } from "@/components/notation/NotationExcerpt";
 import { SlideShell } from "@/components/SlideShell";
 import { YouTubeEmbed } from "@/components/YouTubeEmbed";
 import { getAllLessons, getLessonWithNeighbours } from "@/lib/lessons";
 
-const mdxComponents = { Break, Do, NotationExcerpt, YouTubeEmbed };
+const mdxComponents = { Activate, Break, DoNow, NotationExcerpt, YouTubeEmbed };
 
 interface PageProps {
   params: Promise<{ code: string }>;

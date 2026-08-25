@@ -6,6 +6,7 @@ import {
   BAND_IDS,
   type Band,
   type BandId,
+  type InvestigateLink,
   type Lesson,
   type LessonWithNeighbours,
 } from "./types";
@@ -16,8 +17,36 @@ function isBandId(value: unknown): value is BandId {
   return typeof value === "string" && (BAND_IDS as readonly string[]).includes(value);
 }
 
+function parseSkills(slug: string, value: unknown): string[] {
+  if (value == null) return [];
+  if (!Array.isArray(value) || !value.every((item) => typeof item === "string")) {
+    throw new Error(`${slug}.mdx: skills must be a list of strings.`);
+  }
+  return value
+    .map((item) => item.trim().toLowerCase())
+    .filter((item) => item.length > 0);
+}
+
+function parseInvestigate(slug: string, value: unknown): InvestigateLink[] {
+  if (value == null) return [];
+  if (!Array.isArray(value)) {
+    throw new Error(`${slug}.mdx: investigate must be a list of { title, url }.`);
+  }
+  return value.map((item, index) => {
+    if (!item || typeof item !== "object") {
+      throw new Error(`${slug}.mdx: investigate[${index}] must be an object.`);
+    }
+    const { title, url } = item as Record<string, unknown>;
+    if (typeof title !== "string" || typeof url !== "string") {
+      throw new Error(`${slug}.mdx: investigate[${index}] needs title and url strings.`);
+    }
+    return { title, url };
+  });
+}
+
 function parseFrontmatter(slug: string, data: Record<string, unknown>): Lesson {
-  const { code, title, focus, bands, sequence, unit, component, strand } = data;
+  const { code, title, focus, bands, sequence, unit, component, strand, skills, investigate } =
+    data;
 
   if (typeof code !== "string" || typeof title !== "string" || typeof focus !== "string") {
     throw new Error(`${slug}.mdx: code, title, and focus are required strings.`);
@@ -41,6 +70,8 @@ function parseFrontmatter(slug: string, data: Record<string, unknown>): Lesson {
     unit: typeof unit === "number" ? unit : undefined,
     component: typeof component === "string" ? component : undefined,
     strand: strand as Lesson["strand"],
+    skills: parseSkills(slug, skills),
+    investigate: parseInvestigate(slug, investigate),
   };
 }
 

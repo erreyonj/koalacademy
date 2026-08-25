@@ -18,3 +18,13 @@ export function isLessonsSection(pathname: string) {
   const path = normalizePath(pathname);
   return path === "/lessons" || path.startsWith("/lessons/") || path.startsWith("/grades/");
 }
+
+export function isToolkitSection(pathname: string) {
+  const path = normalizePath(pathname);
+  return path === "/toolkit" || path.startsWith("/toolkit/") || path.startsWith("/tools/");
+}
+
+export function isSkillsPath(pathname: string) {
+  const path = normalizePath(pathname);
+  return path === "/skills" || path.startsWith("/skills/");
+}

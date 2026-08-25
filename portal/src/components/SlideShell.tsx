@@ -24,7 +24,7 @@ export function SlideShell({ lesson, band, prev, next, children }: SlideShellPro
 
   return (
     <>
-      <LessonToolbar />
+      <LessonToolbar slug={lesson.slug} skills={lesson.skills} />
 
       <header className="page-hero">
         <div className="page-hero-inner">

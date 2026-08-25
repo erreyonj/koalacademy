@@ -12,7 +12,7 @@ back to focus.
 - **JIGSAW** — Split into groups A, B, C, D, etc. and align on a topic, then re-split into groups with one or more members of A–D and teach that aligned idea to everyone. Likely share after.
 - **MUSICAL SHARES** — Can implement multiple say somethings, but scholars walk around the room to music and partner with whoever they end up by.
 - **MAITRE D** — pending
-- **STAND UP, HAND UP, PAIR UP** — pending
+- **STAND UP, HAND UP, PAIR UP** — Walk around the room and give a high five to choose a partner.
 - **BACK 2 BACK, FACE 2 FACE** — With a partner, stand back to back and receive a prompt, or review a section of reading/material; on a cue, turn and face the partner and discuss.
 
 ## Routines
@@ -88,10 +88,74 @@ the instruction.
 
 ## Entry and exit routines
 
-TODO: what students do in the first two minutes (entry rhythm echo? seat and breathe?) and
-the last two (exit ticket, one-word reflection, line-up song). Should stay consistent K-5.
+### Entry: Threshold + Do Now
 
-## Behavior expectations
+Every class starts the same way. The teacher stands at the door (**Threshold**) and greets.
+The Do Now is already posted on the portal (and on the board when the prompt is written).
+Students begin it without a new explanation.
 
-TODO: expectations framed in music terms (rest means silent, ensemble means together).
+- 3–5 minutes. Short. Review or preview of today's lesson.
+- Same spot every day: the first callout on the portal lesson.
+- Self-managed as much as possible. Week one *teaches* the Do Now with I do / We do until
+  the start is automatic; after that, no new explanation.
+- Clock and portal shape: [lesson-structure.md](lesson-structure.md).
+
+**K–2.** Floor circle, not desks. Partner/talk prompts are allowed. Tie a music fundamental
+to CREW / CRISP (for example: name one thing that is easy and one that is hard, then talk
+Persistence — some music skills are easy for some friends and hard for others).
+
+**3–5 and 6–8.** One Do Now per band; grades inside the band share it. Middle school default
+is silence. Usual shapes: listen on iPad then journal, or a written journal prompt displayed
+in the lesson or on the board.
+
+### Exit
+
+Last 3–5 minutes: one-word or one-sentence reflection, exit ticket, or a quick informal
+check, then the line-up routine. Keep it consistent. Musical line-up cue still TBD.
+
+## Behavior expectations — CREW and CRISP
+
+Classroom culture for the K-8 pilot. Student-facing rehearsal of the same material lives in the
+band intro lessons (`INTRO-K2`, `INTRO-35`, `INTRO-68`) in the portal; this section is the
+teacher source of truth.
+
+### CREW
+
+We run class in a **circle**. That is CREW.
+
+Circles create natural equity: everyone can be seen and heard. They foster shared leadership.
+They are a space for communal wisdom, transparency, and solution-focused problem-solving. The
+point is belonging — and agency toward getting better.
+
+**Community commitments** are the moral code. They guide three responsibilities:
+
+- Improve one's self
+- Improve one's relationships
+- Improve one's community
+
+They are also the framework for talking through difficult issues and bringing your best self
+into the room.
+
+### Classroom tenets
+
+- Mutual respect — I deserve respect, and you all deserve respect (the **S** in CRISP)
+- We value communication
+- ASL signs and signals are part of classroom language — get familiar
+- Give shine and praise often
+- Try and fail *before* giving up, complaining, or self-doubt
+- **Transitions are KEY.** They give students the most free time and set everyone up for success
+
+Frame expectations in music terms where it helps (rest means silent, ensemble means together).
 Coordinate with One City schoolwide behavior systems once known.
+
+### CRISP habits of character
+
+- **Compassion** — showing love, kindness, respect, and understanding to others
+- **Risk** — trying new and challenging things, even when it is hard
+- **Integrity** — doing the right thing, even when no one is looking
+- **Self-Respect** — showing yourself love, patience, kindness, and honesty
+- **Persistence** — showing patience and never giving up, even when things are hard
+
+Intro lessons scale the language by band (call-and-response in K-2; commitments in 3–5;
+full CREW circle + CRISP statements in 6–8). Rehearse the culture in week one the same way
+you rehearse attention getters: I do / We do / You do.

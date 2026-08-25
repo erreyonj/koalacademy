@@ -1,6 +1,7 @@
 import type { MDXComponents } from "mdx/types";
+import { Activate } from "@/components/Activate";
 import { Break } from "@/components/Break";
-import { Do } from "@/components/Do";
+import { DoNow } from "@/components/DoNow";
 import { NotationExcerpt } from "@/components/notation/NotationExcerpt";
 import { YouTubeEmbed } from "@/components/YouTubeEmbed";
 
@@ -11,8 +12,9 @@ import { YouTubeEmbed } from "@/components/YouTubeEmbed";
 export function useMDXComponents(components: MDXComponents): MDXComponents {
   return {
     ...components,
+    Activate,
     Break,
-    Do,
+    DoNow,
     NotationExcerpt,
     YouTubeEmbed,
   };

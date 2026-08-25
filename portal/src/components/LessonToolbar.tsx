@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
-import { skillHref, skillLabel } from "@/lib/skills";
+import { skillHashtag, skillHref } from "@/lib/skills";
 
 const RESOURCE_ITEMS = [
   {
@@ -28,8 +28,8 @@ interface LessonToolbarProps {
 
 /**
  * Floating MPC options pad. Collapsed by default on every breakpoint; expands
- * into a small LED screen with out-of-lesson links. .Skills opens a list of
- * this lesson’s tags instead of leaving the page immediately.
+ * into a small LED screen with out-of-lesson links. .Skills opens a tooltip of
+ * this lesson’s tags instead of swapping the whole menu.
  */
 export function LessonToolbar({ slug, skills }: LessonToolbarProps) {
   const [open, setOpen] = useState(false);
@@ -80,78 +80,70 @@ export function LessonToolbar({ slug, skills }: LessonToolbarProps) {
         <div className="lesson-toolbar-lcd">
           <span className="lcd">{lcd}</span>
         </div>
-        {skillsOpen ? (
-          <div className="lesson-toolbar-skills" id={skillsId}>
-            <p className="lesson-toolbar-skills-label">This lesson</p>
-            {skills.length === 0 ? (
-              <p className="lesson-toolbar-empty">
-                No skills tagged yet.{" "}
-                <Link href="/skills/">Browse all skills</Link>
-              </p>
-            ) : (
-              <nav aria-label={`Skills for ${slug}`}>
-                {skills.map((id) => (
-                  <Link
-                    key={id}
-                    className="lesson-toolbar-item"
-                    href={skillHref(id)}
-                    onMouseEnter={() => setLcd(id.toUpperCase())}
-                    onMouseLeave={() => setLcd("SKILLS")}
-                    onFocus={() => setLcd(id.toUpperCase())}
-                    onBlur={() => setLcd("SKILLS")}
-                  >
-                    <span className="led led-green" aria-hidden="true" />
-                    {skillLabel(id)}
-                  </Link>
-                ))}
-              </nav>
-            )}
-            <button
-              type="button"
-              className="lesson-toolbar-item lesson-toolbar-back"
-              onClick={() => {
-                setSkillsOpen(false);
-                setLcd(IDLE_LCD);
-              }}
+        <nav className="lesson-toolbar-nav" aria-label="Out-of-lesson material">
+          {RESOURCE_ITEMS.map((item) => (
+            <Link
+              key={item.href}
+              className="lesson-toolbar-item"
+              href={item.href}
+              onMouseEnter={() => setLcd(item.lcd)}
+              onMouseLeave={() => setLcd(IDLE_LCD)}
+              onFocus={() => setLcd(item.lcd)}
+              onBlur={() => setLcd(IDLE_LCD)}
             >
-              ← Options
-            </button>
-          </div>
-        ) : (
-          <nav className="lesson-toolbar-nav" aria-label="Out-of-lesson material">
-            {RESOURCE_ITEMS.map((item) => (
-              <Link
-                key={item.href}
-                className="lesson-toolbar-item"
-                href={item.href}
-                onMouseEnter={() => setLcd(item.lcd)}
-                onMouseLeave={() => setLcd(IDLE_LCD)}
-                onFocus={() => setLcd(item.lcd)}
-                onBlur={() => setLcd(IDLE_LCD)}
-              >
-                <span className={`led ${item.led}`} aria-hidden="true" />
-                {item.label}
-              </Link>
-            ))}
+              <span className={`led ${item.led}`} aria-hidden="true" />
+              {item.label}
+            </Link>
+          ))}
+          <div className="lesson-toolbar-skills-wrap">
             <button
               type="button"
               className="lesson-toolbar-item"
               aria-expanded={skillsOpen}
               aria-controls={skillsId}
               onMouseEnter={() => setLcd("SKILLS")}
-              onMouseLeave={() => setLcd(IDLE_LCD)}
+              onMouseLeave={() => {
+                if (!skillsOpen) setLcd(IDLE_LCD);
+              }}
               onFocus={() => setLcd("SKILLS")}
-              onBlur={() => setLcd(IDLE_LCD)}
+              onBlur={() => {
+                if (!skillsOpen) setLcd(IDLE_LCD);
+              }}
               onClick={() => {
-                setSkillsOpen(true);
+                setSkillsOpen((current) => !current);
                 setLcd("SKILLS");
               }}
             >
               <span className="led led-green" aria-hidden="true" />
               .Skills
             </button>
-          </nav>
-        )}
+            {skillsOpen ? (
+              <div className="lesson-toolbar-skills-tip" id={skillsId} role="tooltip">
+                {skills.length === 0 ? (
+                  <p className="lesson-toolbar-empty">
+                    No skills tagged yet.{" "}
+                    <Link href="/skills/">Browse all skills</Link>
+                  </p>
+                ) : (
+                  <nav aria-label={`Skills for ${slug}`}>
+                    {skills.map((id) => (
+                      <Link
+                        key={id}
+                        href={skillHref(id)}
+                        onMouseEnter={() => setLcd(id.toUpperCase())}
+                        onMouseLeave={() => setLcd("SKILLS")}
+                        onFocus={() => setLcd(id.toUpperCase())}
+                        onBlur={() => setLcd("SKILLS")}
+                      >
+                        {skillHashtag(id)}
+                      </Link>
+                    ))}
+                  </nav>
+                )}
+              </div>
+            ) : null}
+          </div>
+        </nav>
       </div>
 
       <button

@@ -417,18 +417,60 @@ h1, h2, h3 {
   color: var(--ka-charcoal);
 }
 
-/* ---------- callout: the "Do" block ---------- */
+/* ---------- callout: Do Now (top) and Activate (You-do) ---------- */
 
-.do-block {
+.donow-block,
+.activate-block {
   margin: 1.75rem 0;
   padding: 1.1rem 1.25rem;
-  background: color-mix(in srgb, var(--hw-green) 28%, var(--ka-snow));
   border: 3px solid var(--ka-ink);
   border-radius: 10px;
 }
 
-.do-block > .eyebrow { color: var(--ka-canopy); }
-.do-block > *:last-child { margin-bottom: 0; }
+.donow-block {
+  background: color-mix(in srgb, var(--ka-bamboo) 45%, var(--ka-snow));
+}
+
+.donow-block > .eyebrow { color: var(--ka-bark); }
+.donow-block > *:last-child { margin-bottom: 0; }
+
+.donow-materials {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.55rem;
+  margin: 0 0 0.9rem;
+  font-size: 1.7rem;
+  line-height: 1;
+}
+
+.donow-materials-visual,
+.donow-materials-group {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.donow-materials-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.donow-materials-plus,
+.donow-materials-arrow {
+  font-size: 1.1rem;
+  line-height: 1;
+  color: var(--ka-bark);
+}
+
+.activate-block {
+  background: color-mix(in srgb, var(--hw-green) 28%, var(--ka-snow));
+}
+
+.activate-block > .eyebrow { color: var(--ka-canopy); }
+.activate-block > *:last-child { margin-bottom: 0; }
 
 /* ---------- click-to-load embed ---------- */
 
@@ -735,40 +777,73 @@ h1, h2, h3 {
 .lesson-toolbar-item {
   width: 100%;
   cursor: pointer;
+  box-sizing: border-box;
 }
 
 button.lesson-toolbar-item {
-  font: inherit;
+  appearance: none;
+  margin: 0;
   text-align: left;
 }
 
-.lesson-toolbar-skills nav {
-  display: grid;
-  gap: 0.45rem;
+.lesson-toolbar-skills-wrap {
+  position: relative;
+  width: 100%;
 }
 
-.lesson-toolbar-skills {
-  display: grid;
-  gap: 0.4rem;
-  margin-top: 0.65rem;
+.lesson-toolbar-skills-tip {
+  position: absolute;
+  right: calc(100% + 0.7rem);
+  top: 50%;
+  z-index: 2;
+  width: max-content;
+  max-width: min(16rem, calc(100vw - 5rem));
+  padding: 0.55rem 0.75rem;
+  color: var(--ka-snow);
+  background: var(--ka-ink);
+  border: 3px solid var(--ka-ink);
+  border-radius: 8px;
+  box-shadow: 0 4px 0 color-mix(in srgb, var(--ka-ink) 55%, transparent);
+  transform: translateY(-50%);
 }
 
-.lesson-toolbar-skills-label {
-  margin: 0;
-  font-size: 0.68rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: color-mix(in srgb, var(--ka-snow) 72%, var(--ka-charcoal));
+.lesson-toolbar-skills-tip::after {
+  content: "";
+  position: absolute;
+  right: -0.38rem;
+  top: 50%;
+  width: 0.7rem;
+  height: 0.7rem;
+  background: var(--ka-ink);
+  border-radius: 1px;
+  transform: translateY(-50%) rotate(45deg);
+}
+
+.lesson-toolbar-skills-tip nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.7rem;
+}
+
+.lesson-toolbar-skills-tip a {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: var(--ka-snow);
+  text-decoration: none;
+}
+
+.lesson-toolbar-skills-tip a:hover {
+  color: var(--ka-eucalyptus);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .lesson-toolbar-empty {
   margin: 0;
-  padding: 0.7rem 0.75rem;
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   line-height: 1.4;
   color: var(--ka-snow);
-  background: color-mix(in srgb, var(--hw-body) 70%, transparent);
-  border-radius: 6px;
 }
 
 .lesson-toolbar-empty a {
@@ -777,12 +852,6 @@ button.lesson-toolbar-item {
 
 .lesson-toolbar-empty a:hover {
   color: var(--ka-snow);
-}
-
-.lesson-toolbar-back {
-  margin-top: 0.15rem;
-  font-size: 0.72rem;
-  letter-spacing: 0.08em;
 }
 
 /* ---------- notation excerpt + sandbox ---------- */

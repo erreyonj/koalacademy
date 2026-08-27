@@ -1,0 +1,28 @@
+---
+description: 6–8 portal lesson draft loop — next lesson, one at a time, port 3–5 later
+alwaysApply: true
+---
+
+# 6–8 lesson draft loop
+
+Write remaining 6–8 portal lessons **one cycle at a time** from `curriculum/KOALACADEMY.md`. Do not draft a second lesson in the same turn.
+
+## Queue
+
+KOALACADEMY order, skip what already exists under `portal/content/lessons/`. Next missing after INTRO-68, BMT.1, BMT.4, KSN.1, KSN.2 is **BMT.2**, then BMT.3, BMT.5, KSN.3–5, US, D4, SONGFORM, SRP, DYS, AW, AEP, PERFORMANCE.
+
+## Phrases
+
+| User says | Agent does |
+| --- | --- |
+| **next lesson** | Name the next code. Paste Focus + Outline from KOALACADEMY.md. One line on later 3–5 portability. **Wait** — do not write MDX. |
+| Notes / Do Now ask, then **draft** or **go** | Write only `portal/content/lessons/<slug>.mdx`. |
+| **approved** or **lock it** | Split with `./scripts/split-curriculum-portal.sh` if the tree is mixed. Do not push unless asked. |
+| **skip** / **jump to X** | Reorder the queue for this pass. |
+| **port pass** | Only after the 6–8 set: add `3-5` (or a band copy) for the codes they list. |
+
+## Draft shape
+
+Do Now → Lesson → Activate. `bands: ["6-8"]` only until **port pass**. Silent journal Do Now by default (`look` + `journal` + `write`). Activate keeps I do / We do / You do; Do Now does not steal Activate.
+
+Likely portable later: BMT. Not Koala-only: KSN, D4, AEP, PERFORMANCE — do not add `3-5` while drafting.

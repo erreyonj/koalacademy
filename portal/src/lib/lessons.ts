@@ -44,9 +44,34 @@ function parseInvestigate(slug: string, value: unknown): InvestigateLink[] {
   });
 }
 
+const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
+
+/** Calendar day as YYYY-MM-DD. Quoted in YAML so gray-matter does not make a Date. */
+function parseCreated(slug: string, value: unknown): string {
+  if (typeof value === "string") {
+    const day = value.trim().slice(0, 10);
+    if (ISO_DAY.test(day)) return day;
+  }
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    return value.toISOString().slice(0, 10);
+  }
+  throw new Error(`${slug}.mdx: created must be a YYYY-MM-DD date string.`);
+}
+
 function parseFrontmatter(slug: string, data: Record<string, unknown>): Lesson {
-  const { code, title, focus, bands, sequence, unit, component, strand, skills, investigate } =
-    data;
+  const {
+    code,
+    title,
+    focus,
+    bands,
+    created,
+    sequence,
+    unit,
+    component,
+    strand,
+    skills,
+    investigate,
+  } = data;
 
   if (typeof code !== "string" || typeof title !== "string" || typeof focus !== "string") {
     throw new Error(`${slug}.mdx: code, title, and focus are required strings.`);
@@ -66,6 +91,7 @@ function parseFrontmatter(slug: string, data: Record<string, unknown>): Lesson {
     title,
     focus,
     bands,
+    created: parseCreated(slug, created),
     sequence,
     unit: typeof unit === "number" ? unit : undefined,
     component: typeof component === "string" ? component : undefined,
@@ -75,8 +101,12 @@ function parseFrontmatter(slug: string, data: Record<string, unknown>): Lesson {
   };
 }
 
-/** Intro first (low sequence), newest last. Code is the tiebreaker inside a band. */
+/** Intros first, then by created date (newest last). Sequence breaks same-day ties. */
 function compareLessons(a: Lesson, b: Lesson): number {
+  const aIntro = a.sequence === 0 ? 0 : 1;
+  const bIntro = b.sequence === 0 ? 0 : 1;
+  if (aIntro !== bIntro) return aIntro - bIntro;
+  if (a.created !== b.created) return a.created < b.created ? -1 : 1;
   if (a.sequence !== b.sequence) return a.sequence - b.sequence;
   return a.code.localeCompare(b.code, undefined, { numeric: true, sensitivity: "base" });
 }
@@ -117,8 +147,9 @@ export function getLesson(slug: string): Lesson | undefined {
 }
 
 /**
- * Prev/next follow the band list (sequence ascending). A new lesson takes the
- * next integer — do not renumber older ones to splice it in.
+ * Prev/next follow the band list (created ascending, intros first). A new
+ * lesson gets today's `created` date and max(sequence)+1. Do not use the
+ * KOALACADEMY code number as `sequence`.
  */
 export function getLessonWithNeighbours(slug: string): LessonWithNeighbours | undefined {
   const lesson = getLesson(slug);

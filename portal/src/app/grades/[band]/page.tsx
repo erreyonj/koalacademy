@@ -1,6 +1,11 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import {
+  BandLessonList,
+  BandLessonListFallback,
+} from "@/components/BandLessonList";
 import { getBand, getLessonsForBand } from "@/lib/lessons";
 import { BAND_IDS, type BandId } from "@/lib/types";
 
@@ -37,7 +42,7 @@ export default async function BandPage({ params }: PageProps) {
         </div>
       </header>
 
-      <div className="section">
+      <div className="section section-lesson">
         <div className="wrap">
           {lessons.length === 0 ? (
             <div className="empty-note">
@@ -47,17 +52,9 @@ export default async function BandPage({ params }: PageProps) {
               </p>
             </div>
           ) : (
-            <ul className="lesson-list" role="list">
-              {lessons.map((lesson) => (
-                <li key={lesson.slug}>
-                  <Link className="lesson-row" href={`/lessons/${lesson.slug}/`}>
-                    <span className="lesson-row-code">{lesson.code}</span>
-                    <span className="lesson-row-title">{lesson.title}</span>
-                    <span className="lesson-row-focus">{lesson.focus}</span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
+            <Suspense fallback={<BandLessonListFallback lessons={lessons} />}>
+              <BandLessonList bandId={band.id} lessons={lessons} />
+            </Suspense>
           )}
 
           <p>

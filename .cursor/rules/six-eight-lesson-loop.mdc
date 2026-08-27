@@ -25,4 +25,6 @@ KOALACADEMY order, skip what already exists under `portal/content/lessons/`. Nex
 
 Do Now → Lesson → Activate. `bands: ["6-8"]` only until **port pass**. Silent journal Do Now by default (`look` + `journal` + `write`). Activate keeps I do / We do / You do; Do Now does not steal Activate.
 
+Frontmatter: `created: "YYYY-MM-DD"` (today, quoted) and `sequence: max existing in that band + 1`. Never set `sequence` to the KOALACADEMY number (`BMT.2` is not `2`). Band lists sort intros first, then by `created` (newest last).
+
 Likely portable later: BMT. Not Koala-only: KSN, D4, AEP, PERFORMANCE — do not add `3-5` while drafting.

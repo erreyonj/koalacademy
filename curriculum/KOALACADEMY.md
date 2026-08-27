@@ -144,33 +144,41 @@ scale consists of A, B, C, D, E, F, and G.
 **Focus:** Expand beyond major and minor into the blues scale and two modes that appear
 constantly in sampled and sample-based music.
 
+Student-facing draft: [portal/content/lessons/bmt-2.mdx](../portal/content/lessons/bmt-2.mdx).
+Guitar-first demonstration; keyboard as the visual map.
+
 **Outline**
 
-1. The blues scale
-   - Definition: a six-note scale, built from the pentatonic scale, used frequently in blues
-     and many other genres
-   - Explanation of the pentatonic scale and how it differs from the major scale
-   - Demonstration of the blues scale on a keyboard and on a guitar
-   - Examples of songs that use the blues scale, such as "Stormy Monday" by T-Bone Walker and
-     "The Thrill Is Gone" by B.B. King
-2. The Dorian mode
-   - Definition: a mode similar to the natural minor scale, but with a raised sixth degree
-   - Explanation of the concept of modes in music theory
-   - Demonstration of the Dorian mode on a keyboard and on a guitar
-   - Examples of songs that use the Dorian mode, such as "So What" by Miles Davis and "I Shot
-     the Sheriff" by Bob Marley
-3. The Phrygian mode
-   - Definition: a mode similar to the natural minor scale, but with a lowered second degree
-   - Demonstration of the Phrygian mode on a keyboard and on a guitar
-   - Examples of songs that use the Phrygian mode, such as "Enter Sandman" by Metallica and
-     "Maria Maria" by Santana
-4. Using extended theory in sampling and popular music
-   - How these concepts sharpen sample selection and manipulation
-   - How the blues scale, Dorian mode, and Phrygian mode have been used in popular music and
-     sampling, with examples from producers such as J Dilla, Kanye West, and Dr. Dre
+1. Do Now — two clefs (Persistence)
+   - Lined journal paper: draw five lines, then freehand a treble clef and a bass clef
+   - Copy large notation excerpts on the slide; redraw if the first try fights you
+2. After major and minor
+   - `BMT.1` maps (bright major / heavier natural minor) do not cover a lot of sampled music
+   - Three shapes for this period: blues scale, Dorian, Phrygian
+3. The blues scale
+   - Pentatonic is five notes; blues scale is minor pentatonic plus the flat five (six notes)
+   - C blues: C, E♭, F, G♭, G, B♭
+   - Guitar, then keyboard diagram
+   - Listen: "The Thrill Is Gone" (B.B. King); named map: "Stormy Monday" (T-Bone Walker)
+4. Dorian — minor, with a raised sixth
+   - A mode is the same notes as a parent scale with a different home
+   - D Dorian = C major starting on D; B is the raised sixth vs D natural minor
+   - Named maps: "So What" (Miles Davis), "I Shot the Sheriff" (Bob Marley)
+   - Modern listen: "Devil In a New Dress" (Kanye West feat. Rick Ross)
+5. Phrygian — minor, with a lowered second
+   - E Phrygian = C major starting on E; F is the lowered second vs E natural minor
+   - Named maps: "Enter Sandman" (Metallica), "Maria Maria" (Santana)
+   - Modern listen: "This Is How We Do It" (Montell Jordan)
+6. Why this matters for samples
+   - A sample is a box of notes; color tones have to belong in the same room
+   - Producers in the mix: J Dilla, Kanye West, Dr. Dre
+7. Activate — find the color tone
+   - I do / We do / You do on guitar, then the keyboard diagram
+   - Color tones: flat five (blues), raised sixth (Dorian), lowered second (Phrygian)
 
-By the end of this lesson, students should recognize the blues scale and both modes by ear and
-on the keyboard, and be able to apply that recognition to sample choices.
+By the end of this lesson, students should say how a blues scale differs from major, point to
+the Dorian raised sixth and the Phrygian lowered second, hear those colors in the modern
+examples, and walk one shape on guitar or the keyboard diagram.
 
 ### BMT.3 — Relative and Parallel Keys
 

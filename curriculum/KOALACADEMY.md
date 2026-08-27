@@ -144,9 +144,6 @@ scale consists of A, B, C, D, E, F, and G.
 **Focus:** Expand beyond major and minor into the blues scale and two modes that appear
 constantly in sampled and sample-based music.
 
-Student-facing draft: [portal/content/lessons/bmt-2.mdx](../portal/content/lessons/bmt-2.mdx).
-Guitar-first demonstration; keyboard as the visual map.
-
 **Outline**
 
 1. Do Now — two clefs (Persistence)
@@ -418,6 +415,7 @@ rest of the course.
    - Options for importing audio into Koala Sampler
    - How to import
    - Tips for managing imported audio files
+   - Revisit Splice platform
 4. Exporting and saving projects
    - Saving a project
    - Different file types and their uses

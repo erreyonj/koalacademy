@@ -71,7 +71,15 @@ export interface LessonFrontmatter {
   title: string;
   focus: string;
   bands: BandId[];
-  /** Band list order: 0 is the intro, each new lesson takes the next integer. Newest last. Also drives prev/next. */
+  /**
+   * When this slide was authored (`YYYY-MM-DD`). Band lists sort by this
+   * (oldest first, newest last). Intros (`sequence: 0`) stay first regardless.
+   */
+  created: string;
+  /**
+   * Same-day order inside a band after `created`. 0 is the intro. A new lesson
+   * takes max(sequence)+1 — never the KOALACADEMY lesson number (BMT.2 is not 2).
+   */
   sequence: number;
   /** 6-8 only: Koalacademy unit number and component name. */
   unit?: number;

@@ -770,6 +770,52 @@ h1, h2, h3 {
   background: var(--hw-yellow);
 }
 
+.component-toolbar .lesson-toolbar-panel {
+  width: min(22rem, calc(100vw - 2rem));
+}
+
+.component-toolbar .lesson-toolbar-lcd .lcd {
+  white-space: normal;
+  letter-spacing: 0.08em;
+  font-size: 0.62rem;
+  line-height: 1.3;
+}
+
+.component-toolbar .lesson-toolbar-nav {
+  grid-template-columns: 1fr 1fr;
+}
+
+.component-toolbar .lesson-toolbar-item {
+  min-height: var(--tap-min);
+  justify-content: center;
+  padding: 0.4rem 0.45rem;
+  font-size: 0.62rem;
+  letter-spacing: 0.06em;
+  text-align: center;
+}
+
+.component-toolbar .lesson-toolbar-item.is-all {
+  grid-column: 1 / -1;
+}
+
+.component-toolbar .lesson-toolbar-item.is-selected {
+  background: var(--hw-green);
+  transform: translateY(4px);
+  box-shadow: 0 0 0 var(--ka-ink);
+}
+
+.component-toolbar .lesson-toolbar-item.is-selected .led {
+  background: var(--hw-yellow);
+}
+
+.component-toolbar.is-filtered .lesson-toolbar-pad {
+  background: var(--hw-green);
+}
+
+.component-toolbar.is-filtered .lesson-toolbar-pad .led {
+  background: var(--hw-yellow);
+}
+
 .resource-slot {
   scroll-margin-top: 1.5rem;
 }
@@ -1625,6 +1671,7 @@ button.lesson-toolbar-item {
   .lesson-toolbar-panel,
   .lesson-toolbar-item,
   .lesson-toolbar-pad,
+  .component-toolbar .lesson-toolbar-panel,
   [data-sidebar="menu-button"],
   [data-sidebar="menu-sub-button"],
   .cof-ring,

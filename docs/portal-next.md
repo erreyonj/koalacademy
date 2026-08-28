@@ -1,4 +1,4 @@
-# Portal next features
+git# Portal next features
 
 > **Status: spec.** Nothing in this file is built yet. It records what to implement next on the student portal, in enough detail that a later pass can start without re-litigating the product decisions.
 
@@ -7,7 +7,7 @@ The original V1 proposal lives in [curriculum/k-8-pilot/resources/portal-v1.md](
 1. An interactive Circle of Fifths tool
 2. A Skills search hub, wired from the lesson Options toolbar
 
-Implementation belongs in `portal/`. This document is product direction only.
+Implementation belongs in `portal/`.
 
 ---
 

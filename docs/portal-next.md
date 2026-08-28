@@ -1,13 +1,8 @@
 # Portal next features
 
-> **Status: product notes.** Circle of Fifths and Skills are implemented in `portal/`. Keep
-> this file as the decisions that drove those surfaces; hub status and 9/2 access live in
-> [portal-v1.1.md](../curriculum/k-8-pilot/resources/portal-v1.1.md).
+> **Status: spec.** Nothing in this file is built yet. It records what to implement next on the student portal, in enough detail that a later pass can start without re-litigating the product decisions.
 
-The lesson slide hub was scoped in
-[portal-v1.md](../curriculum/k-8-pilot/resources/portal-v1.md) (frozen) and updated in
-[portal-v1.1.md](../curriculum/k-8-pilot/resources/portal-v1.1.md). This file covered the
-next slice after the hub:
+The original V1 proposal lives in [curriculum/k-8-pilot/resources/portal-v1.md](../curriculum/k-8-pilot/resources/portal-v1.md). That document scoped the lesson slide hub. The hub exists. This file is the next slice:
 
 1. An interactive Circle of Fifths tool
 2. A Skills search hub, wired from the lesson Options toolbar
@@ -16,128 +11,109 @@ Implementation belongs in `portal/`.
 
 ---
 
+
+
 ## Shared constraints
 
 These apply to both features and should not be reopened per ticket.
 
-**Static export.** The portal ships as HTML (`output: "export"` in
-[`portal/next.config.ts`](../portal/next.config.ts), `trailingSlash: true`). There is no
-server runtime and no search API. Anything that looks like “state” has to live in the URL or
-in the browser.
+**Static export.** The portal ships as HTML (`output: "export"` in `[portal/next.config.ts](../portal/next.config.ts)`, `trailingSlash: true`). There is no server runtime and no search API. Anything that looks like “state” has to live in the URL or in the browser.
 
-**Content stays in the repo.** Lesson text remains Markdown/MDX under `portal/content/lessons/`.
-The portal indexes that content. It does not become a CMS, and skill names do not move into a
-database in this slice.
+**Content stays in the repo.** Lesson text remains Markdown/MDX under `portal/content/lessons/`. The portal indexes that content. It does not become a CMS, and skill names do not move into a database in this slice.
 
-**Phone and projector.** Tap targets on the wheel have to work from the back of a room and on
-a hallway phone. Skills search has to be usable with one thumb.
+**Phone and projector.** Tap targets on the wheel have to work from the back of a room and on a hallway phone. Skills search has to be usable with one thumb.
 
-**Stable ids.** Skill tags chosen now will later attach to a student progress model. Name them
-as if they will be keys in a table. Do not rename casually.
+**Stable ids.** Skill tags chosen now will later attach to a student progress model. Name them as if they will be keys in a table. Do not rename casually.
 
 ---
 
+
+
 ## 1. Circle of Fifths tool
+
+
 
 ### Job
 
-The next interactive tool after the [notation sandbox](../portal/src/app/tools/notation/page.tsx).
-A student, or a teacher on a projector, picks a key. Tonal fills the harmonic facts for that
-key: diatonic triads, relative minor/major, subdominant, dominant.
+The next interactive tool after the [notation sandbox](../portal/src/app/tools/notation/page.tsx). A student, or a teacher on a projector, picks a key. Tonal fills the harmonic facts for that key: diatonic triads, relative minor/major, subdominant, dominant.
 
-This is the visual counterpart to `BMT.1` (scales and key signatures) and `BMT.3` (relative and
-parallel keys). It does not replace those lessons. It is the pad you leave open beside them.
+This is the visual counterpart to `BMT.1` (scales and key signatures) and `BMT.3` (relative and parallel keys). It does not replace those lessons. It is the pad you leave open beside them.
 
 ### Route and nav
 
-| Surface | Path |
-| --- | --- |
-| Tool page | `/tools/circle-of-fifths/` |
-| Listed from | [`/toolkit/`](../portal/src/app/toolkit/page.tsx) |
 
-Toolkit stays the home for tools (notation sandbox, this wheel, later pads). Skills is a
-different surface — a search hub, not a tool shelf.
+| Surface     | Path                                              |
+| ----------- | ------------------------------------------------- |
+| Tool page   | `/tools/circle-of-fifths/`                        |
+| Listed from | `[/toolkit/](../portal/src/app/toolkit/page.tsx)` |
 
-Same page pattern as
-[`portal/src/app/tools/notation/page.tsx`](../portal/src/app/tools/notation/page.tsx): a short
-hero, then the interactive component, then a back link to Toolkit.
+
+Toolkit stays the home for tools (notation sandbox, this wheel, later pads). Skills is a different surface — a search hub, not a tool shelf.
+
+Same page pattern as `[portal/src/app/tools/notation/page.tsx](../portal/src/app/tools/notation/page.tsx)`: a short hero, then the interactive component, then a back link to Toolkit.
 
 ### Visual (C selected)
 
-Dark green field. A large white wheel centered in the frame. Copy and harmonic callouts sit
-around it, not inside it.
+Dark green field. A large white wheel centered in the frame. Copy and harmonic callouts sit around it, not inside it.
 
-**Selection tab.** A black trapezoid at 3 o’clock on the wheel, pointing inward, showing the
-tonic in large type (`C`). A bright blue gear sits on the outer edge of that tab. The gear is
-the key-select control.
+**Selection tab.** A black trapezoid at 3 o’clock on the wheel, pointing inward, showing the tonic in large type (`C`). A bright blue gear sits on the outer edge of that tab. The gear is the key-select control.
 
-**Neighbors on the rim.** With C in the tab, a faint **F** sits above the tab on the inner
-perimeter and a faint **G** sits below it. Those are the adjacent pitch classes on the circle,
-not decorative labels.
+**Neighbors on the rim.** With C in the tab, a faint **F** sits above the tab on the inner perimeter and a faint **G** sits below it. Those are the adjacent pitch classes on the circle, not decorative labels.
 
 **Functional callouts.** Independent of the faint rim letters:
 
 - Top of the page: **F** — subtitle `subdominant / plagal` (IV of C)
 - Bottom of the page: **G** — subtitle `dominant / perfect` (V of C)
 
-When the tonic changes, these callouts follow: they always name IV and V of the selected key,
-with the same two function labels.
+When the tonic changes, these callouts follow: they always name IV and V of the selected key, with the same two function labels.
 
 **Key readout, left of center:**
 
 - Title: selected key in large type, e.g. `C MAJOR`
 - Diatonic triads in a dotted row: `C . Dm . Em . F . G . Am . Bdim`
-- The relative minor (`Am` when the key is C major) is highlighted in red; the other chords
-  stay muted
-- One short sentence under the row (“One of the most popular keys to write music in…”). This
-  blurb is authored, not generated by Tonal.
+- The relative minor (`Am` when the key is C major) is highlighted in red; the other chords stay muted
+- One short sentence under the row (“One of the most popular keys to write music in…”). This blurb is authored, not generated by Tonal.
 
-**Orientation.** Twelve pitch classes on the circle of fifths. With C in the tab at 3 o’clock,
-clockwise-down is G and counterclockwise-up is F. That matches both the sketch and the
-standard circle. Do not invent a different layout.
+**Orientation.** Twelve pitch classes on the circle of fifths. With C in the tab at 3 o’clock, clockwise-down is G and counterclockwise-up is F. That matches both the sketch and the standard circle. Do not invent a different layout.
 
 ### Interaction (v1)
 
-- Click the gear to rotate the next tonic into the tab. Click the adjacent F/G rim labels to
-  step the same way (up a fourth / up a fifth).
-- Each selection reloads Tonal data and rewrites the title, chord row, relative highlight, IV/V
-  callouts, and blurb.
-- Tap the highlighted relative in the chord list to switch mode: C major ↔ A minor. That is
-  the `BMT.3` teaching move. Do not bury it in a settings sheet.
+- Click the gear to rotate the next tonic into the tab. Click the adjacent F/G rim labels to step the same way (up a fourth / up a fifth).
+- Each selection reloads Tonal data and rewrites the title, chord row, relative highlight, IV/V callouts, and blurb.
+- Tap the highlighted relative in the chord list to switch mode: C major ↔ A minor. That is the `BMT.3` teaching move. Do not bury it in a settings sheet.
 - Parallel switch (C major ↔ C minor) can wait. Relative is the v1 mode change.
 
 **Later, not v1:** click any pitch class on the rim to jump there; drag the wheel to spin.
 
 ### Data from Tonal
 
-The portal already depends on `tonal` (^6.4.3). Notation uses it in
-[`portal/src/lib/notation/key.ts`](../portal/src/lib/notation/key.ts)
-(`Key.majorKey`, `Key.minorKey`, `Scale.get`). Reuse that package. Do not add a second theory
-library.
+The portal already depends on `tonal` (^6.4.3). Notation uses it in `[portal/src/lib/notation/key.ts](../portal/src/lib/notation/key.ts)` (`Key.majorKey`, `Key.minorKey`, `Scale.get`). Reuse that package. Do not add a second theory library.
 
 From `Key.majorKey(tonic)` / `Key.minorKey(tonic)`, show:
 
-| Field | Source |
-| --- | --- |
-| Key name and mode | tonic + major/minor |
-| Diatonic triads | `chords` (or equivalent triad list) |
-| Relative minor / major | `minorRelative` / major relative |
+
+| Field                     | Source                                                                   |
+| ------------------------- | ------------------------------------------------------------------------ |
+| Key name and mode         | tonic + major/minor                                                      |
+| Diatonic triads           | `chords` (or equivalent triad list)                                      |
+| Relative minor / major    | `minorRelative` / major relative                                         |
 | Alteration (sharps/flats) | `alteration` — useful internally; not required on the face of the sketch |
-| IV and V labels | scale degrees 4 and 5 of the selected key |
+| IV and V labels           | scale degrees 4 and 5 of the selected key                                |
 
-The one-line blurb is a small keyed map in `lib` (C major, G major, A minor, …), with a
-generic fallback for keys that have no copy yet. Tonal does not write marketing sentences.
 
-Key names stay in Tonal’s existing spelling: `"C"`, `"G"`, `"F#m"`, `"Bb"`. Same convention as
-[`ScoreExcerpt.key`](../portal/src/lib/notation/types.ts).
+The one-line blurb is a small keyed map in `lib` (C major, G major, A minor, …), with a generic fallback for keys that have no copy yet. Tonal does not write marketing sentences.
+
+x  cxccKey names stay in Tonal’s existing spelling: `"C"`, `"G"`, `"F#m"`, `"Bb"`. Same convention as `[ScoreExcerpt.key](../portal/src/lib/notation/types.ts)`.
 
 ### Suggested files (when built)
 
-| Path | Role |
-| --- | --- |
-| `portal/src/lib/circle-of-fifths.ts` | Circle order, rotation, Tonal lookup, blurb map |
-| `portal/src/components/circle-of-fifths/` | Wheel, tab, gear, readout |
-| `portal/src/app/tools/circle-of-fifths/page.tsx` | Route |
+
+| Path                                             | Role                                            |
+| ------------------------------------------------ | ----------------------------------------------- |
+| `portal/src/lib/circle-of-fifths.ts`             | Circle order, rotation, Tonal lookup, blurb map |
+| `portal/src/components/circle-of-fifths/`        | Wheel, tab, gear, readout                       |
+| `portal/src/app/tools/circle-of-fifths/page.tsx` | Route                                           |
+
 
 Logic in `lib/`. JSX in `components/`. Same split as notation.
 
@@ -150,136 +126,18 @@ Logic in `lib/`. JSX in `components/`. Same split as notation.
 
 ---
 
+
+
 ## 2. Skills hub
+
+
 
 ### Job
 
-Search curriculum topics and get matching lessons, plus related Investigate links that sit
-beside those lessons.
-
-Skills is a map of the course, not a gradebook. The same vocabulary will later feed a student
-data model as a progress indicator. **That model is out of scope.** Keep the tag strings
-stable so the later table can use them as keys.
-
-### Route and nav
-
-| Surface | Path |
-| --- | --- |
-| Skills page | `/skills/` |
-| Sidebar | New main item **Skills** in [`nav-main.tsx`](../portal/src/components/nav-main.tsx) |
-| From a lesson | Options toolbar `.Skills` → `/skills/?lesson=<slug>` |
-| From the sidebar | `/skills/` with no query — full searchable index |
-
-Dashboard may grow a shortcut. Toolkit does not absorb this page. Toolkit is pads and tools;
-Skills is topic search.
-
-### Search
-
-Client-side over a build-time index. `getAllLessons()` already reads every MDX file at build
-time in [`portal/src/lib/lessons.ts`](../portal/src/lib/lessons.ts). Skills search is another
-consumer of that index (plus the new `skills` / `investigate` fields), not a network call.
-
-A query matches, in order of usefulness:
-
-1. Skill / topic tags on the lesson
-2. `title`, `focus`, `component`, `strand`
-
-Results:
-
-- Filtered lessons (link to `/lessons/<slug>/`)
-- Investigate links tied to those lessons, or to the skill that matched
-
-Empty query on `/skills/` shows the full skill list (or every tagged lesson). Empty query
-with `?lesson=` shows that lesson’s tags and the lessons/links that share them.
-
-### Lesson association
-
-Lessons have no skills field today. Add optional frontmatter, parsed next to the existing
-fields in [`types.ts`](../portal/src/lib/types.ts) and [`lessons.ts`](../portal/src/lib/lessons.ts):
-
-```yaml
-skills:
-  - relative keys
-  - key signatures
-investigate:
-  - title: "Relative minor, explained"
-    url: "https://www.youtube.com/watch?v=…"
-```
-
-Rules:
-
-- `skills` is a list of strings. Use lowercase, spaces allowed, treat the string as the id.
-  Example ids that should stay put: `relative keys`, `key signatures`, `circle of fifths`,
-  `4/4`, `sampling ethics`.
-- A lesson with no `skills` still appears in title/focus search. It does not pre-filter the
-  hub when opened from the toolbar.
-- `investigate` is the first data home for the Options `.Investigate` slot. Skills search
-  reads it; the `/resources/#investigate` holding page can keep working until Investigate
-  gets its own spec.
-- Do not invent a parallel skills CMS. Tags live on the lesson, the way `bands` and `strand`
-  already do.
-
-Seed tags on the theory lessons that already exist (`bmt-1`, `bmt-4`) when the hub is built,
-so `/skills/` is not an empty box. Other lessons pick up tags as they are written.
-
-### Toolbar wiring
-
-Today [`LessonToolbar`](../portal/src/components/LessonToolbar.tsx) is lesson-blind. All three
-pads hard-link to hashes on `/resources/`:
-
-```ts
-{ href: "/resources/#skills", label: ".Skills", … }
-```
-
-[`SlideShell`](../portal/src/components/SlideShell.tsx) renders `<LessonToolbar />` with no
-props.
-
-Change:
-
-1. `SlideShell` passes the current lesson (at least `slug` and `skills`) into `LessonToolbar`.
-2. `.Skills` goes to `/skills/?lesson=<slug>` (query string; trailing slash stays on the path
-   because of `trailingSlash: true`). Example: `/skills/?lesson=bmt-1`.
-3. The Skills page reads `lesson` from `window.location.search` (client component) and
-   pre-filters to that lesson’s tags.
-4. Opening Skills from the sidebar omits the query and shows the full index.
-
-`.Investigate` and `.Playlist` stay on `/resources/` until those features are specified.
-Only `.Skills` moves in this slice. The `/resources/#skills` slot can point at the new hub
-once it exists, so leftover links do not die.
-
-### Out of scope for Skills
-
-- Student or guardian accounts
-- Skill mastery, checkmarks, or any progress indicator on the student
-- Anything in the `progress` table sketched in portal-v1
-- Replacing Toolkit, or moving the Circle of Fifths / notation sandbox onto `/skills/`
-- Building the full Investigate or Playlist products
-
-When progress does arrive, it should key off these same skill strings. That is the only
-forward-looking requirement.
-
----
-
-## How the two features meet
-
-They are siblings, not a nest.
-
-- Circle of Fifths is a **tool**. It lives under `/tools/` and is listed on Toolkit.
-- Skills is a **map**. It lives at `/skills/` and is listed in the main sidebar.
-- A lesson tagged `circle of fifths` or `key signatures` can surface the wheel as a related
-  link in Skills results. That is a link, not a merge of the two pages.
-- The Options toolbar `.Skills` pad is how you jump from a slide to the map with that
-  lesson’s tags already selected.
-
----
-
-## Build order
-
 1. **Circle of Fifths tool** — closed UI, Tonal already in the tree, no new content model.
-2. **Skills data shape + `/skills/` search** — frontmatter, types, index, sidebar item.
-3. **Toolbar `.Skills` deep-link** — `SlideShell` passes the lesson; `?lesson=` pre-filters.
+2. **Skills data shape +** `/skills/` **search** — frontmatter, types, index, sidebar item.
+3. **Toolbar** `.Skills` **deep-link** — `SlideShell` passes the lesson; `?lesson=` pre-filters.
 4. **Investigate links in results** — once a few lessons are tagged and have `investigate`
-   urls.
+  urls.
 
-Do not block the wheel on Skills, or Skills on a complete tag set. An untagged lesson is a
-valid v1 state.
+Do not block the wheel on Skills, or Skills on a complete tag set. An untagged lesson is a valid v1 state.

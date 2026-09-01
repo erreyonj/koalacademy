@@ -1,7 +1,6 @@
 # Music 6-Day Schedule
 
-Posted classroom schedule for **MUSIC — Erreyon Elders** (printout labeled
-"MUSIC EYERAN ELDERS"). Source: **2026–27 Master Schedule** MUSIC tab.
+Posted classroom schedule for **MUSIC — Erreyon Elders**. Source: **2026–27 Master Schedule** MUSIC tab.
 
 This is the working schedule for the pilot. Period lengths and which section sits
 in which window come from here. Cycle-day numbers come from the

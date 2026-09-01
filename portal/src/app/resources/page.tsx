@@ -61,8 +61,9 @@ export default function ResourcesPage() {
                 <p>
                   <Link href="/skills/">Skills hub</Link> — search tags and
                   lesson titles. The{" "}
-                  <Link href="/tools/notation/">notation sandbox</Link> still
-                  lives in Toolkit.
+                  <Link href="/tools/notation/">notation sandbox</Link> and{" "}
+                  <Link href="/tools/rhythm/">rhythm randomizer</Link> still
+                  live in Toolkit.
                 </p>
               </div>
             </section>

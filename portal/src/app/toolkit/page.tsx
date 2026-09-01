@@ -11,7 +11,7 @@ export default function ToolkitPage() {
     <StubPage
       eyebrow="Toolkit"
       title="Skills, pads, and extras."
-      lede="Out-of-lesson tools live here. The notation sandbox and circle of fifths are ready; the rest of the kit fills in as we write it."
+      lede="Out-of-lesson tools live here. The notation sandbox, rhythm randomizer, and circle of fifths are ready; the rest of the kit fills in as we write it."
       lcd="Toolkit — Standby"
     >
       <article className="slide-body">
@@ -19,6 +19,10 @@ export default function ToolkitPage() {
           <p>
             <Link href="/tools/notation/">Notation sandbox</Link> — clef, key,
             time, notes, and rests on a 1–2 bar staff.
+          </p>
+          <p>
+            <Link href="/tools/rhythm/">Rhythm randomizer</Link> — pick a meter
+            and bar count, then generate a 1–4 bar drill.
           </p>
           <p>
             <Link href="/tools/circle-of-fifths/">Circle of Fifths</Link> —

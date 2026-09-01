@@ -1,6 +1,6 @@
 import type { Clef, Duration, Measure, ScoreEvent, ScoreExcerpt, TimeSignature } from "./types";
 
-const DURATIONS = new Set<Duration>(["w", "h", "q", "8"]);
+const DURATIONS = new Set<Duration>(["w", "h", "q", "8", "16"]);
 
 export function durationBeats(duration: Duration): number {
   switch (duration) {
@@ -12,7 +12,16 @@ export function durationBeats(duration: Duration): number {
       return 1;
     case "8":
       return 0.5;
+    case "16":
+      return 0.25;
   }
+}
+
+export function eventBeats(event: ScoreEvent): number {
+  let beats = durationBeats(event.duration);
+  if (event.dots === 1) beats *= 1.5;
+  if (event.tuplet === "3:2") beats *= 2 / 3;
+  return beats;
 }
 
 export function measureCapacity(time: TimeSignature): number {
@@ -32,7 +41,7 @@ export function voiceTime(time: TimeSignature): { numBeats: number; beatValue: n
 }
 
 export function measureBeats(measure: Measure): number {
-  return measure.events.reduce((sum, event) => sum + durationBeats(event.duration), 0);
+  return measure.events.reduce((sum, event) => sum + eventBeats(event), 0);
 }
 
 const TOKEN = /^(r|[A-G](?:#|b)?\d)\/(w|h|q|8)$/i;
@@ -64,7 +73,7 @@ export function eventsToMeasures(
   const measures: Measure[] = [{ events: [] }];
   let filled = 0;
   for (const event of events) {
-    const beats = durationBeats(event.duration);
+    const beats = eventBeats(event);
     const last = measures[measures.length - 1];
     if (last.events.length > 0 && filled + beats > cap + 1e-6 && measures.length < maxMeasures) {
       measures.push({ events: [event] });

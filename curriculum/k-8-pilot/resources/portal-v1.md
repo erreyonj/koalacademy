@@ -53,7 +53,7 @@ single page is easier to build, easier to link into, and far better on a phone.
 | Header | Lesson code or strand, grade band, one-line focus statement |
 | Concept | The teaching text, short and in the register of the grade band |
 | Listening | Click-to-load YouTube embed, reusing the pattern in [site/src/embeds.js](../../../site/src/embeds.js) |
-| Do | The game or activity for the day, linking to [playbook/games.md](../playbook/games.md) |
+| Do | The game or activity for the day, linking to [playbook/games.md](../playbook/games.md). **Superseded:** this block is now **Activate**; lessons also open with **Do Now**. See [portal-v1.1.md](portal-v1.1.md). |
 | Breaks | Gifs and memes between blocks — attention resets, not decoration |
 | Links | Vanguard Song pages, resources, worksheets, anything the lesson points at |
 | Footer | Previous and next lesson in the sequence |

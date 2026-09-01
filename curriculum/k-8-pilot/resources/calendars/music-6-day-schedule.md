@@ -1,8 +1,6 @@
 # Music 6-Day Schedule
 
-Posted classroom schedule for **MUSIC — Erreyon Elders** (printout labeled
-"MUSIC EYERAN ELDERS"). Source photo:
-[music-6-day-schedule.heic](music-6-day-schedule.heic).
+Posted classroom schedule for **MUSIC — Erreyon Elders**. Source: **2026–27 Master Schedule** MUSIC tab.
 
 This is the working schedule for the pilot. Period lengths and which section sits
 in which window come from here. Cycle-day numbers come from the
@@ -33,7 +31,7 @@ expedition blocks**. Put **6th Grade Blue** in the last period (2:20–3:20)
 instead of that weekday's usual 6–8 section.
 
 Example: Thursday 9/10/2026 is Day 6. Run Thursday's morning and afternoon
-(3 Gold, 2nd grade, planning) and end with 6 Blue rather than 8 Blue.
+(3 Gold, 2 Blue, planning) and end with 6 Blue rather than 8 Blue.
 
 Homerooms are **Blue** and **Gold**. Cadence is section-specific, not "twice a
 week for the whole grade."
@@ -42,27 +40,28 @@ week for the whole grade."
 
 | Band | Printed window | Assembly to use |
 | --- | --- | --- |
-| K–2 | 27–28 min (some Thursday planning blocks are 30) | [30-minute](../../playbook/lesson-structure.md) |
+| K–2 | 27–28 min | [30-minute](../../playbook/lesson-structure.md) |
 | Grade 3–4 | 60 min | [60-minute](../../playbook/lesson-structure.md) |
 | Grade 5 | 55 min (8:20–9:15) | [55-minute](../../playbook/lesson-structure.md) |
 | Grades 6–8 | 60 min (2:20–3:20) | [60-minute](../../playbook/lesson-structure.md), production or unplugged |
 
 ## Typical Monday–Friday (Days 1–5)
 
-Morning duty is DJ Booth **7:55–8:15** every weekday. Lunch is **11:30–12:05**
-every weekday. Dismissal sits between last period and the 3:30 after-school
-block.
+Morning duty is DJ Booth **7:55–8:20** every weekday. Lunch is **11:30–12:05**
+every weekday. Dismissal is **3:20**; after-school blocks begin at **3:30**.
 
 ### Monday (typical Day 1)
 
 | Time | Block |
 | --- | --- |
-| 7:55–8:15 | Morning duty — DJ Booth |
+| 7:55–8:20 | Morning duty — DJ Booth |
 | 8:20–8:50 | Scholars Academy Music |
-| 8:59–10:20 | Planning |
+| 8:50–9:20 | Planning |
+| 9:20–10:20 | Planning |
 | 10:25–11:25 | **4 Gold** (60 min) |
 | 11:30–12:05 | Lunch |
-| 12:15–1:15 | Planning |
+| 12:15–12:45 | Planning |
+| 12:45–1:15 | Planning |
 | 1:15–1:42 | **1 Blue** (27 min) |
 | 1:47–2:15 | **1 Gold** (28 min) |
 | 2:20–3:20 | **7 Gold** (60 min) |
@@ -72,9 +71,8 @@ block.
 
 | Time | Block |
 | --- | --- |
-| 7:55–8:15 | Morning duty — DJ Booth |
-| 8:20–8:50 | Planning |
-| 8:59–9:20 | Scholars Academy Music |
+| 7:55–8:20 | Morning duty — DJ Booth |
+| 8:20–9:20 | Scholars Academy Music |
 | 9:20–10:20 | Music integration — 7th Grade Expeditions, 3rd floor |
 | 10:25–11:25 | **4 Blue** (60 min) |
 | 11:30–12:05 | Lunch |
@@ -89,13 +87,13 @@ block.
 
 | Time | Block |
 | --- | --- |
-| 7:55–8:15 | Morning duty — DJ Booth |
-| 8:20–9:15 | **5 Blue Gold** (55 min) — both 5th-grade sections |
+| 7:55–8:20 | Morning duty — DJ Booth |
+| 8:20–9:15 | **5 Gold** (55 min) |
 | 9:20–10:20 | Planning |
 | 10:25–11:25 | Arts integration — 8th Grade Expeditions, 3rd floor |
 | 11:30–12:05 | Lunch |
 | 12:15–12:42 | **2 Blue** (27 min) |
-| 12:45–1:15 | **2 Gold** (30 min) |
+| 12:47–1:15 | **2 Gold** (28 min) |
 | 1:15–1:42 | **1 Blue** (27 min) |
 | 1:47–2:15 | **1 Gold** (28 min) |
 | 2:20–3:20 | **8 Gold** (60 min) |
@@ -105,14 +103,13 @@ block.
 
 | Time | Block |
 | --- | --- |
-| 7:55–8:15 | Morning duty — DJ Booth |
+| 7:55–8:20 | Morning duty — DJ Booth |
 | 8:20–9:20 | Planning |
 | 9:20–10:20 | **3 Gold** (60 min) |
 | 10:25–11:25 | Arts integration — 8th Grade Expeditions, 3rd floor |
 | 11:30–12:05 | Lunch |
-| 12:15–12:42 | **2 Gold** (27 min) |
-| 12:45–1:15 | **2 Blue** (30 min) |
-| 1:15–2:15 | Planning |
+| 12:15–12:42 | **2 Blue** (27 min) |
+| 12:45–2:15 | Planning |
 | 2:20–3:20 | **8 Blue** (60 min) |
 | 3:30–4:45 | Expedition planning with OCPA, 3rd floor |
 
@@ -120,12 +117,13 @@ block.
 
 | Time | Block |
 | --- | --- |
-| 7:55–8:15 | Morning duty — DJ Booth |
+| 7:55–8:20 | Morning duty — DJ Booth |
 | 8:20–9:15 | **5 Blue** (55 min) |
 | 9:20–10:20 | **3 Blue** (60 min) |
 | 10:25–11:25 | Lesson plan review |
 | 11:30–12:05 | Lunch |
-| 12:15–1:15 | Planning |
+| 12:15–12:45 | Planning |
+| 12:45–1:15 | Planning |
 | 1:15–1:42 | **KG Blue** (27 min) |
 | 1:47–2:15 | **KG Gold** (28 min) |
 | 2:20–3:20 | **6 Gold** (60 min) |
@@ -139,6 +137,17 @@ block.
 
 K–5 and expedition blocks follow the **weekday** column above.
 
+## Professional time (not core syllabus classes)
+
+| When | Block |
+| --- | --- |
+| Tue 9:20–10:20 | 7th Grade Expeditions — music integration, 3rd floor |
+| Wed 10:25–11:25 | 8th Grade Expeditions — arts integration, 3rd floor |
+| Thu 10:25–11:25 | 8th Grade Expeditions — arts integration, 3rd floor |
+| Fri 10:25–11:25 | Lesson plan review |
+| Mon/Tue/Thu/Fri after 3:30 | Expedition planning with OCPA, 3rd floor |
+| Wed after 3:30 | Staff training and development |
+
 ## Meetings per section (typical week)
 
 Exact year counts wait on applying the Day 6 rule to every instructional day.
@@ -150,13 +159,13 @@ On a no-skip week:
 | KG Gold | Tue 1:47–2:15, Fri 1:47–2:15 |
 | 1 Blue | Mon 1:15–1:42, Wed 1:15–1:42 |
 | 1 Gold | Mon 1:47–2:15, Wed 1:47–2:15 |
-| 2 Gold | Tue 12:15–12:42, Wed 12:45–1:15, Thu 12:15–12:42 |
-| 2 Blue | Tue 12:47–1:15, Wed 12:15–12:42, Thu 12:45–1:15 |
+| 2 Gold | Tue 12:15–12:42, Wed 12:47–1:15 |
+| 2 Blue | Tue 12:47–1:15, Wed 12:15–12:42, Thu 12:15–12:42 |
 | 3 Gold | Thu 9:20–10:20 |
 | 3 Blue | Fri 9:20–10:20 |
 | 4 Gold | Mon 10:25–11:25 |
 | 4 Blue | Tue 10:25–11:25 |
-| 5 Blue Gold (combined) | Wed 8:20–9:15 |
+| 5 Gold | Wed 8:20–9:15 |
 | 5 Blue | Fri 8:20–9:15 |
 | 6 Gold | Fri 2:20–3:20 |
 | 6 Blue | Day 6, 2:20–3:20 |

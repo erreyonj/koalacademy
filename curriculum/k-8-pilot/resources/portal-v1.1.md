@@ -38,7 +38,7 @@ is **content**, not stack.
 | Piece | Where |
 | --- | --- |
 | Next.js static export (`output: "export"`) | [`portal/`](../../../portal/), Netlify publish |
-| Slide page per lesson | MDX + [`SlideShell`](../../../portal/src/components/SlideShell.tsx), [`Do`](../../../portal/src/components/Do.tsx), [`Break`](../../../portal/src/components/Break.tsx), click-to-load [`YouTubeEmbed`](../../../portal/src/components/YouTubeEmbed.tsx), prev/next [`LessonNav`](../../../portal/src/components/LessonNav.tsx) |
+| Slide page per lesson | MDX + [`SlideShell`](../../../portal/src/components/SlideShell.tsx), [`DoNow`](../../../portal/src/components/DoNow.tsx), [`Activate`](../../../portal/src/components/Activate.tsx), [`Break`](../../../portal/src/components/Break.tsx), click-to-load [`YouTubeEmbed`](../../../portal/src/components/YouTubeEmbed.tsx), prev/next [`LessonNav`](../../../portal/src/components/LessonNav.tsx) |
 | Band indexes | `/grades/k-2/`, `/grades/3-5/`, `/grades/6-8/` (not per single grade) |
 | No login | [`layout.tsx`](../../../portal/src/app/layout.tsx) is `robots: noindex, nofollow` |
 | Hardware / LCD tokens | Copied into [`portal/src/styles/tokens.css`](../../../portal/src/styles/tokens.css) |
@@ -126,15 +126,16 @@ desired).
 
 ## Content model
 
-Unchanged from V1. A slide page is one lesson — a scrolling page, not a deck you arrow
-through.
+A slide page is one lesson — a scrolling page, not a deck you arrow
+through. Shape is **Do Now → Lesson → Activate**.
 
 | Block | What it holds |
 | --- | --- |
 | Header | Lesson code or strand, grade band, one-line focus statement |
+| Do Now | Posted work at the top of every lesson (3–5 min during Threshold) |
 | Concept | The teaching text, short and in the register of the grade band |
 | Listening | Click-to-load YouTube embed |
-| Do | The game or activity for the day |
+| Activate | The You-do — game or hands-on work for the day (formerly Do) |
 | Breaks | Gifs and memes between blocks — attention resets, not decoration |
 | Links | Vanguard Song pages, resources, worksheets, anything the lesson points at |
 | Footer | Previous and next lesson in the sequence |

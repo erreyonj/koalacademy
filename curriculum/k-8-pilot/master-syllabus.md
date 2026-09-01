@@ -2,7 +2,7 @@
 
 One City Schools, Madison, WI — pilot year.
 
-> **Status: scaffold.** Period lengths and the 6-day rotation are locked. Year-long pacing
+> **Status: scaffold.** Meeting cadence and the 6-day rotation are locked. Year-long pacing
 > and NCAS alignment still fill in against the school calendar. Per-grade syllabi live in
 > [syllabi/](syllabi/).
 
@@ -28,19 +28,30 @@ Strand definitions and the K-8 vertical map: [scope-and-sequence.md](scope-and-s
 
 ## Instructional approach
 
+- Every class opens with a **3–5 min Do Now** during Threshold: posted work in the same spot
+  every day, self-managed after week one; middle school default is **silence**. Portal lessons
+  follow **Do Now → Lesson → Activate**; I do / We do / You do lives on Activate, not the Do Now
+  ([playbook/lesson-structure.md](playbook/lesson-structure.md))
 - Every game, lesson, and procedure is taught **I do / We do / You do**
   ([playbook/routines-and-protocols.md](playbook/routines-and-protocols.md))
 - Demonstrations are **guitar-first**, piano as visual aid
   ([playbook/teaching-notes.md](playbook/teaching-notes.md))
 - Theory is **spiraled across the year**, not front-loaded; classes accelerate based on
   demonstrated prior knowledge ([scope-and-sequence.md](scope-and-sequence.md))
-- Classes assemble from modular blocks fitting 30, 55, or 60 minutes
+- Classes assemble from modular blocks fitting **30, 55, or 60 minutes**
   ([playbook/lesson-structure.md](playbook/lesson-structure.md))
+
+## Listening routines — Project Zero
+
+Listening work includes Harvard [Project Zero](https://pz.harvard.edu/resources/listening-ten-times-two)
+Visible Thinking routines. **Ten Times Two** is the standing slow-listening protocol for new
+or revisited music: two quiet listens, ten words or phrases each time. Full steps live in
+[playbook/routines-and-protocols.md](playbook/routines-and-protocols.md).
 
 ## Meeting cadence
 
-Locked — minutes and the 6-day rotation. Days per week are section-specific (Blue / Gold),
-not a single number per grade. Full grid:
+Locked — minutes and the 6-day rotation. Meetings per week are **section-specific** (Blue /
+Gold), not a single number per grade. Full weekday grid:
 [resources/calendars/music-6-day-schedule.md](resources/calendars/music-6-day-schedule.md).
 
 | Band | Period | Assembly |
@@ -52,6 +63,33 @@ not a single number per grade. Full grid:
 
 Instructional days follow a Day 1-6 cycle. First day of school is Wednesday 9/2/2026 =
 Day 1. On Day 6, keep that weekday's K-5 blocks and put 6th Grade Blue in the last period.
+
+### Typical windows (no-skip week)
+
+| Section | Typical windows |
+| --- | --- |
+| KG Blue | Tue 1:15–1:42, Fri 1:15–1:42 |
+| KG Gold | Tue 1:47–2:15, Fri 1:47–2:15 |
+| 1 Blue | Mon 1:15–1:42, Wed 1:15–1:42 |
+| 1 Gold | Mon 1:47–2:15, Wed 1:47–2:15 |
+| 2 Gold | Tue 12:15–12:42, Wed 12:47–1:15 |
+| 2 Blue | Tue 12:47–1:15, Wed 12:15–12:42, Thu 12:15–12:42 |
+| 3 Gold | Thu 9:20–10:20 |
+| 3 Blue | Fri 9:20–10:20 |
+| 4 Gold | Mon 10:25–11:25 |
+| 4 Blue | Tue 10:25–11:25 |
+| 5 Gold | Wed 8:20–9:15 |
+| 5 Blue | Fri 8:20–9:15 |
+| 6 Gold | Fri 2:20–3:20 |
+| 6 Blue | Day 6, 2:20–3:20 |
+| 7 Gold | Mon 2:20–3:20 |
+| 7 Blue | Tue 2:20–3:20 |
+| 8 Gold | Wed 2:20–3:20 |
+| 8 Blue | Thu 2:20–3:20 |
+
+Scholars Academy Music, morning duty, and 7th/8th expedition blocks appear on the posted
+schedule but are not core syllabus classes. Year-long pacing and NCAS alignment still fill in
+against the school calendar.
 
 ## Year at a glance
 

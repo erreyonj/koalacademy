@@ -15,6 +15,22 @@ back to focus.
 - **STAND UP, HAND UP, PAIR UP** — pending
 - **BACK 2 BACK, FACE 2 FACE** — With a partner, stand back to back and receive a prompt, or review a section of reading/material; on a cue, turn and face the partner and discuss.
 
+## Routines
+
+- **TEN TIMES TWO:**
+[Project Zero Link](https://pz.harvard.edu/resources/listening-ten-times-two)
+1. Listen to a piece of music quietly. Let your ears wander and take in as much as possible. 
+2. List 10 words or phrases about any aspect of what you hear. 
+3. Repeat steps 1 & 2: Listen again and try to add 10 more words or phrases to your list.
+ 
+*PURPOSE*
+### What kind of thinking does this routine encourage? 
+The routine helps students slow down and make careful observations about music. It asks students to think about words or phrases to describe the work and encourages students to push beyond first listen or basic description. 
+
+*APPLICATION*
+### When and where can I use it? 
+The routine will work with any kind of music. Use Ten Times Two when you introduce a new piece of music to get students thinking carefully about it before having a discussion or using another routine. You can also use the Ten times Two routine after an in depth discussion about at a piece of music to both push forward and summarize some of the ideas and observations that were made during the conversation. The routine is useful before a writing activity. It gets students thinking about descriptive language and helps students make observations about the music.
+
 ## I do / We do / You do
 
 The default instructional pattern for every game and lesson. Nothing is handed to students

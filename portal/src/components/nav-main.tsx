@@ -47,8 +47,8 @@ const ITEMS = [
 
 const TOOLKIT_LINKS = [
   { title: "Toolkit Home", href: "/toolkit/" },
-  { title: "Notation sandbox", href: "/tools/notation/" },
-  { title: "Rhythm randomizer", href: "/tools/rhythm/" },
+  { title: "Notation Sandbox", href: "/tools/notation/" },
+  { title: "Rhythm Randomizer", href: "/tools/rhythm/" },
   { title: "Circle of Fifths", href: "/tools/circle-of-fifths/" },
 ] as const;
 

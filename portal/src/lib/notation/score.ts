@@ -1,5 +1,5 @@
 import { applyKeyToPitch } from "./key";
-import { durationBeats, emptyScore, measureBeats, measureCapacity } from "./parse";
+import { emptyScore, eventBeats, measureBeats, measureCapacity } from "./parse";
 import type { Clef, Duration, ScoreEvent, ScoreExcerpt, TimeSignature } from "./types";
 
 export function setClef(score: ScoreExcerpt, clef: Clef): ScoreExcerpt {
@@ -51,7 +51,7 @@ export function appendEvent(score: ScoreExcerpt, event: ScoreEvent): ScoreExcerp
   const measures = score.measures.map((measure) => ({ events: [...measure.events] }));
   if (measures.length === 0) measures.push({ events: [] });
   const last = measures[measures.length - 1];
-  const nextBeats = measureBeats(last) + durationBeats(event.duration);
+  const nextBeats = measureBeats(last) + eventBeats(event);
   if (last.events.length > 0 && nextBeats > cap + 1e-6) {
     if (measures.length >= 2) return score;
     measures.push({ events: [event] });

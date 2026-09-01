@@ -947,6 +947,50 @@ button.lesson-toolbar-item {
   margin-top: 0.75rem;
 }
 
+.rhythm-randomizer .notation-sidebar {
+  padding: 0.75rem 0.65rem 0.9rem;
+}
+
+.rhythm-randomizer .notation-label select,
+.rhythm-randomizer .notation-sidebar-actions,
+.rhythm-randomizer .notation-sidebar-actions .notation-btn {
+  width: 100%;
+}
+
+.rhythm-randomizer .notation-sidebar-actions {
+  margin-top: 0.35rem;
+}
+
+.rhythm-randomizer .notation-staff {
+  min-height: 9rem;
+}
+
+.rhythm-extras {
+  display: grid;
+  gap: 0.15rem;
+  margin-top: 0.55rem;
+}
+
+.rhythm-extras label {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: var(--tap-min);
+  font-size: 0.78rem;
+  color: var(--ka-charcoal);
+}
+
+.rhythm-extras input {
+  width: 1.05rem;
+  height: 1.05rem;
+  accent-color: var(--hw-green);
+  flex-shrink: 0;
+}
+
+.rhythm-extras label:has(input:disabled) {
+  opacity: 0.45;
+}
+
 .notation-btn {
   display: inline-flex;
   align-items: center;
@@ -1063,6 +1107,10 @@ button.lesson-toolbar-item {
   .notation-sandbox {
     grid-template-columns: 16.5rem minmax(0, 1fr);
     align-items: start;
+  }
+
+  .rhythm-randomizer {
+    grid-template-columns: 7.5rem minmax(0, 1fr);
   }
 
   .notation-stage {

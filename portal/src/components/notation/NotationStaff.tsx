@@ -17,6 +17,7 @@ export type KeyAreaClick = {
 interface NotationStaffProps {
   score: ScoreExcerpt;
   interactive?: boolean;
+  wrapSystems?: boolean;
   label?: string;
   onStaffClick?: (click: StaffClick) => void;
   onEventClick?: (hit: HitEvent, pitch: string) => void;
@@ -26,6 +27,7 @@ interface NotationStaffProps {
 export function NotationStaff({
   score,
   interactive = false,
+  wrapSystems = false,
   label = "Musical staff",
   onStaffClick,
   onEventClick,
@@ -44,7 +46,9 @@ export function NotationStaff({
       const { renderScore } = await import("./renderScore");
       if (cancelled || !hostRef.current) return;
       const width = Math.floor(hostRef.current.clientWidth) || 480;
-      resultRef.current = await renderScore(hostRef.current, score, width);
+      resultRef.current = await renderScore(hostRef.current, score, width, {
+        wrapSystems,
+      });
     };
 
     const observer = new ResizeObserver(() => {
@@ -57,7 +61,7 @@ export function NotationStaff({
       cancelled = true;
       observer.disconnect();
     };
-  }, [score]);
+  }, [score, wrapSystems]);
 
   function handlePointerDown(event: PointerEvent<HTMLDivElement>) {
     if (!interactive) return;
@@ -69,7 +73,11 @@ export function NotationStaff({
     const point = clientToSvg(svg, event.clientX, event.clientY);
     const staveInfo =
       rendered.staves.find(
-        (entry) => point.x >= entry.x && point.x <= entry.x + entry.width,
+        (entry) =>
+          point.x >= entry.x &&
+          point.x <= entry.x + entry.width &&
+          point.y >= entry.y &&
+          point.y <= entry.y + entry.height,
       ) ?? rendered.staves[0];
     if (!staveInfo) return;
 

@@ -99,7 +99,8 @@ Task list from the walkthrough. Stipend vs. out-of-pocket is unknown.
 
 ### Display and walls
 
-- Finish Miracast setup (started; not completed)
+- TV projection: **done** — HDMI from the teacher laptop (Miracast abandoned; works for
+  all classes whenever the laptop screen is needed)
 - Posters or art — music-store trip vs. general artist art, undecided
 
 ### Books

@@ -550,31 +550,33 @@ artist's early sound.
 7. References
    - Sources consulted during research
 
-### US.4 — Case Study: "N.Y. State of Mind"
+### US.4 — Case Study: "Lord I Need You"
 
-**Focus:** Analyze multi-sample production and how layered samples occupy different parts of the
-frequency spectrum.
+**Focus:** Trace a chain of ownership when a producer samples an unlicensed cover — who wrote
+it, who performed it, who released it, and who gets named.
+
+Student-facing draft: [portal/content/lessons/us-4.mdx](../portal/content/lessons/us-4.mdx).
 
 **Outline**
 
 1. Introduction
-   - Brief overview of Nas and DJ Premier's work
-   - Importance of "N.Y. State of Mind" in hip hop history
-   - Purpose of the lesson: analyzing the use of multiple samples and how they contribute to the
-     overall sound
-2. Background information on the song
-   - Song structure and arrangement
-   - Use of turntablism as a creative element
-   - Brief discussion of the lyrical content
-3. Sample analysis — for each sample, cover how it is used, its frequency spectrum and place in
-   the mix, and its impact on the record:
-   - "Mind Rain" by Joe Chambers — mood and atmosphere
-   - "Flight Time" by Donald Byrd — groove and rhythm
-   - "Smilin' Billy Suite Pt. II" by The Heath Brothers — overall texture and musicality
-4. Conclusion
-   - Recap of the sample analysis
-   - Overall contribution of the samples to the song's success
-   - Why understanding frequency spectrum and sample layering matters in hip hop production
+   - Overview of the song, style, and *Donda* (2021) context in Kanye West's career
+   - Purpose of the lesson: follow the chain of ownership, not the coolest chop
+2. B. Slade — original *Lord I Need You*
+   - Composition and original performance as the root of the melody and lyric
+3. Bri Babineaux — cover
+   - The recording Kanye actually sampled
+   - Sampling a cover adds a link; clearance on one name does not erase the other
+4. Kanye — *Lord I Need You* on *Donda*
+   - Production role: new arrangement around the sampled prayer
+5. Ownership and intentionality
+   - Unlicensed cover; original artist not credited on release
+   - Original artist consulted because of intentionality
+   - Legal clearance is not the same as moral credit
+6. Conclusion
+   - Borrowing with purpose; Integrity; implications for student producers
+7. Sample analysis exercise
+   - Map the chain on paper: who wrote it, who was sampled, who released it, who should be named
 
 ### US.5 — Case Study: "No Problem"
 

@@ -72,8 +72,38 @@ the instruction.
 
 ## Entry and exit routines
 
-TODO: what students do in the first two minutes (entry rhythm echo? seat and breathe?) and
-the last two (exit ticket, one-word reflection, line-up song). Should stay consistent K-5.
+### Do Now: the ticket in
+
+Every class opens with a **Do Now** posted where students can see it on entry. It is the
+first thing they do after settling — silent, short, in the notebook by default (see
+[teaching-notes.md](teaching-notes.md#notebooks)). A Do Now might be a look-and-journal
+prompt, a rhythm to copy, a listening question, or a one-line recall of last meeting.
+
+The Do Now is the **ticket into class discussion**: students earn their voice in the opening
+conversation by having done it. No completed Do Now, no floor — you can still listen, but the
+share-out and the discussion belong to the students who did the work. This keeps the entry
+productive and makes participation legible (it ties directly to the participation weight in
+[../resources/written-work.md](../resources/written-work.md)).
+
+Like everything else, the Do Now routine is taught **I do / We do / You do** in week one:
+model it, do one together, then hold the room to running it silently and independently. Keep
+the posted format consistent all year so the routine stays automatic.
+
+### Entry
+
+First two minutes: cross the threshold, settle, read the posted Do Now, and start it. Pair
+the Do Now with a musical entry cue (rhythm echo at the door or a seat-and-listen riff) so
+the *how you come in* is as consistent as the *what you do first*.
+
+### Exit
+
+Last two to three minutes: a one-word or one-sentence reflection, an exit ticket, or a quick
+informal check, then the line-up routine. On Koala lab days the exit ticket doubles as the
+file-management privilege check — see
+[../resources/device-privilege-and-file-management.md](../resources/device-privilege-and-file-management.md).
+
+Keep entry and exit consistent K-8; only the content of the Do Now and the exit check changes
+by band and day.
 
 ## Behavior expectations — CREW and CRISP
 

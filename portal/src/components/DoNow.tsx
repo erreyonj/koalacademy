@@ -33,11 +33,11 @@ function materialsLabel(materials: DoNowMaterial[][]): string {
   return sentence.charAt(0).toUpperCase() + sentence.slice(1);
 }
 
-/** Posted work at the top of every lesson. Runs during Threshold. */
+/** Posted work at the top of every lesson. The ticket into class discussion. */
 export function DoNow({ title, materials, children }: DoNowProps) {
   return (
     <section className="donow-block">
-      <p className="eyebrow">Do Now · {title}</p>
+      <p className="eyebrow">Do Now · ticket in · {title}</p>
       <p className="donow-materials">
         <span className="sr-only">{materialsLabel(materials)}</span>
         <span aria-hidden="true" className="donow-materials-visual">

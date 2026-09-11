@@ -22,7 +22,12 @@ export interface Band {
   label: string;
   /** Short label for the header pad. */
   short: string;
-  /** K-5 is unplugged-first; 6-8 runs the Koalacademy production course. */
+  /**
+   * K-2 and 3-5 run without student 1:1 devices ("unplugged"); 6-8 runs the
+   * Koalacademy production course on 1:1 iPads ("production"). 3-5 stays
+   * "unplugged" even though it ports Koalacademy lessons, because its Koala
+   * work is teacher-led rather than a device in every hand.
+   */
   track: "unplugged" | "production";
   blurb: string;
 }
@@ -33,21 +38,21 @@ export const BANDS: readonly Band[] = [
     label: "Grades K–2",
     short: "K–2",
     track: "unplugged",
-    blurb: "Games, movement, and voice. Teacher-projected.",
+    blurb: "Strands and the Quaver framework. Games, movement, and voice, teacher-projected.",
   },
   {
     id: "3-5",
     label: "Grades 3–5",
     short: "3–5",
     track: "unplugged",
-    blurb: "Strand work, notation, and the run-up to Koalacademy.",
+    blurb: "Koalacademy lessons, ported down. Teacher-led lab and a keyboard station, no 1:1 devices.",
   },
   {
     id: "6-8",
     label: "Grades 6–8",
     short: "6–8",
     track: "production",
-    blurb: "Koalacademy production. Theory in service of making.",
+    blurb: "Koalacademy production on 1:1 iPads. Theory in service of making.",
   },
 ];
 

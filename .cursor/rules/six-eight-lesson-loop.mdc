@@ -9,7 +9,7 @@ Write remaining 6–8 portal lessons **one cycle at a time** from `curriculum/KO
 
 ## Queue
 
-KOALACADEMY order, skip what already exists under `portal/content/lessons/`. Next missing after INTRO-68, BMT.1, BMT.4, KSN.1, KSN.2 is **BMT.2**, then BMT.3, BMT.5, KSN.3–5, US, D4, SONGFORM, SRP, DYS, AW, AEP, PERFORMANCE.
+KOALACADEMY order, skip what already exists under `portal/content/lessons/`. Existing: INTRO-68, BMT.1–5, KSN.1/2/4/5, US.1–5. Next missing is **KSN.3**, then D4, SONGFORM, SRP, DYS, AW, AEP, PERFORMANCE.
 
 ## Phrases
 
@@ -17,14 +17,14 @@ KOALACADEMY order, skip what already exists under `portal/content/lessons/`. Nex
 | --- | --- |
 | **next lesson** | Name the next code. Paste Focus + Outline from KOALACADEMY.md. One line on later 3–5 portability. **Wait** — do not write MDX. |
 | Notes / Do Now ask, then **draft** or **go** | Write only `portal/content/lessons/<slug>.mdx`. |
-| **approved** or **lock it** | Split with `./scripts/split-curriculum-portal.sh` if the tree is mixed. Do not push unless asked. |
+| **approved** or **lock it** | Split with `./scripts/split-curriculum-portal.sh` if the tree is mixed. Do not push unless asked. When the locked lesson is **non-Koala**, also generate its 3–5 version this cycle (see port pass). |
 | **skip** / **jump to X** | Reorder the queue for this pass. |
-| **port pass** | Only after the 6–8 set: add `3-5` (or a band copy) for the codes they list. |
+| **port pass** | Generate the `3-5` version as a **separate MDX file** (band copy, like `intro-35.mdx`), not multi-band on one file. A confirmed **non-Koala** 6–8 lesson spawns its 3–5 copy in the same cycle: age the language down, swap Vanguard refs to the 3–5 Companion, and rewrite any production step as teacher-led / keyboard-station work. **Koala-only** codes (`KSN`, hands-on `D4`, `AEP`, `PERFORMANCE`) get a teacher-led adaptation only when explicitly asked — never auto-spawn a 1:1 student-production 3–5 copy. |
 
 ## Draft shape
 
-Do Now → Lesson → Activate. `bands: ["6-8"]` only until **port pass**. Silent journal Do Now by default (`look` + `journal` + `write`). Activate keeps I do / We do / You do; Do Now does not steal Activate.
+Do Now → Lesson → Activate. The 6–8 file stays `bands: ["6-8"]`; the 3–5 version is a separate file with `bands: ["3-5"]` (never multi-band on one file). Silent journal Do Now by default (`look` + `journal` + `write`). Activate keeps I do / We do / You do; Do Now does not steal Activate.
 
 Frontmatter: `created: "YYYY-MM-DD"` (today, quoted) and `sequence: max existing in that band + 1`. Never set `sequence` to the KOALACADEMY number (`BMT.2` is not `2`). Band lists sort intros first, then by `created` (newest last).
 
-Likely portable later: BMT. Not Koala-only: KSN, D4, AEP, PERFORMANCE — do not add `3-5` while drafting.
+Spawns a 3–5 copy (non-Koala): BMT, US, SONGFORM, SRP, DYS analysis. Koala-only (no auto 3–5): KSN, hands-on D4, AEP, PERFORMANCE.

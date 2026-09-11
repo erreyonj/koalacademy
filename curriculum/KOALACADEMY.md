@@ -596,12 +596,16 @@ frequency spectrum.
 ### US.5 — Case Study: "No Problem"
 
 **Focus:** Introduce derivative sampling — sampling material you create yourself — and the value
-of staying true to a personal production voice.
+of staying true to a personal production voice, then land the unit by following a sampled sound
+out of the studio: how it goes viral and how the same reuse muscle powers podcasting. This lesson
+closes Understanding Sampling for every student, not only the ones who want to make beats.
 
 **Outline**
 
 1. Introduction
    - The concept of derivative sampling and how it differs from traditional sampling
+   - Framing: this is the unit's landing — sampling is a way of hearing and reusing sound, not
+     only a Koala skill
 2. Case study: "No Problem" by Chance the Rapper, produced by Brasstracks
    - Overview of the song
      - Brief history and background
@@ -615,8 +619,42 @@ of staying true to a personal production voice.
    - Discussion and analysis of the production
      - Breakdown of the different samples used in the song
      - How they were manipulated and arranged to create the final product
-3. Conclusion
+3. Sampling to virality — the sound leaves the track
+   - A chop, hook, or vocal snippet becomes a traveling audio meme: the "sound" people reuse
+     across thousands of videos, not the song itself
+   - Reuse culture outside the studio — how a platform turns one clip into a format everyone
+     borrows, and what "credit" and "origin" mean when a sound spreads faster than its name
+   - Tie back to Unit 2's throughline: borrowing with purpose still applies when the borrower is
+     an audience, not a producer (`US.1` Integrity, `US.4` chain of ownership)
+4. Virality to podcasting — reuse for story, not just for beats
+   - The same muscle — take existing audio, place it with intention — drives podcast sound design:
+     beds, stingers, drops, and clip-based storytelling
+   - A non-production path into the unit: you can be a sharp listener, curator, or storyteller
+     without ever opening Koala
+   - Ethics carry over: attribution, licensed vs. lifted audio, and knowing which kind of use you
+     are making (`SRP` preview)
+5. Conclusion
    - Recap of the key points and takeaways
+   - Two takeaways, held together: for producers, derivative sampling and a personal voice; for
+     everyone, how sampled sound moves through culture and story
+6. Activation (no production day required)
+   - Listening, discussion, and notebook work: analyze one viral sound or one podcast audio bed —
+     what was borrowed, how it was placed, who it points back to
+
+**Discourse:** Surfaces in section 3, where "the sound went viral" needs unpacking before students
+treat virality as the goal.
+
+- **A sound is not a song.** What spreads is often a two-second gesture — a vocal ad-lib, a chopped
+  phrase, a drum fill — detached from the record it came from. Name the difference so students
+  understand what actually travels.
+- **Origin vs. reach.** A sound can be everywhere and still be uncredited or misattributed. This is
+  the same ownership question as `US.4`, moved from the studio to the feed — who made it, who gets
+  named, who gets paid when reuse is the whole point.
+- **Reuse is old, the speed is new.** Kool Herc looping a break (`US.1`) and a platform looping a
+  clip are the same instinct at different scales. Worth naming so virality feels like lineage, not
+  novelty.
+- **The non-producer seat is real.** Podcasting, curation, and commentary are legitimate homes for
+  a sampling literacy. The unit should not imply that the only valid outcome is a beat.
 
 ## Component 2: Digital Drumming / Drum Design
 

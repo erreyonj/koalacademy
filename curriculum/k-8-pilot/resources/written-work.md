@@ -59,15 +59,26 @@ reviewed in hand.
 
 ## Feeding the gradebook
 
-Minimal written work can still produce defensible grades. The mix, roughly:
+**Participation is the largest single share of the grade.** Observation of play carries most
+of the weight; written work produces defensible supporting evidence. Participation is earned
+in the everyday work of class — showing up ready, doing the Do Now (the ticket into
+discussion — see
+[../playbook/routines-and-protocols.md](../playbook/routines-and-protocols.md#do-now-the-ticket-in)),
+and engaging in games, routines, and lab. The mix, roughly:
 
 | Evidence type | Source | Frequency |
 | --- | --- | --- |
-| Participation / ensemble skills | Games and routines, observed | Continuous |
+| Participation / ensemble skills | Do Now, games, and routines, observed | Continuous (largest weight) |
 | Informal checks | Watching the You do phase (who freezes late, who passes in Balloon War) | Weekly |
 | Exit tickets | Last block of class | ~Weekly, 4-5 and up |
 | Written checks | Booklist worksheets, short and targeted | A few per quarter |
 | Artifacts / projects | Listening journals (3-8), Koala projects (6-8) | Per unit |
+
+**Teacher note — honesty about off days.** Because participation is weighted heavily, build a
+low-stakes way for students to say when they "don't have it" today. Encourage that honesty
+and honor it: a student who names the day and stays in the room quietly is participating, not
+opting out. The point is a grade that reflects a real relationship to the work over the year,
+not a single flat day — reward the honesty rather than punishing the dip.
 
 TODO: confirm One City's report card categories and grading scale, then map this table onto
 them per grade band.

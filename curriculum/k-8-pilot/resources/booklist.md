@@ -40,6 +40,12 @@ Status values: `candidate` (unvetted), `vetted` (reviewed in hand), `in use`, `r
 | --- | --- | --- | --- | --- | --- |
 | TBD — listening-response reproducibles | — | 3-8 | Journal/response templates for Vanguard Songs | candidate | May be simpler to author in-house; see [../vanguard-songs/student-guide.md](../vanguard-songs/student-guide.md) TODOs |
 
+## Creative practice / literacy
+
+| Title | Author / Publisher | Grades | Use case | Status | Notes |
+| --- | --- | --- | --- | --- | --- |
+| The Creative Act: A Way of Being | Rick Rubin / Penguin Press | 3-8 (teacher-excerpted) | Short excerpts for a 3-5 content/literacy station and 6-8 discourse on making and voice | candidate | Adult book; select and excerpt teacher-chosen passages. Ties to the 3-5 content station in [3-5-band-differentiation.md](3-5-band-differentiation.md) |
+
 ## Vetting checklist
 
 Before an item moves from `candidate` to `vetted`:

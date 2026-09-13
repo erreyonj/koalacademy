@@ -5,10 +5,45 @@
 > Per-grade progressions and the year-long theory spiral fill in after the first weeks reveal
 > each class's prior knowledge.
 
+## Band model
+
+Three bands, organized differently:
+
+- **K-2 — strands + Quaver.** Kept on the concept-strand model below (`BEAT`, `PITCH`,
+  `TIMBRE`, ...) and now definitively uses the existing **Quaver framework** as its
+  activity-and-song backbone. Convention: K-2 lessons note the specific Quaver activity they
+  link to, so the Quaver library and the strand map stay legible side by side. Unplugged-first
+  for students; Quaver runs teacher-projected.
+- **3-5 — ported Koalacademy.** Runs the 6-8 Koalacademy lessons adapted per band, rather than
+  a standalone strand syllabus. Non-Koala lessons (theory, sampling concepts, song form,
+  listening/analysis) port with age-appropriate language and corrected Vanguard references.
+  The Koala Sampler lessons (`KSN`, hands-on `D4`, `AEP`, `PERFORMANCE`) run on a **locked
+  hybrid**, split by grade: an iPad-ready 5th section gets a projected walkthrough then a
+  few-at-a-time premade-Koala rotation, while 3-4 (and any not-ready 5th) stay teacher-projected
+  plus instrumentation/keyboards, cascading down to a half-instrument/half-content split and a
+  whole-class content/literacy floor. Full detail in
+  [3-5-band-differentiation.md](resources/3-5-band-differentiation.md).
+  The strand map below still applies as the vertical target these ports must hit.
+- **6-8 — Koalacademy.** The full production course in [KOALACADEMY.md](../KOALACADEMY.md),
+  1:1 iPads on production days.
+
+### Generating 3-5 versions (go-forward workflow)
+
+3-5 lessons are generated from their 6-8 source the same way the band intro was regenerated
+per band (`INTRO-68` → `INTRO-35` → `INTRO-K2`): one source concept, band-specific copies.
+Going forward, a confirmed 6-8 **non-Koala** lesson also spawns a 3-5 version — same concept
+and structure, language and examples pitched down, Vanguard references swapped to the 3-5 set,
+and any production step rewritten as a teacher-led or keyboard-station activity. This is a
+per-lesson port done as a port pass, not a bulk conversion; the 6-8 draft comes first and the
+3-5 version follows once it is confirmed.
+
 ## K-5 strand codes
 
-K-5 content is organized by strand rather than by unit. Each strand feeds directly into one
-or more 6-8 Koalacademy components, so the K-8 vertical alignment is legible at a glance.
+Music concepts are organized by strand. This is now the **K-2 organizer** and, across all
+bands, the **vertical-alignment map**: each strand feeds directly into one or more 6-8
+Koalacademy components, so the K-8 through-line is legible at a glance. 3-5 runs ported
+Koalacademy lessons (see [Band model](#band-model)), but those ports still have to land these
+same strand targets.
 
 | Strand | Covers | Feeds into (6-8) |
 | --- | --- | --- |
@@ -51,8 +86,10 @@ accelerate through the spiral — the sequence is fixed, the speed is not.
 
 ## Per-strand progressions (TBD)
 
-Each strand needs a K-5 progression row: what mastery looks like at the end of K, 2, and 5.
-Skeleton below; fill after the first weeks reveal prior knowledge.
+Each strand needs a progression row for the **K-2 band**: what mastery looks like at the end
+of K and 2. End-of-5 targets are now carried by the ported Koalacademy lessons (see
+[Band model](#band-model)), so the 4-5 rows below are legacy scaffold pending a rewrite around
+the ports. Fill after the first weeks reveal prior knowledge.
 
 ### `BEAT`
 
@@ -116,3 +153,8 @@ Grades 6-8 follow the existing course; see the thin syllabi in [syllabi/](syllab
 the year to lesson codes in [KOALACADEMY.md](../KOALACADEMY.md). The open question for 6-8 is
 stretching a 20-week course across a ~36-week school year — the extra weeks likely absorb the
 respaced theory spiral, Vanguard Song listening, and production-day logistics.
+
+3-5 shares this spine through the ported lessons described in the [Band model](#band-model):
+the 6-8 lesson is the source, and its 3-5 version is generated once confirmed. That keeps the
+vertical alignment tight — 3-5 and 6-8 work the same concepts, at different depths and with
+different device expectations, instead of two unrelated syllabi.

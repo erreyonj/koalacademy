@@ -13,13 +13,12 @@ and one-measure fill-ins.
 
 ## Meeting cadence
 
-About **27–30 minutes**, **three times** in a typical week. Use the
-[30-minute assembly](../playbook/lesson-structure.md).
+About **27–28 minutes**. Use the [30-minute assembly](../playbook/lesson-structure.md).
 
 | Section | Typical windows |
 | --- | --- |
-| 2 Gold | Tue 12:15–12:42, Wed 12:45–1:15, Thu 12:15–12:42 |
-| 2 Blue | Tue 12:47–1:15, Wed 12:15–12:42, Thu 12:45–1:15 |
+| 2 Gold | Tue 12:15–12:42, Wed 12:47–1:15 |
+| 2 Blue | Tue 12:47–1:15, Wed 12:15–12:42, Thu 12:15–12:42 |
 
 Day 6 keeps these weekday blocks. Full grid:
 [music-6-day-schedule.md](../resources/calendars/music-6-day-schedule.md).

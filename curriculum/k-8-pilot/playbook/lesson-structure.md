@@ -12,6 +12,37 @@ assemble from the same modular blocks; which blocks fit depends on the band.
 | 6–8 unplugged | 60 min | 60-minute |
 | 6–8 production | 60 min | Production day — collapse warm-up and listening |
 
+## Concept rotation across meetings (post-intro)
+
+Once a class is past its band intro lesson, concepts unfold across **several meetings**, not
+in a single day. Middle-school sections meet roughly once per 6-day cycle
+([music-6-day-schedule.md](../resources/calendars/music-6-day-schedule.md)), so a concept
+runs on a rotation. This applies to 6–8 and to the ported 3–5 lessons; K–2 keeps its own
+weekly rhythm (see [scope-and-sequence.md](../scope-and-sequence.md)).
+
+The rotation for one concept (e.g. `BMT.1`):
+
+1. **Lesson meeting(s)** — introduce and work the concept. Ideally finished in one meeting;
+   if discussion or behavior runs long, stay in this format and continue next meeting. Cap at
+   about **two** meetings.
+2. **Review/Activity meeting(s)** — a small review at the top of class, then explain the
+   activity flow and run the activity or game (from [games.md](games.md)) to the end of the
+   period. Same rule as the lesson: ideally one meeting, up to about **two** if it runs long.
+3. **Lab meeting** — always a **single** day: hands-on Koala for 6–8, or the teacher-led /
+   keyboard-station version for ported 3–5. The exception is end-of-year cycles, where whole
+   cycles are given over to lab time.
+
+Each meeting in the rotation is still a full class with the block shape below — it opens with
+the **Do Now** (the ticket in — see
+[routines-and-protocols.md](routines-and-protocols.md#do-now-the-ticket-in)) and closes with
+an exit. The rotation decides *which kind* of meeting it is; the blocks decide what happens
+inside it.
+
+The **first lab meeting that uses Koala** is the file-management lesson (`KSN.5`), and
+continued iPad access is an earned privilege gated by that day's exit ticket — full procedure
+and the written-learning fallback in
+[../resources/device-privilege-and-file-management.md](../resources/device-privilege-and-file-management.md).
+
 ## The blocks
 
 | Block | Time | What happens |

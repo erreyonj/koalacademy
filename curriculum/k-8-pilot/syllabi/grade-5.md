@@ -18,11 +18,11 @@ without devices.
 
 | Section | Typical window |
 | --- | --- |
-| 5 Blue Gold (combined) | Wed 8:20–9:15 |
+| 5 Gold | Wed 8:20–9:15 |
 | 5 Blue | Fri 8:20–9:15 |
 
-Wednesday is both 5th-grade sections together. Friday is 5 Blue only, as posted. Day 6
-keeps these weekday blocks. Full grid:
+Each 5th-grade section meets once per typical week. Day 6 keeps these weekday blocks. Full
+grid:
 [music-6-day-schedule.md](../resources/calendars/music-6-day-schedule.md).
 
 ## Year at a glance

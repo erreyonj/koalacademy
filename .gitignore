@@ -5,3 +5,12 @@ portal/out/
 portal/next-env.d.ts
 portal/tsconfig.tsbuildinfo
 .DS_Store
+
+# Environment files stay out of git; portal/.env.example documents the shape.
+portal/.env
+portal/.env.*
+!portal/.env.example
+supabase/.env
+.env
+.env.*
+!.env.example

@@ -1980,3 +1980,306 @@ button.lesson-toolbar-item {
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+/* ==========================================================================
+   Salad Bowl (Toolkit > Games). iPad-first: big tap targets, a clue that
+   reads at arm's length, and a timer that reads across a room.
+   ========================================================================== */
+
+.sb-page {
+  padding: 1rem 1rem 5.5rem;
+}
+
+.sb-shell {
+  max-width: 46rem;
+  margin: 0 auto;
+  display: grid;
+  gap: 0.9rem;
+}
+
+.sb-hero {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.sb-hero h1 {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  margin: 0;
+}
+
+.sb-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--ka-charcoal);
+}
+
+.sb-status::before {
+  content: "";
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  background: var(--hw-green);
+}
+
+.sb-status[data-connection="polling"]::before { background: var(--hw-yellow); }
+.sb-status[data-connection="connecting"]::before { background: var(--hw-yellow); }
+.sb-status[data-connection="offline"]::before { background: var(--hw-red); }
+
+.sb-card {
+  padding: 1rem 1.05rem 1.15rem;
+  background: var(--ka-snow);
+  border: 3px solid var(--ka-ink);
+  border-radius: 10px;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.sb-card h2 {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  margin: 0;
+}
+
+.sb-note {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--ka-charcoal);
+}
+
+.sb-error {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--hw-red);
+}
+
+.sb-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.sb-btn-primary { background: var(--hw-green); }
+.sb-btn-danger { background: var(--hw-red); color: var(--ka-snow); }
+.sb-btn-wide { width: 100%; }
+.sb-btn-big {
+  min-height: calc(var(--tap-min) * 1.6);
+  font-size: 1.05rem;
+}
+
+.sb-field {
+  display: grid;
+  gap: 0.3rem;
+  font-size: 0.85rem;
+  color: var(--ka-charcoal);
+}
+
+.sb-field input,
+.sb-field textarea,
+.sb-field select {
+  min-height: var(--tap-min);
+  padding: 0.5rem 0.65rem;
+  font: inherit;
+  font-size: 1rem;
+  color: var(--ka-ink);
+  background: var(--ka-pith);
+  border: 2px solid var(--ka-ink);
+  border-radius: 8px;
+}
+
+.sb-field textarea {
+  min-height: 9rem;
+  resize: vertical;
+}
+
+.sb-code {
+  font-family: var(--font-mono);
+  font-size: clamp(2.2rem, 9vw, 3.4rem);
+  font-weight: 700;
+  letter-spacing: 0.35em;
+  text-align: center;
+  padding: 0.5rem 0;
+  background: var(--hw-panel);
+  color: var(--hw-screen);
+  border-radius: 10px;
+  border: 3px solid var(--ka-ink);
+}
+
+.sb-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.sb-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  min-height: var(--tap-min);
+  padding: 0.35rem 0.6rem;
+  border: 2px solid var(--line);
+  border-radius: 8px;
+  font-size: 0.95rem;
+}
+
+.sb-list li[data-state="flagged"] { border-color: var(--hw-red); }
+.sb-list li[data-state="pending"] { border-color: var(--hw-yellow); }
+.sb-list li[data-state="accepted"] { border-color: var(--hw-green); }
+.sb-list li[data-state="done"] { border-color: var(--hw-green); }
+
+.sb-list .sb-row-actions {
+  display: flex;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+
+.sb-row-meta {
+  font-size: 0.75rem;
+  color: var(--ka-charcoal);
+}
+
+.sb-teams-grid {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.sb-team {
+  border: 3px solid var(--ka-ink);
+  border-radius: 10px;
+  padding: 0.7rem 0.8rem;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.sb-team h3 {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  margin: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.sb-team .sb-team-score {
+  font-family: var(--font-mono);
+  font-size: 1.3rem;
+}
+
+.sb-timer {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: clamp(3rem, 14vw, 5.5rem);
+  line-height: 1;
+  text-align: center;
+  padding: 0.4rem 0;
+  background: var(--hw-panel);
+  color: var(--hw-screen);
+  border: 3px solid var(--ka-ink);
+  border-radius: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.sb-timer[data-low="true"] { color: var(--hw-yellow); }
+.sb-timer[data-zero="true"] { color: var(--hw-red); }
+
+.sb-clue {
+  min-height: 8rem;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: 1rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1.8rem, 8vw, 3.2rem);
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+  background: var(--ka-snow);
+  border: 3px solid var(--ka-ink);
+  border-radius: 12px;
+  box-shadow: 0 4px 0 var(--ka-ink);
+}
+
+.sb-bowlcount {
+  display: flex;
+  justify-content: center;
+  gap: 1.4rem;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--ka-charcoal);
+}
+
+.sb-teacherbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+  padding: 0.5rem 0.75rem calc(0.5rem + env(safe-area-inset-bottom));
+  background: var(--hw-panel);
+  border-top: 3px solid var(--ka-ink);
+}
+
+.sb-teacherbar .notation-btn {
+  font-size: 0.72rem;
+  min-height: var(--tap-min);
+  padding: 0.3rem 0.55rem;
+}
+
+.sb-teacherbar-label {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--hw-screen);
+  margin-right: 0.25rem;
+}
+
+.sb-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  gap: 1rem;
+  background: color-mix(in srgb, var(--hw-panel) 88%, transparent);
+  color: var(--ka-snow);
+  text-align: center;
+  padding: 2rem;
+}
+
+.sb-overlay h2 {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 8vw, 3.5rem);
+  margin: 0;
+  color: var(--ka-snow);
+}
+
+.sb-pin {
+  font-family: var(--font-mono);
+  font-size: 1.6rem;
+  letter-spacing: 0.3em;
+  text-align: center;
+  background: var(--ka-pith);
+  border: 2px dashed var(--ka-ink);
+  border-radius: 8px;
+  padding: 0.5rem;
+}
+
+@media (min-width: 48rem) {
+  .sb-page { padding: 1.5rem 1.5rem 5.5rem; }
+  .sb-teams-grid { grid-template-columns: repeat(2, 1fr); }
+  .sb-teams-grid[data-count="3"] { grid-template-columns: repeat(3, 1fr); }
+  .sb-shell[data-wide="true"] { max-width: 60rem; }
+}

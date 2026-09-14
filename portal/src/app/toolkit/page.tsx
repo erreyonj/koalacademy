@@ -17,6 +17,10 @@ export default function ToolkitPage() {
       <article className="slide-body">
         <div className="empty-note">
           <p>
+            <Link href="/toolkit/games/">Games</Link> — classroom games played
+            on the iPads. Salad Bowl is first up.
+          </p>
+          <p>
             <Link href="/tools/notation/">Notation sandbox</Link> — clef, key,
             time, notes, and rests on a 1–2 bar staff.
           </p>

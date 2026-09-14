@@ -364,6 +364,82 @@ begin
   select count(*) into v_cnt from public.sb_players where game_id = v_game;
   if v_cnt <> 0 then raise exception 'cleanup did not cascade players'; end if;
 
+  -- ------------------------------------------- teacher cards + cancel game
+  -- Small class (2 players x 2 cards) can't reach the 5-card minimum on its
+  -- own; the teacher tops up the bowl, then cancels the whole room.
+  r := public.sb_command(u_teacher, 'create_game',
+    '{"mode":"free_for_all","responsesPerPlayer":2,"turnSeconds":60,"teamCount":2,"displayName":"Ms. E"}');
+  if not (r->>'ok')::boolean then raise exception 'small create failed: %', r; end if;
+  v_game := (r->>'gameId')::uuid;
+  v_code := r->>'code';
+  perform public.sb_command(u_alice, 'join_game', jsonb_build_object('code', v_code, 'displayName', 'Alice'));
+  perform public.sb_command(u_bob,   'join_game', jsonb_build_object('code', v_code, 'displayName', 'Bob'));
+  perform public.sb_command(u_teacher, 'open_submissions', jsonb_build_object('gameId', v_game));
+
+  -- Teacher card allowed while collecting.
+  r := public.sb_command(u_teacher, 'add_teacher_response',
+    jsonb_build_object('gameId', v_game, 'text', 'warm up'));
+  if not (r->>'ok')::boolean then raise exception 'collecting teacher card failed: %', r; end if;
+
+  perform public.sb_command(u_alice, 'submit_response', jsonb_build_object('gameId', v_game, 'text', 'red'));
+  perform public.sb_command(u_alice, 'submit_response', jsonb_build_object('gameId', v_game, 'text', 'blue'));
+  perform public.sb_command(u_bob,   'submit_response', jsonb_build_object('gameId', v_game, 'text', 'green'));
+
+  -- Bob still owes a card; lock with a waiver, then approve the three pending.
+  r := public.sb_command(u_teacher, 'lock_responses',
+    jsonb_build_object('gameId', v_game, 'waive', true));
+  if not (r->>'ok')::boolean then raise exception 'small lock failed: %', r; end if;
+  perform public.sb_command(u_teacher, 'review_response',
+    jsonb_build_object('gameId', v_game, 'action', 'approve_all_pending'));
+  select count(*) into v_cnt from public.sb_responses
+   where game_id = v_game and status = 'accepted';
+  if v_cnt <> 4 then raise exception 'expected 4 accepted before top-up, got %', v_cnt; end if;
+
+  -- Four cards is under the minimum: draw refuses.
+  r := public.sb_command(u_teacher, 'randomize_teams', jsonb_build_object('gameId', v_game));
+  if r->>'error' <> 'too_few_cards' then raise exception 'draw should need 5 cards: %', r; end if;
+
+  -- Students can't add teacher cards.
+  r := public.sb_command(u_alice, 'add_teacher_response',
+    jsonb_build_object('gameId', v_game, 'text', 'sneaky'));
+  if r->>'error' <> 'not_host' then raise exception 'student added teacher card: %', r; end if;
+
+  -- Teacher tops up to five while reviewing.
+  r := public.sb_command(u_teacher, 'add_teacher_response',
+    jsonb_build_object('gameId', v_game, 'text', 'kazoo'));
+  if not (r->>'ok')::boolean then raise exception 'reviewing teacher card failed: %', r; end if;
+  -- Duplicate (case/space folded) and banned terms are rejected.
+  r := public.sb_command(u_teacher, 'add_teacher_response',
+    jsonb_build_object('gameId', v_game, 'text', 'KAZOO'));
+  if r->>'error' <> 'duplicate' then raise exception 'teacher dup not caught: %', r; end if;
+  r := public.sb_command(u_teacher, 'add_teacher_response',
+    jsonb_build_object('gameId', v_game, 'text', 'b0mb@claat'));
+  if r->>'error' <> 'name_blocked' then raise exception 'teacher banned not caught: %', r; end if;
+
+  select count(*) into v_cnt from public.sb_responses
+   where game_id = v_game and status = 'accepted';
+  if v_cnt <> 5 then raise exception 'expected 5 accepted after top-up, got %', v_cnt; end if;
+
+  -- Now the draw succeeds.
+  r := public.sb_command(u_teacher, 'randomize_teams', jsonb_build_object('gameId', v_game));
+  if not (r->>'ok')::boolean then raise exception 'draw after top-up failed: %', r; end if;
+
+  -- Cancel deletes the room and cascades everything.
+  r := public.sb_command(u_teacher, 'cancel_game', jsonb_build_object('gameId', v_game));
+  if not (r->>'ok')::boolean or not (r->>'cancelled')::boolean then
+    raise exception 'cancel_game failed: %', r;
+  end if;
+  select count(*) into v_cnt from public.sb_games where id = v_game;
+  if v_cnt <> 0 then raise exception 'cancel left the game row'; end if;
+  select count(*) into v_cnt from public.sb_players where game_id = v_game;
+  if v_cnt <> 0 then raise exception 'cancel did not cascade players'; end if;
+  select count(*) into v_cnt from public.sb_responses where game_id = v_game;
+  if v_cnt <> 0 then raise exception 'cancel did not cascade responses'; end if;
+
+  -- A second cancel finds nothing.
+  r := public.sb_command(u_teacher, 'cancel_game', jsonb_build_object('gameId', v_game));
+  if r->>'error' <> 'not_found' then raise exception 'cancel of gone game: %', r; end if;
+
   raise notice 'SALAD BOWL DB TESTS PASSED';
 end;
 $test$;

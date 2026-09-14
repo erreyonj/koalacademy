@@ -191,11 +191,17 @@ function TurnActive({
   const mine = turn?.status === "active" && turn.playerId === state.me?.playerId;
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  // Card text from the last command response beats waiting on a refetch.
+  // Card text from the last local command response beats waiting on a refetch.
+  // Clear when the server card changes (e.g. teacher Foul / next on another device).
   const [liveCard, setLiveCard] = useState<string | null>(null);
   const turnIdRef = useRef<string | null>(null);
+  const serverCardRef = useRef<string | null>(null);
   if (turn && turnIdRef.current !== turn.id) {
     turnIdRef.current = turn.id;
+    serverCardRef.current = turn.cardText;
+    setLiveCard(null);
+  } else if (turn && turn.cardText !== serverCardRef.current) {
+    serverCardRef.current = turn.cardText;
     setLiveCard(null);
   }
 

@@ -222,6 +222,61 @@ band; student-authored cards can grow it.
 
 ---
 
+## Salad Bowl
+
+| Strand | Grade band | Group size | Space | Materials |
+| --- | --- | --- | --- | --- |
+| Vocabulary + review, all strands | 6-8 (paper version works 4-8) | Two to four teams | Normal seating | iPads on the portal (Toolkit → Games → Salad Bowl), or paper slips + a real bowl |
+
+**Setup:** Digital: the teacher hosts a game at the portal and writes the five-letter join
+code on the board; every student joins from their iPad with a first name. Free-For-All mode
+has each student secretly write 1–3 cards (the teacher reviews every card before play);
+Koala/Music mode has the teacher paste the whole deck instead — song sections, drum sounds,
+theory terms, Koala moves. Paper: everyone writes slips and drops them in an actual bowl.
+
+**How to play:** One shared pool of cards is played through **three times**, one rule set per
+round:
+
+1. **Describe** — say anything except the words on the card (Taboo rules).
+2. **Charades** — act it out, no words or sounds.
+3. **One Word** — exactly one word as the clue.
+
+Teams alternate turns. On a turn, one player draws from the bowl and gives clues to their own
+team for 60 seconds (teacher-configurable). A correct guess scores a point and draws the next
+card; each player gets **one pass** per turn, which returns the card to the bowl. When time
+runs out the card in hand goes back. When the bowl empties, the round ends and the *entire*
+pool returns for the next round — remembering cards from earlier rounds is the whole game.
+The web version handles the timer, private card display, scoring, turn order, and gives the
+teacher pause / undo / skip / clear controls.
+
+**Win condition:** Highest team total after all three rounds.
+
+**I do / We do / You do**
+
+1. *I do:* Teacher plays one demo turn per rule set on the projector — describe a card, act a
+   card, one-word a card — including a deliberate pass.
+2. *We do:* One open Describe turn where the teacher gives clues and the whole class guesses.
+3. *You do:* Teams play for real, students holding the bowl on their own iPads.
+
+**Concept targets:** Same muscle as Musical Taboo — describing concepts by their properties
+instead of their names — but the shrinking-then-returning pool adds memory and compression:
+by Round 3 a single well-chosen word has to carry a whole concept. Free-For-All rounds also
+surface what vocabulary students *choose* to write, which tells you what stuck.
+
+**Variations and ramps**
+
+- Grade 4-5 (paper): teacher-authored slips only, Describe and Charades rounds, longer timer
+- Grade 6-8 review: Koala/Music deck drawn from the current unit (`BMT`, `KSN`, `US` terms)
+- Free-For-All as a season opener: any school-appropriate card, community over content
+- Shorter timer or a fourth "sound effects only" round for groups that have played before
+
+**Prep TODOs:** For Koala/Music mode, keep a paste-ready deck per unit (a text file of one
+term per line grows naturally out of [Musical Taboo](#musical-taboo)'s card bank). The web
+game needs the Supabase project live — see
+[docs/salad-bowl-v1.md](../../../docs/salad-bowl-v1.md).
+
+---
+
 ## Silent Ball (Musical)
 
 | Strand | Grade band | Group size | Space | Materials |

@@ -90,6 +90,7 @@ export type SbCommandType =
   | "start_turn"
   | "mark_correct"
   | "pass_card"
+  | "foul_card"
   | "end_turn"
   | "undo_last"
   | "pause"

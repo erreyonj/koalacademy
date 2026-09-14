@@ -47,6 +47,8 @@ declare
   v_active_uid uuid;
   v_round int;
   v_guard int;
+  v_text text;
+  v_pass boolean;
 begin
   -- ------------------------------------------------------------ create/join
   r := public.sb_command(u_teacher, 'create_game',
@@ -423,6 +425,41 @@ begin
   -- Now the draw succeeds.
   r := public.sb_command(u_teacher, 'randomize_teams', jsonb_build_object('gameId', v_game));
   if not (r->>'ok')::boolean then raise exception 'draw after top-up failed: %', r; end if;
+
+  -- --------------------------------------------------------------- foul_card
+  perform public.sb_command(u_teacher, 'lock_teams', jsonb_build_object('gameId', v_game));
+  perform public.sb_command(u_teacher, 'begin_round', jsonb_build_object('gameId', v_game));
+  r := public.sb_command(u_teacher, 'start_turn', jsonb_build_object('gameId', v_game));
+  if not (r->>'ok')::boolean then raise exception 'foul start_turn failed: %', r; end if;
+  v_text := r->>'card';
+  if coalesce(v_text, '') = '' then raise exception 'foul start drew no card'; end if;
+
+  -- Student cannot foul.
+  r := public.sb_command(u_alice, 'foul_card', jsonb_build_object('gameId', v_game));
+  if r->>'error' <> 'not_host' then raise exception 'student fouled: %', r; end if;
+
+  -- Foul returns the card to the bowl without consuming the pass.
+  r := public.sb_command(u_teacher, 'foul_card', jsonb_build_object('gameId', v_game));
+  if not (r->>'ok')::boolean then raise exception 'foul_card failed: %', r; end if;
+  select pass_used, current_card_id
+    into v_pass, v_card
+    from public.sb_turns where game_id = v_game and status = 'active';
+  if v_pass then raise exception 'foul consumed the pass'; end if;
+  if v_card is null then raise exception 'foul left no card in hand'; end if;
+  -- 5 cards total: 1 in hand, 4 in bowl after foul+redraw.
+  select count(*) into v_cnt from public.sb_round_cards
+   where game_id = v_game and round = 1 and state = 'bowl';
+  if v_cnt <> 4 then raise exception 'expected 4 in bowl after foul, got %', v_cnt; end if;
+
+  -- Undo restores the fouled card and leaves pass unused.
+  r := public.sb_command(u_teacher, 'undo_last', jsonb_build_object('gameId', v_game));
+  if not (r->>'ok')::boolean then raise exception 'foul undo failed: %', r; end if;
+  if r->>'card' is distinct from v_text then
+    raise exception 'foul undo should restore % got %', v_text, r->>'card';
+  end if;
+  select pass_used into v_pass from public.sb_turns
+   where game_id = v_game and status = 'active';
+  if v_pass then raise exception 'pass should still be free after foul undo'; end if;
 
   -- Cancel deletes the room and cascades everything.
   r := public.sb_command(u_teacher, 'cancel_game', jsonb_build_object('gameId', v_game));

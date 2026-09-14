@@ -16,8 +16,8 @@ import type { SbState } from "../types";
 import type { SaladBowlSession } from "../useSaladBowl";
 
 /**
- * Persistent teacher controls: master pause, undo, skip, end turn, reset
- * round, recovery PIN, rematch (clear-bowl), and cancel game.
+ * Persistent teacher controls: master pause, foul/next, undo, skip, end turn,
+ * reset round, recovery PIN, rematch (clear-bowl), and cancel game.
  */
 export function TeacherBar({
   session,
@@ -77,6 +77,14 @@ export function TeacherBar({
 
       {status === "turn_active" ? (
         <>
+          <button
+            type="button"
+            className="notation-btn"
+            disabled={busy}
+            onClick={() => act("foul_card")}
+          >
+            Foul / next
+          </button>
           <button
             type="button"
             className="notation-btn"

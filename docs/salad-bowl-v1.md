@@ -16,6 +16,7 @@ on Supabase:
 | Piece | Where | Job |
 | --- | --- | --- |
 | Schema, RLS, command function | [`supabase/migrations/20260913230950_salad_bowl_v1.sql`](../supabase/migrations/20260913230950_salad_bowl_v1.sql) | All tables (`sb_*`), row security, and `sb_command` — the single transactional write path |
+| Cancel + teacher cards | [`supabase/migrations/20260914000000_salad_bowl_cancel_and_teacher_cards.sql`](../supabase/migrations/20260914000000_salad_bowl_cancel_and_teacher_cards.sql) | Renames the V1 function to `sb_command_core` and adds a thin `sb_command` wrapper with two host-only commands: `cancel_game` and `add_teacher_response` |
 | Edge Function | [`supabase/functions/salad-bowl/`](../supabase/functions/salad-bowl/) | Verifies the caller's JWT, then calls `sb_command` with the service-role key (which never reaches a browser) |
 | Browser client | [`portal/src/lib/supabase/`](../portal/src/lib/supabase/) | Anonymous auth session + typed reads |
 | Game feature | [`portal/src/features/salad-bowl/`](../portal/src/features/salad-bowl/) | Screens, timer/engine logic, realtime hook |
@@ -58,6 +59,21 @@ Everything below happens in the hosted Supabase project (`qthafgqbfsnuomqqgyyc`)
    `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `NEXT_PUBLIC_TURNSTILE_SITE_KEY`. These are
    publishable browser values. The site's CSP in [`portal/netlify.toml`](../portal/netlify.toml)
    already allows Supabase and `https://challenges.cloudflare.com`.
+
+### Applying the cancel + teacher-cards update
+
+The two new host commands live entirely in SQL, so shipping them is just another
+migration push — **no Edge Function redeploy** (the function forwards any command
+type to `sb_command` unchanged):
+
+```bash
+npx supabase link --project-ref fyurkhqtujqrbqlsiuyu   # current project ref
+npx supabase db push                                   # applies 20260914000000_…
+```
+
+`db push` runs only new migrations, so the tested V1 function is untouched on the
+server; the wrapper renames it to `sb_command_core` and delegates everything except
+`cancel_game` / `add_teacher_response`.
 
 ### Secrets hygiene (done in this slice, recorded here)
 
@@ -130,7 +146,9 @@ Run once on the real Netlify site + hosted Supabase, ideally on two iPads plus a
 3. Open the bowl. Submit a normal card, a duplicate ("67" then "6 7" — second refused), and a
    blocked word (should return the neutral replacement message, and appear flagged on the
    teacher device).
-4. Lock, review (approve all), draw teams, reshuffle once, move one player, lock teams.
+4. Lock, review (approve all). If you have fewer than 5 approved cards (e.g. two
+   students × two cards), use **Add to bowl** on the review screen until Draw
+   teams enables. Then draw teams, reshuffle once, move one player, lock teams.
 5. Play one full turn: confirm the clue shows **only** on the active iPad, the timers agree
    across devices, Got It scores, Pass disables after one use, and time-up returns the card.
 6. Mid-turn: press **Pause** — student buttons freeze and the overlay appears; **Resume** —
@@ -140,8 +158,11 @@ Run once on the real Netlify site + hosted Supabase, ideally on two iPads plus a
    clue restored. Lock one iPad for 30 seconds and wake it: the timer must re-sync, not drift.
 8. On a fresh browser, use **Recover host** with the game code + PIN; confirm the teacher bar
    moves to that device.
-9. **Clear bowl** and confirm every device lands back in the lobby with players intact.
-10. Check Supabase → Table Editor a few hours later: the expired game should be gone after
+9. **Clear bowl** and confirm every device lands back in the lobby with players intact
+   (same join code, rematch).
+10. Start a throwaway game, then **Cancel game** from the teacher bar: the host
+    returns to landing, the join code dies, and students bounce out of the room.
+11. Check Supabase → Table Editor a few hours later: the expired game should be gone after
     the cleanup cron runs.
 
 If the school Wi-Fi blocks WebSockets, the connection badge will show **Syncing** instead of

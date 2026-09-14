@@ -17,7 +17,7 @@ import type { SaladBowlSession } from "../useSaladBowl";
 
 /**
  * Persistent teacher controls: master pause, undo, skip, end turn, reset
- * round, recovery PIN, and the destructive clear-bowl.
+ * round, recovery PIN, rematch (clear-bowl), and cancel game.
  */
 export function TeacherBar({
   session,
@@ -39,6 +39,16 @@ export function TeacherBar({
     setBusy(true);
     await session.send(type, payload);
     setBusy(false);
+  }
+
+  async function cancelGame() {
+    if (busy) return;
+    setBusy(true);
+    const result = await session.send("cancel_game");
+    setBusy(false);
+    // Return the host to landing immediately; students clear their own seat
+    // when the next fetchState comes back null (the game row is gone).
+    if (result.ok) session.leaveSeat();
   }
 
   return (
@@ -158,6 +168,33 @@ export function TeacherBar({
               onClick={() => act("clear_game")}
             >
               Clear everything
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog>
+        <AlertDialogTrigger asChild>
+          <button
+            type="button"
+            className="notation-btn sb-btn-danger"
+            disabled={busy}
+          >
+            Cancel game
+          </button>
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancel this game?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Ends this game for everyone. The join code stops working and
+              players must rejoin a new game. This can&apos;t be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Keep playing</AlertDialogCancel>
+            <AlertDialogAction variant="destructive" onClick={cancelGame}>
+              End game
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

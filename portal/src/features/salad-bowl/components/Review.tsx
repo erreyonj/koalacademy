@@ -24,6 +24,7 @@ export function Review({
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState<{ id: string; text: string } | null>(null);
   const [banTerm, setBanTerm] = useState("");
+  const [newCard, setNewCard] = useState("");
 
   useEffect(() => {
     if (!isHost) return;
@@ -100,6 +101,24 @@ export function Review({
     setBusy(false);
     if (!result.ok) setError(result.message ?? "Couldn't add that term.");
     else setBanTerm("");
+  }
+
+  async function addCard() {
+    const text = newCard.trim();
+    if (busy || text.length < 1) return;
+    setBusy(true);
+    setError(null);
+    const result = await session.send("add_teacher_response", { text });
+    setBusy(false);
+    if (!result.ok) {
+      setError(
+        result.error === "duplicate"
+          ? "That card is already in the bowl."
+          : (result.message ?? "Couldn't add that card."),
+      );
+      return;
+    }
+    setNewCard("");
   }
 
   async function drawTeams() {
@@ -237,6 +256,41 @@ export function Review({
             onClick={addBanned}
           >
             Block it
+          </button>
+        </div>
+      </Panel>
+
+      <Panel title="Add your own cards">
+        {accepted.length < 5 ? (
+          <p className="sb-note" role="status">
+            Need {5 - accepted.length} more approved{" "}
+            {5 - accepted.length === 1 ? "card" : "cards"} — add teacher cards
+            below, or cancel the game from the teacher bar.
+          </p>
+        ) : (
+          <p className="sb-note">
+            Drop in extra clues to round out the bowl.
+          </p>
+        )}
+        <div className="sb-actions">
+          <input
+            className="sb-field"
+            value={newCard}
+            maxLength={60}
+            onChange={(e) => setNewCard(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") void addCard();
+            }}
+            aria-label="Card to add to the bowl"
+            placeholder="add a card"
+          />
+          <button
+            type="button"
+            className="notation-btn"
+            disabled={busy || newCard.trim().length < 1}
+            onClick={addCard}
+          >
+            Add to bowl
           </button>
         </div>
       </Panel>

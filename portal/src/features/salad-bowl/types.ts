@@ -98,6 +98,8 @@ export type SbCommandType =
   | "next_round"
   | "reset_round"
   | "remove_player"
+  | "add_teacher_response"
+  | "cancel_game"
   | "clear_game";
 
 export interface SbCommandResult {

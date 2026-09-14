@@ -65,8 +65,33 @@ Notation sandbox, Circle of Fifths, and Skills hub are live. See
 [docs/portal-next.md](../../../docs/portal-next.md) for the product notes that drove them.
 
 Profile, settings, submissions, and playlists are stubs (“auth not wired”).
-[`supabase/`](../../../supabase/) has `config.toml` only — no migrations, unused until a
-later accounts slice.
+
+**Toolkit → Games → Salad Bowl** is live and is the first real Supabase use:
+[`supabase/`](../../../supabase/) now carries a migration, an Edge Function, and enabled
+anonymous sign-ins for it. See the boundary note below — this is deliberately *not* the
+accounts slice.
+
+### Classroom game sessions vs “no database”
+
+V1 said “no accounts, no database, no submission flow.” Salad Bowl narrows that honestly
+rather than breaking it:
+
+- **Still no accounts.** Players are anonymous Supabase auth sessions — a random id per
+  browser, no email, no password, no roster, no names tied to identity.
+- **Ephemeral, not stored records.** A game holds first names/initials and game cards for the
+  session only. Games expire ~6 hours after the last action and a scheduled job deletes them;
+  old anonymous auth users are purged on a 7-day cycle. Nothing resembles an education record
+  (no grades, no progress, no submissions kept).
+- **Curriculum text stays in git.** The game tables hold game state only; the no-CMS rule is
+  untouched.
+- **Teacher stays in control.** Every card passes teacher review in Free-For-All mode, a
+  banned-word list plus per-game teacher additions screen submissions, and the teacher can
+  pause, undo, or clear the bowl at any time.
+
+Before wider rollout, confirm the school is comfortable with temporary first-name + game-card
+storage. It is far narrower than an account system, but “no actual users” is not the same as
+“no student data is processed.” Full setup, deployment, privacy, and smoke-test procedure:
+[docs/salad-bowl-v1.md](../../../docs/salad-bowl-v1.md).
 
 ### Still true from V1
 
@@ -156,8 +181,10 @@ Chosen and running — not a recommendation:
 - **MDX** under `portal/content/lessons/`; `getAllLessons()` indexes at build time
 - **No server runtime**, no search API, no lessons table
 
-Root `package.json` has Supabase CLI (`npx supabase …`). Config exists; schema does not.
-Linking a remote project and writing migrations is a separate accounts/progress slice.
+Root `package.json` has Supabase CLI (`npx supabase …`). The Salad Bowl slice added the
+first migration, an Edge Function, and anonymous sign-ins (see
+[docs/salad-bowl-v1.md](../../../docs/salad-bowl-v1.md)); an accounts/progress schema is
+still a separate, later slice.
 
 ---
 

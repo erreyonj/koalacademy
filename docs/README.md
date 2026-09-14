@@ -122,6 +122,7 @@ curriculum/assets/          Logo and brand image assets
 docs/README.md              This file: course description, requirements, teaching notes
 docs/brand-palette.md       v1 color palette and logo reference for design tasks
 docs/portal-next.md         Next portal features: Circle of Fifths tool and Skills hub
+docs/salad-bowl-v1.md       Salad Bowl game: Supabase setup, deployment, privacy, smoke test
 units/                      Per-unit folders for materials and activities
 apps/                       Blooprint suite concepts (native iOS)
 ```

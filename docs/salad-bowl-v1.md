@@ -17,6 +17,7 @@ on Supabase:
 | --- | --- | --- |
 | Schema, RLS, command function | [`supabase/migrations/20260913230950_salad_bowl_v1.sql`](../supabase/migrations/20260913230950_salad_bowl_v1.sql) | All tables (`sb_*`), row security, and `sb_command` — the single transactional write path |
 | Cancel + teacher cards | [`supabase/migrations/20260914000000_salad_bowl_cancel_and_teacher_cards.sql`](../supabase/migrations/20260914000000_salad_bowl_cancel_and_teacher_cards.sql) | Renames the V1 function to `sb_command_core` and adds a thin `sb_command` wrapper with two host-only commands: `cancel_game` and `add_teacher_response` |
+| Foul / next | [`supabase/migrations/20260914171000_salad_bowl_foul_card.sql`](../supabase/migrations/20260914171000_salad_bowl_foul_card.sql) | Extends the wrapper with host-only `foul_card` (card → bowl, pass unused, same turn draws next) and foul-aware `undo_last` |
 | Edge Function | [`supabase/functions/salad-bowl/`](../supabase/functions/salad-bowl/) | Verifies the caller's JWT, then calls `sb_command` with the service-role key (which never reaches a browser) |
 | Browser client | [`portal/src/lib/supabase/`](../portal/src/lib/supabase/) | Anonymous auth session + typed reads |
 | Game feature | [`portal/src/features/salad-bowl/`](../portal/src/features/salad-bowl/) | Screens, timer/engine logic, realtime hook |
@@ -60,20 +61,21 @@ Everything below happens in the hosted Supabase project (`qthafgqbfsnuomqqgyyc`)
    publishable browser values. The site's CSP in [`portal/netlify.toml`](../portal/netlify.toml)
    already allows Supabase and `https://challenges.cloudflare.com`.
 
-### Applying the cancel + teacher-cards update
+### Applying wrapper updates (cancel / teacher cards / foul)
 
-The two new host commands live entirely in SQL, so shipping them is just another
-migration push — **no Edge Function redeploy** (the function forwards any command
-type to `sb_command` unchanged):
+Host-only commands beyond V1 live entirely in SQL, so shipping them is just
+another migration push — **no Edge Function redeploy** (the function forwards any
+command type to `sb_command` unchanged):
 
 ```bash
 npx supabase link --project-ref fyurkhqtujqrbqlsiuyu   # current project ref
-npx supabase db push                                   # applies 20260914000000_…
+npx supabase db push                                   # applies 20260914000000_… then 20260914171000_…
 ```
 
 `db push` runs only new migrations, so the tested V1 function is untouched on the
-server; the wrapper renames it to `sb_command_core` and delegates everything except
-`cancel_game` / `add_teacher_response`.
+server; the cancel migration renames it to `sb_command_core`, and later
+migrations `CREATE OR REPLACE` the thin wrapper (foul included). Redeploy the
+portal so the teacher-bar **Foul / next** button ships.
 
 ### Secrets hygiene (done in this slice, recorded here)
 
@@ -152,8 +154,9 @@ Run once on the real Netlify site + hosted Supabase, ideally on two iPads plus a
 5. Play one full turn: confirm the clue shows **only** on the active iPad, the timers agree
    across devices, Got It scores, Pass disables after one use, and time-up returns the card.
 6. Mid-turn: press **Pause** — student buttons freeze and the overlay appears; **Resume** —
-   the clock continues from where it stopped. Tap **Undo** after a Got It and watch the point
-   come back off.
+   the clock continues from where it stopped. Tap **Foul / next** — the clue swaps, Pass stays
+   available, and the clock keeps running; **Undo** restores that card. Tap **Undo** after a
+   Got It and watch the point come back off.
 7. Refresh the active player's iPad mid-turn: it should land back in the same turn with the
    clue restored. Lock one iPad for 30 seconds and wake it: the timer must re-sync, not drift.
 8. On a fresh browser, use **Recover host** with the game code + PIN; confirm the teacher bar

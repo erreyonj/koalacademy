@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Newspaper } from "lucide-react";
 import {
   Card,
   CardDescription,
@@ -43,7 +44,7 @@ export function DashboardView() {
         </div>
       </header>
 
-      <div className="section">
+      <div className="section section-dashboard">
         <div className="wrap">
           <h2 className="eyebrow">Jump in</h2>
           <ul className="dashboard-grid" role="list">
@@ -64,6 +65,10 @@ export function DashboardView() {
           </ul>
         </div>
       </div>
+
+      <Link href="/newsletter/" className="newsletter-fab" aria-label="Class updates">
+        <Newspaper aria-hidden="true" />
+      </Link>
     </>
   );
 }

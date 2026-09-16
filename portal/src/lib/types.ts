@@ -108,3 +108,14 @@ export interface LessonWithNeighbours {
   prev: Lesson | null;
   next: Lesson | null;
 }
+
+/** Frontmatter as authored in content/newsletter/*.mdx. Bodies stay plain markdown. */
+export interface NewsletterPost {
+  /** Filename without extension. */
+  slug: string;
+  title: string;
+  /** When this update was written (`YYYY-MM-DD`). The log sorts newest first. */
+  created: string;
+  /** Markdown body with frontmatter stripped. */
+  body: string;
+}

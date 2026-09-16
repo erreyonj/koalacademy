@@ -12,8 +12,8 @@ const nextConfig: NextConfig = {
   // Static HTML export: no server runtime, so Netlify hosting stays identical
   // to the marketing site's zero-cost static deploy.
   output: "export",
-  // .mdx is included so content/lessons/*.mdx are compiled when imported,
-  // but those files live outside app/ so they do not become routes.
+  // .mdx is included so content/lessons and content/newsletter compile when
+  // imported, but those files live outside app/ so they do not become routes.
   pageExtensions: ["ts", "tsx", "mdx"],
   images: { unoptimized: true },
   trailingSlash: true,

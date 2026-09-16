@@ -4,6 +4,7 @@ portal/.next/
 portal/out/
 portal/next-env.d.ts
 portal/tsconfig.tsbuildinfo
+portal/content/newsletter/exports/
 .DS_Store
 
 # Environment files stay out of git; portal/.env.example documents the shape.

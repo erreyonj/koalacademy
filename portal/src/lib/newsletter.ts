@@ -115,7 +115,7 @@ export function markdownToHtml(markdown: string): string {
  * Every post in content/newsletter, newest first.
  *
  * Reads the filesystem, so this only ever runs at build time — the site is
- * statically exported and ships no server. Ignores .pdf and .gitkeep.
+ * statically exported and ships no server. Ignores exports/, .pdf, and .gitkeep.
  */
 export function getAllNewsletterPosts(): NewsletterPost[] {
   if (!fs.existsSync(CONTENT_DIR)) return [];

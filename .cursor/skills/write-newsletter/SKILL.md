@@ -42,7 +42,7 @@ From `portal/`:
 npm run newsletter:pdf -- content/newsletter/<yyyy-mm-dd>-<slug>.mdx
 ```
 
-Writes `content/newsletter/<yyyy-mm-dd>-<slug>.pdf` beside the MDX. If Chromium is missing:
+Writes `content/newsletter/exports/<yyyy-mm-dd>-<slug>.pdf` (gitignored). If Chromium is missing:
 
 ```bash
 npx playwright install chromium
@@ -50,4 +50,4 @@ npx playwright install chromium
 
 ## After
 
-Report both file paths. Do not commit unless asked.
+Report the MDX path (`portal/content/newsletter/…mdx`) and the PDF path (`portal/content/newsletter/exports/…pdf`). Do not commit unless asked. The exports folder is gitignored.

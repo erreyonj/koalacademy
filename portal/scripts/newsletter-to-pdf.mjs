@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Render a newsletter MDX file to a Letter PDF next to it.
+ * Render a newsletter MDX file to a Letter PDF in content/newsletter/exports/.
  *
  *   node scripts/newsletter-to-pdf.mjs content/newsletter/<slug>.mdx
  *
@@ -180,7 +180,12 @@ const html = letterHtml({
   bodyHtml: markdownToHtml(content.trim()),
 });
 
-const outPath = inputPath.replace(/\.mdx?$/, ".pdf");
+const exportsDir = path.join(PORTAL_ROOT, "content", "newsletter", "exports");
+fs.mkdirSync(exportsDir, { recursive: true });
+const outPath = path.join(
+  exportsDir,
+  path.basename(inputPath).replace(/\.mdx?$/, ".pdf"),
+);
 
 const browser = await chromium.launch();
 try {

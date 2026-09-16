@@ -60,6 +60,47 @@ it grows).
 
 ---
 
+## Sky and Ground
+
+| Strand | Grade band | Group size | Space | Materials |
+| --- | --- | --- | --- | --- |
+| `PITCH` | K-2 (works to 3) | Whole class | Standing spots, no walking circle | Guitar; no props |
+
+**Setup:** Students stand in their own spots with room to stretch up and get small. No
+walking circle. Teacher has the guitar ready with a clearly high spot (skinny strings) and a
+clearly low spot (fat strings).
+
+**How to play:** The teacher plays a high or low sound on guitar. High = stretch to the sky
+(tiptoe is fine). Low = get small near the ground. Optional slide: a glissando up or down,
+and the class grows or shrinks with it. Anyone who moves after watching a neighbor resets;
+the next sound is a new chance.
+
+**Win condition:** Cooperative — the class wins the round when the stretch and the shrink
+happen together, on the sound, without watching each other.
+
+**I do / We do / You do**
+
+1. *I do:* Teacher plays a high note and stretches to the sky, then a low note and gets
+   small near the ground, naming each out loud.
+2. *We do:* Class matches in place while the teacher still models the body.
+3. *You do:* Guitar only. Students show high or low. Watch who looks at neighbors.
+
+**Concept targets:** High vs low by ear, the body as the response, and the same "don't follow
+neighbors" check as Beat Freeze. Watching who stretches late tells you who is copying
+instead of hearing.
+
+**Variations and ramps**
+
+- K: two extremes only, slow, teacher still names high and low for the first rounds
+- Grade 1: add the glissando slide — class grows and shrinks as the sound moves
+- Grade 2: two notes in a row; students point to which is higher (no full crouch required)
+- Echo-sing a high "yoo" / low "boo" as a second micro-block if a round finishes early
+
+**Prep TODOs:** None beyond a guitar. Optional: mark two spots on the neck you always use for
+the extremes so the contrast stays huge.
+
+---
+
 ## Timbre Scavenger
 
 | Strand | Grade band | Group size | Space | Materials |

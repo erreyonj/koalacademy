@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, type PointerEvent } from "react";
+import { useEffect, useRef, useState, type PointerEvent } from "react";
 import { pitchFromStaffLine } from "@/lib/notation/pitch";
 import type { ScoreExcerpt } from "@/lib/notation/types";
 import { clientToSvg, type HitEvent, type RenderResult } from "./renderScore";
@@ -35,6 +35,7 @@ export function NotationStaff({
 }: NotationStaffProps) {
   const hostRef = useRef<HTMLDivElement>(null);
   const resultRef = useRef<RenderResult | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const host = hostRef.current;
@@ -43,12 +44,24 @@ export function NotationStaff({
     let cancelled = false;
 
     const draw = async () => {
-      const { renderScore } = await import("./renderScore");
-      if (cancelled || !hostRef.current) return;
-      const width = Math.floor(hostRef.current.clientWidth) || 480;
-      resultRef.current = await renderScore(hostRef.current, score, width, {
-        wrapSystems,
-      });
+      try {
+        const { renderScore } = await import("./renderScore");
+        if (cancelled || !hostRef.current) return;
+        const width = Math.floor(hostRef.current.clientWidth) || 480;
+        resultRef.current = await renderScore(hostRef.current, score, width, {
+          wrapSystems,
+        });
+        if (!cancelled) setError(null);
+      } catch (err) {
+        if (cancelled) return;
+        resultRef.current = null;
+        const message =
+          err instanceof Error ? err.message : "Could not render the staff.";
+        setError(message);
+        if (hostRef.current) {
+          hostRef.current.innerHTML = "";
+        }
+      }
     };
 
     const observer = new ResizeObserver(() => {
@@ -64,7 +77,7 @@ export function NotationStaff({
   }, [score, wrapSystems]);
 
   function handlePointerDown(event: PointerEvent<HTMLDivElement>) {
-    if (!interactive) return;
+    if (!interactive || error) return;
     const host = hostRef.current;
     const rendered = resultRef.current;
     const svg = host?.querySelector("svg");
@@ -100,12 +113,19 @@ export function NotationStaff({
 
   return (
     <div
-      className={`notation-staff${interactive ? " is-interactive" : ""}`}
-      ref={hostRef}
+      className={`notation-staff${interactive ? " is-interactive" : ""}${error ? " has-error" : ""}`}
       role="img"
-      aria-label={label}
+      aria-label={error ? `Notation error: ${error}` : label}
       onPointerDown={handlePointerDown}
-    />
+    >
+      {/* SVG host is separate so renderScore's innerHTML wipe does not remove the error UI. */}
+      <div className="notation-staff-host" ref={hostRef} />
+      {error ? (
+        <p className="notation-staff-error" role="alert">
+          Notation could not load ({error}). Try refreshing the page.
+        </p>
+      ) : null}
+    </div>
   );
 }
 

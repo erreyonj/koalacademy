@@ -42,11 +42,22 @@ export type RenderResult = {
 
 let fontsReady: Promise<void> | null = null;
 
+/**
+ * Wait for same-origin Bravura/Academico (@font-face in globals.css).
+ * Do not call VexFlow.loadFonts() — that hits cdn.jsdelivr.net and is blocked
+ * by Netlify CSP (font-src 'self' data:).
+ */
 export function ensureFonts(): Promise<void> {
   if (!fontsReady) {
-    fontsReady = VexFlow.loadFonts("Bravura", "Academico").then(() => {
+    fontsReady = (async () => {
+      if (typeof document !== "undefined" && document.fonts?.load) {
+        await Promise.all([
+          document.fonts.load("16px Bravura"),
+          document.fonts.load("16px Academico"),
+        ]);
+      }
       VexFlow.setFonts("Bravura", "Academico");
-    });
+    })();
   }
   return fontsReady;
 }

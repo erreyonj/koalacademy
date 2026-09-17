@@ -902,6 +902,20 @@ button.lesson-toolbar-item {
 
 /* ---------- notation excerpt + sandbox ---------- */
 
+/* Same-origin VexFlow fonts (copied by scripts/copy-vexflow-fonts.mjs).
+   Avoids CDN loads blocked by Netlify CSP font-src 'self' data:. */
+@font-face {
+  font-family: Bravura;
+  src: url("/fonts/vexflow/bravura/bravura.woff2") format("woff2");
+  font-display: block;
+}
+
+@font-face {
+  font-family: Academico;
+  src: url("/fonts/vexflow/academico/academico.woff2") format("woff2");
+  font-display: swap;
+}
+
 .notation-excerpt {
   margin: 1.75rem 0;
   padding: 0.75rem 0.85rem 0.9rem;
@@ -918,6 +932,30 @@ button.lesson-toolbar-item {
   width: 100%;
   min-height: 7.5rem;
   overflow-x: auto;
+}
+
+.notation-staff-host {
+  width: 100%;
+  min-height: inherit;
+}
+
+.notation-staff.has-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1rem;
+  box-sizing: border-box;
+}
+
+.notation-staff.has-error .notation-staff-host {
+  display: none;
+}
+
+.notation-staff-error {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--ka-ink);
+  text-align: center;
 }
 
 .notation-staff svg {

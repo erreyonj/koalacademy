@@ -5,6 +5,8 @@ portal/out/
 portal/next-env.d.ts
 portal/tsconfig.tsbuildinfo
 portal/content/newsletter/exports/
+# Copied from @vexflow-fonts by scripts/copy-vexflow-fonts.mjs (predev/prebuild).
+portal/public/fonts/vexflow/
 .DS_Store
 
 # Environment files stay out of git; portal/.env.example documents the shape.

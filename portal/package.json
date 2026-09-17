@@ -5,13 +5,16 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "predev": "node scripts/copy-vexflow-fonts.mjs",
+    "prebuild": "node scripts/copy-vexflow-fonts.mjs",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "tsc --noEmit",
     "test": "vitest run",
     "test:e2e": "playwright test",
-    "newsletter:pdf": "node scripts/newsletter-to-pdf.mjs"
+    "newsletter:pdf": "node scripts/newsletter-to-pdf.mjs",
+    "fonts:copy": "node scripts/copy-vexflow-fonts.mjs"
   },
   "dependencies": {
     "@marsidev/react-turnstile": "^1.6.1",
@@ -20,6 +23,8 @@
     "@next/mdx": "^16.3.1",
     "@supabase/supabase-js": "^2.116.0",
     "@tailwindcss/postcss": "^4.3.3",
+    "@vexflow-fonts/academico": "^1.0.1",
+    "@vexflow-fonts/bravura": "^1.0.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "gray-matter": "^4.0.3",

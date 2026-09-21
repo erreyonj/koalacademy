@@ -1,5 +1,6 @@
 import type { MDXComponents } from "mdx/types";
 import { Activate } from "@/components/Activate";
+import { AnswerKey } from "@/components/AnswerKey";
 import { Break } from "@/components/Break";
 import { DoNow } from "@/components/DoNow";
 import { NotationExcerpt } from "@/components/notation/NotationExcerpt";
@@ -13,6 +14,7 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
   return {
     ...components,
     Activate,
+    AnswerKey,
     Break,
     DoNow,
     NotationExcerpt,

@@ -472,6 +472,25 @@ h1, h2, h3 {
 .activate-block > .eyebrow { color: var(--ka-canopy); }
 .activate-block > *:last-child { margin-bottom: 0; }
 
+.answer-key {
+  margin: 1.75rem 0;
+  padding: 1rem 1.25rem;
+  border: 2px dashed color-mix(in srgb, var(--ka-ink) 35%, var(--ka-mist));
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--ka-ink) 8%, var(--ka-mist));
+  color: color-mix(in srgb, var(--ka-ink) 48%, var(--ka-mist));
+}
+
+.answer-key > .eyebrow {
+  color: color-mix(in srgb, var(--ka-ink) 40%, var(--ka-mist));
+}
+
+.answer-key > *:last-child { margin-bottom: 0; }
+
+.answer-key ul {
+  margin: 0.5rem 0 0;
+}
+
 /* ---------- click-to-load embed ---------- */
 
 .embed {

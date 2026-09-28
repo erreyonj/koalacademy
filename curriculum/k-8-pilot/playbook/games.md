@@ -180,6 +180,46 @@ work up one or two live guitar A/B examples.
 
 ---
 
+## Mood Moves
+
+| Strand | Grade band | Group size | Space | Materials |
+| --- | --- | --- | --- | --- |
+| `CREATE` (`LISTEN` tie-in) | K-2 | Whole class | Standing spots, room to move in place | Three short contrasting clips (happy, sleepy, stormy); no props |
+
+**Setup:** Students stand in their own spots with room to bounce, sway, or get small. No walking
+the room. Teacher has three short clips ready — one happy, one sleepy, one stormy.
+
+**How to play:** The teacher plays a clip. Students invent a movement that matches its feeling,
+staying in their own spot. When the music stops, everyone freezes. The teacher picks one
+student's move and gives it **shine**. The whole class copies that move for the next few
+seconds of the same clip. Then comes a new clip and a new feeling.
+
+**Win condition:** Cooperative — the class wins the round when everyone freezes cleanly on the
+stop, and every move matches the feeling.
+
+**I do / We do / You do**
+
+1. *I do:* Teacher plays the happy clip and invents a big bouncy move out loud ("This feels
+   happy, so I bounce"). Then the sleepy clip and a slow sway.
+2. *We do:* Class copies the teacher's move on one clip, and practices the freeze.
+3. *You do:* A new clip. Each student makes their own move. Teacher shines one move; class
+   copies it.
+
+**Concept targets:** Matching a movement choice to a musical feeling — the grade-1 `CREATE`
+target. Also builds feelings vocabulary for `LISTEN`. Watching who waits and copies a
+neighbor tells you who has not chosen a move of their own.
+
+**Variations and ramps**
+
+- K: two feelings only (happy and sleepy); teacher names the feeling before each clip
+- Grade 1: three feelings, unnamed; class names the feeling after the freeze
+- Grade 2: students add a vocal sound to their move (a "whoosh" for stormy); a student
+  leader picks the shine move
+
+**Prep TODOs:** Build a short bank of 15 to 30 second clips per feeling.
+
+---
+
 ## Balloon War Trivia
 
 | Strand | Grade band | Group size | Space | Materials |

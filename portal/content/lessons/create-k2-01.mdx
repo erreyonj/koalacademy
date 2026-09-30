@@ -6,41 +6,34 @@ bands: ["k-2"]
 sequence: 5
 created: "2026-09-28"
 strand: "CREATE"
+presentation: "deck"
 ---
 
-<DoNow title="Show the feeling" materials={[["look"]]}>
+<Deck>
+  <Mindfulness />
+  <MiniCrew />
 
-Stand on the carpet. Tracking Mr. E.
+  <Section name="Mood Moves">
+    <Slide optional kicker="Mood Moves" line="Make a move that matches the feeling." sub="Stay in your spot." />
+    <Slide optional kicker="Mood Moves" line="Music stops, you freeze." />
+    <Slide kicker="Mood Moves" line="Let's play!" sub="We win when everyone freezes together." />
+  </Section>
 
-Mr. E says a feeling. Show it on your face.
+  <Section name="Lesson">
+    <Slide kicker="Mood" line="Music has feelings." sub={["Happy. Sleepy.", "Stormy. Grumpy."]} />
+    <Slide kicker="Mood" line="You can hear it with no words." sub="Nobody has to sing to show a feeling." />
+    <Slide kicker="Mood" line="You make the move." sub={["No wrong move, if it matches.", "When the music stops, freeze."]} />
+  </Section>
 
-**Happy.** **Sleepy.** **Grumpy.**
+  <Section name="Closing Crew">
+    <Slide kicker="Closing Crew" line="Name a feeling music can have." />
+    <Slide kicker="Closing Crew" line="How can hearing a feeling help you be great?" sub="Share if you want to." />
+  </Section>
+</Deck>
 
-Then freeze at **level 0**.
+<Notes>
 
-</DoNow>
-
-## Music has feelings
-
-Some music feels happy. Some feels sleepy. Some feels stormy or grumpy.
-
-You can hear the feeling even when nobody sings a word.
-
-Mr. E will play some music.
-
-<Break
-  src="/assets/ka-main-smile-decal-no-bg.png"
-  alt="The koala is ready to make a move."
-  caption="Make your move"
-/>
-
-## You make the move
-
-Today you are the one who decides. When you hear the music, make up a move that matches the feeling. There is no wrong move, as long as it matches.
-
-When the music stops, freeze.
-
-That is the whole game.
+Movement today is Mood Moves. Skip the two rules slides once the class knows the game.
 
 <Activate title="Mood Moves">
 
@@ -55,3 +48,5 @@ The class wins the round when everyone freezes cleanly, and the moves match the 
 Full rules live in the game bank: Mood Moves.
 
 </Activate>
+
+</Notes>

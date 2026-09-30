@@ -131,6 +131,35 @@ export interface Database {
         Args: { p_game: string };
         Returns: unknown;
       };
+      teacher_progress: {
+        Args: { p_code: string };
+        Returns: {
+          band: string;
+          section: string;
+          lesson_slug: string;
+          lesson: boolean;
+          review: boolean;
+          lab: boolean;
+        }[];
+      };
+      teacher_set_progress: {
+        Args: {
+          p_code: string;
+          p_band: string;
+          p_section: string;
+          p_lesson: string;
+          p_phase: string;
+          p_done: boolean;
+        };
+        Returns: {
+          band: string;
+          section: string;
+          lesson_slug: string;
+          lesson: boolean;
+          review: boolean;
+          lab: boolean;
+        }[];
+      };
     };
     Enums: {
       sb_game_status: SbGameStatus;

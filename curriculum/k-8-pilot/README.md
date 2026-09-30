@@ -21,7 +21,7 @@ and NCAS alignment still fill in against the school calendar.
 | [playbook/games.md](playbook/games.md) | Written — six games documented |
 | [playbook/routines-and-protocols.md](playbook/routines-and-protocols.md) | Written |
 | [playbook/teaching-notes.md](playbook/teaching-notes.md) | Written — standing decisions (1:1 iPads, MIDI) |
-| [playbook/lesson-structure.md](playbook/lesson-structure.md) | Written — assemblies locked per band |
+| [playbook/lesson-structure.md](playbook/lesson-structure.md) | Written — assemblies locked per band (Mindfulness, Mini Crew, Do Now or Movement, Lesson + Activity, Closing Crew) |
 | [scope-and-sequence.md](scope-and-sequence.md) | Scaffold — strands defined, grade rows TBD |
 | [master-syllabus.md](master-syllabus.md) | Scaffold |
 | [koalacademy-WI-standards-alignment.md](koalacademy-WI-standards-alignment.md) | Written — all 52 K-8 WI General Music indicators mapped and flagged |
@@ -30,6 +30,8 @@ and NCAS alignment still fill in against the school calendar.
 | [vanguard-songs/song-list.md](vanguard-songs/song-list.md) | Scaffold — songs TBD |
 | [vanguard-songs/student-guide.md](vanguard-songs/student-guide.md) | Scaffold |
 | [resources/written-work.md](resources/written-work.md) | Written — stance documented |
+| [resources/high-quality-work.md](resources/high-quality-work.md) | Written — wall, per-student files, station recording |
+| [resources/device-privilege-and-file-management.md](resources/device-privilege-and-file-management.md) | Written — Clever sign-in, per-student folder, privilege gate |
 | [resources/booklist.md](resources/booklist.md) | Seeded — candidates unverified |
 | [resources/calendars/music-6-day-schedule.md](resources/calendars/music-6-day-schedule.md) | Written — posted music schedule transcribed |
 | [resources/portal-v1.md](resources/portal-v1.md) | Proposal — portal V1 spec and stack recommendation |
@@ -48,7 +50,8 @@ classroom-setup.md              Room inventory, layout, and materials task list
 syllabi/                        One syllabus per grade, K through 8
 playbook/                       Games, routines, class structure, teaching notes
 vanguard-songs/                 Anchor-song framework, per-grade lists, student guide
-resources/                      Written-work stance, the booklist, the portal V1 spec
+resources/                      Written-work stance, High Quality Work wall, device/file
+                                management, the booklist, the portal V1 spec
 resources/calendars/            6-day music schedule and the school year calendar
 ```
 

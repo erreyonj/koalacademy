@@ -1,19 +1,24 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { LessonNav } from "./LessonNav";
+import { LessonNotesProvider } from "./LessonNotesProvider";
 import { LessonToolbar } from "./LessonToolbar";
-import { bandsLabel } from "@/lib/lessons";
-import type { LessonWithNeighbours } from "@/lib/types";
+import { bandsLabel, getLessonsForBand } from "@/lib/lessons";
+import { TeacherLessonIndicator } from "@/features/teacher-progress/TeacherLessonIndicator";
+import { BAND_IDS, type LessonWithNeighbours } from "@/lib/types";
 
 interface SlideShellProps extends LessonWithNeighbours {
   children: ReactNode;
 }
 
 /**
- * One lesson, one scrolling page. Not a deck you arrow through: a single page
- * is easier to deep-link and far better on a phone.
+ * Lesson chrome around MDX. Article lessons stay a scrolling page. Deck
+ * lessons (`presentation: deck`) get a compact bar so the stage can fill the
+ * projector.
  */
 export function SlideShell({ lesson, band, prev, next, children }: SlideShellProps) {
+  const isDeck = lesson.presentation === "deck";
+  const teacherBand = BAND_IDS.find((id) => lesson.bands.includes(id));
   const context = lesson.component
     ? lesson.unit != null
       ? `Unit ${lesson.unit} · ${lesson.component}`
@@ -23,10 +28,10 @@ export function SlideShell({ lesson, band, prev, next, children }: SlideShellPro
       : bandsLabel(lesson.bands);
 
   return (
-    <>
+    <LessonNotesProvider>
       <LessonToolbar slug={lesson.slug} skills={lesson.skills} />
 
-      <header className="page-hero">
+      <header className={isDeck ? "page-hero page-hero-deck" : "page-hero"}>
         <div className="page-hero-inner">
           <p className="eyebrow">
             {lesson.code} · {bandsLabel(lesson.bands)}
@@ -36,13 +41,25 @@ export function SlideShell({ lesson, band, prev, next, children }: SlideShellPro
         </div>
       </header>
 
-      <div className="section section-lesson">
+      <div className={isDeck ? "section section-lesson section-lesson-deck" : "section section-lesson"}>
         <div className="wrap">
-          <div className="deck-screen">
-            <span className="lcd">{context}</span>
-          </div>
+          {teacherBand ? (
+            <TeacherLessonIndicator
+              band={teacherBand}
+              slug={lesson.slug}
+              code={lesson.code}
+              sequence={getLessonsForBand(teacherBand).map((item) => item.slug)}
+            />
+          ) : null}
+          {isDeck ? null : (
+            <div className="deck-screen">
+              <span className="lcd">{context}</span>
+            </div>
+          )}
 
-          <article className="slide-body">{children}</article>
+          <article className={isDeck ? "slide-body slide-body-deck" : "slide-body"}>
+            {children}
+          </article>
 
           <LessonNav prev={prev} next={next} />
 
@@ -53,6 +70,6 @@ export function SlideShell({ lesson, band, prev, next, children }: SlideShellPro
           </p>
         </div>
       </div>
-    </>
+    </LessonNotesProvider>
   );
 }

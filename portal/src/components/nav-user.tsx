@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ExternalLink, LogOut, Settings, UserRound } from "lucide-react";
+import { ClipboardCheck, ExternalLink, LogOut, Settings, UserRound } from "lucide-react";
+import { TeacherCodeDialog } from "@/features/teacher-progress/TeacherCodeDialog";
+import { useTeacherMode } from "@/features/teacher-progress/TeacherModeProvider";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -35,7 +37,9 @@ const PILOT_USER = {
 };
 
 export function NavUser() {
+  const { unlocked } = useTeacherMode();
   const [logoutOpen, setLogoutOpen] = useState(false);
+  const [teacherOpen, setTeacherOpen] = useState(false);
 
   return (
     <>
@@ -99,6 +103,24 @@ export function NavUser() {
                 </a>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
+              {unlocked ? (
+                <DropdownMenuItem asChild>
+                  <Link href="/teacher/">
+                    <ClipboardCheck />
+                    Teacher mode
+                  </Link>
+                </DropdownMenuItem>
+              ) : (
+                <DropdownMenuItem
+                  onSelect={(event) => {
+                    event.preventDefault();
+                    setTeacherOpen(true);
+                  }}
+                >
+                  <ClipboardCheck />
+                  Teacher mode
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem
                 onSelect={(event) => {
                   event.preventDefault();
@@ -112,6 +134,11 @@ export function NavUser() {
           </DropdownMenu>
         </SidebarMenuItem>
       </SidebarMenu>
+
+      <TeacherCodeDialog
+        open={teacherOpen}
+        onOpenChange={setTeacherOpen}
+      />
 
       <AlertDialog open={logoutOpen} onOpenChange={setLogoutOpen}>
         <AlertDialogContent>

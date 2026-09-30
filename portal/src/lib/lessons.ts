@@ -58,6 +58,12 @@ function parseCreated(slug: string, value: unknown): string {
   throw new Error(`${slug}.mdx: created must be a YYYY-MM-DD date string.`);
 }
 
+function parsePresentation(slug: string, value: unknown): "deck" | undefined {
+  if (value == null) return undefined;
+  if (value === "deck") return "deck";
+  throw new Error(`${slug}.mdx: presentation must be "deck" when set.`);
+}
+
 function parseFrontmatter(slug: string, data: Record<string, unknown>): Lesson {
   const {
     code,
@@ -69,6 +75,7 @@ function parseFrontmatter(slug: string, data: Record<string, unknown>): Lesson {
     unit,
     component,
     strand,
+    presentation,
     skills,
     investigate,
   } = data;
@@ -96,6 +103,7 @@ function parseFrontmatter(slug: string, data: Record<string, unknown>): Lesson {
     unit: typeof unit === "number" ? unit : undefined,
     component: typeof component === "string" ? component : undefined,
     strand: strand as Lesson["strand"],
+    presentation: parsePresentation(slug, presentation),
     skills: parseSkills(slug, skills),
     investigate: parseInvestigate(slug, investigate),
   };

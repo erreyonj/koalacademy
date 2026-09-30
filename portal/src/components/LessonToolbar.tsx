@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
+import { useLessonNotes } from "./LessonNotesProvider";
 import { skillHashtag, skillHref } from "@/lib/skills";
 
 const RESOURCE_ITEMS = [
@@ -38,6 +39,7 @@ export function LessonToolbar({ slug, skills }: LessonToolbarProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const panelId = useId();
   const skillsId = useId();
+  const { hasNotes, setOpen: setNotesOpen } = useLessonNotes();
 
   useEffect(() => {
     if (!open) {
@@ -95,6 +97,23 @@ export function LessonToolbar({ slug, skills }: LessonToolbarProps) {
               {item.label}
             </Link>
           ))}
+          {hasNotes ? (
+            <button
+              type="button"
+              className="lesson-toolbar-item"
+              onMouseEnter={() => setLcd("NOTES")}
+              onMouseLeave={() => setLcd(IDLE_LCD)}
+              onFocus={() => setLcd("NOTES")}
+              onBlur={() => setLcd(IDLE_LCD)}
+              onClick={() => {
+                setNotesOpen(true);
+                setOpen(false);
+              }}
+            >
+              <span className="led led-yellow" aria-hidden="true" />
+              .Notes
+            </button>
+          ) : null}
           <div className="lesson-toolbar-skills-wrap">
             <button
               type="button"

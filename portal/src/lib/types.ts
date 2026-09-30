@@ -91,6 +91,11 @@ export interface LessonFrontmatter {
   component?: string;
   /** K-5 only: the strand this session belongs to. */
   strand?: Strand;
+  /**
+   * Converted K-2 lessons use a one-idea-per-screen deck. Missing means the
+   * scrolling article used by 3–5, 6–8, and K-2 files not yet re-chunked.
+   */
+  presentation?: "deck";
   /** Topic tags. Empty when the lesson has not been tagged yet. */
   skills: string[];
   investigate: InvestigateLink[];

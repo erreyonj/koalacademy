@@ -72,12 +72,44 @@ the instruction.
 
 ## Entry and exit routines
 
+Class opens with **Mindfulness**, then **Mini Crew**, then **Do Now** or **Movement**. It
+closes with **Closing Crew**. Times live in
+[lesson-structure.md](lesson-structure.md). Teach each piece **I do / We do / You do** in
+week one like the attention getters.
+
+### Mindfulness
+
+The threshold. In this room it is musical: breath on the beat, a pulse, rest. Students
+cross, sit, and still. The language for this opening is **mindfulness** and, when you name
+the body, **central nervous system** — settle the system so the class can work. Keep it
+short enough that K–2 can finish in a minute. It is the *how you come in*, rehearsed until
+it is automatic.
+
+### Mini Crew
+
+A daily check-in from seats, about 90 seconds, **same prompt every class**: what are you
+**carrying** into the room, and what are you **checking in** (notebook, hands, and on lab
+days the device privilege). K–2 can answer with one word or a thumb. Full-circle CREW (the
+physical circle and the commitments) stays for week one, hard days, and a weekly close. Mini
+Crew is the everyday version so the period still has Lesson + Activity.
+
+**CRISP** is named here or in Closing Crew — one sentence matched to the hard thing that day
+(“today’s habit is Persistence”). It is not a fourth opening block.
+
 ### Do Now: the ticket in
 
-Every class opens with a **Do Now** posted where students can see it on entry. It is the
-first thing they do after settling — silent, short, in the notebook by default (see
+When the lesson needs a written ticket, the **Do Now** is posted where students can see it.
+It comes after Mindfulness and Mini Crew — silent, short, in the notebook by default (see
 [teaching-notes.md](teaching-notes.md#notebooks)). A Do Now might be a look-and-journal
 prompt, a rhythm to copy, a listening question, or a one-line recall of last meeting.
+
+On days that need bodies more than a journal, run **Movement** instead: body percussion, echo
+singing, or beat-keeping tied to today’s strand (the old warm-up). Production days run a Do
+Now only if that lesson needs a ticket; otherwise go to devices after Mini Crew.
+
+K–2 does not use a Do Now. The opening is Mindfulness, Mini Crew, and Movement (the lesson's
+game), about 10–15 minutes together — see
+[lesson-structure.md](lesson-structure.md#30-minute-assembly).
 
 The Do Now is the **ticket into class discussion**: students earn their voice in the opening
 conversation by having done it. No completed Do Now, no floor — you can still listen, but the
@@ -85,25 +117,28 @@ share-out and the discussion belong to the students who did the work. This keeps
 productive and makes participation legible (it ties directly to the participation weight in
 [../resources/written-work.md](../resources/written-work.md)).
 
-Like everything else, the Do Now routine is taught **I do / We do / You do** in week one:
-model it, do one together, then hold the room to running it silently and independently. Keep
-the posted format consistent all year so the routine stays automatic.
+Keep the posted Do Now format consistent all year so the routine stays automatic.
 
-### Entry
+### Closing Crew
 
-First two minutes: cross the threshold, settle, read the posted Do Now, and start it. Pair
-the Do Now with a musical entry cue (rhythm echo at the door or a seat-and-listen riff) so
-the *how you come in* is as consistent as the *what you do first*.
-
-### Exit
-
-Last two to three minutes: a one-word or one-sentence reflection, an exit ticket, or a quick
-informal check, then the line-up routine. On Koala lab days the exit ticket doubles as the
-file-management privilege check — see
+Last minutes: a crew question, a one-word or one-sentence reflection, an exit ticket, or a
+quick informal check, then the line-up routine. On Koala lab days the exit ticket doubles as
+the file-management privilege check (Clever signed out, file in **my** folder) — see
 [../resources/device-privilege-and-file-management.md](../resources/device-privilege-and-file-management.md).
 
-Keep entry and exit consistent K-8; only the content of the Do Now and the exit check changes
-by band and day.
+On a share day, Closing Crew is longer and can hold **Show me your greatness**: one revised
+piece the class can hear or see.
+
+Keep this shape consistent K-8; only the content of the ticket and the close changes by band
+and day.
+
+### Show me your greatness
+
+The student-facing name for putting **revised** work where other people can meet it. Use it
+for the one share in Closing Crew and for the documentation wall. A piece earns the wall when
+the student can say what they changed. Daily pads, Do Nows, and scale reps stay in the
+working record. How the wall, the student folder, and a public bounce sit together is in
+[../resources/high-quality-work.md](../resources/high-quality-work.md).
 
 ## Behavior expectations — CREW and CRISP
 
@@ -118,6 +153,10 @@ We run class in a **circle**. That is CREW.
 Circles create natural equity: everyone can be seen and heard. They foster shared leadership.
 They are a space for communal wisdom, transparency, and solution-focused problem-solving. The
 point is belonging — and agency toward getting better.
+
+The **daily** version is **Mini Crew** from seats (carrying / checking in). The physical
+circle is for week one, hard days, and a weekly close — see
+[Mini Crew](#mini-crew).
 
 **Community commitments** are the moral code. They guide three responsibilities:
 
@@ -150,4 +189,5 @@ Coordinate with One City schoolwide behavior systems once known.
 
 Intro lessons scale the language by band (call-and-response in K-2; commitments in 3–5;
 full CREW circle + CRISP statements in 6–8). Rehearse the culture in week one the same way
-you rehearse attention getters: I do / We do / You do.
+you rehearse attention getters: I do / We do / You do. After week one, name **one** CRISP
+habit in Mini Crew or Closing Crew, matched to the hard thing that day.

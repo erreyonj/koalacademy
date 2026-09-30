@@ -57,6 +57,13 @@ reviewed in hand.
 - Theory worksheets (key signatures, meter) are corrective only, assigned per-student from
   the booklist based on what games and projects reveal
 
+## High Quality Work and the wall
+
+Sound work (Koala projects, performances, keyboard takes) is documented in
+[high-quality-work.md](high-quality-work.md): working files in a **per-student** folder via
+Clever, practice takes in that same folder, and a wall card (album art, name, revision
+sentence, QR) only for revised public pieces.
+
 ## Feeding the gradebook
 
 **Participation is the largest single share of the grade.** Observation of play carries most

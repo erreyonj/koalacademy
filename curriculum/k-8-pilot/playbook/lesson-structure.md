@@ -8,9 +8,9 @@ assemble from the same modular blocks; which blocks fit depends on the band.
 | --- | --- | --- |
 | K–2 | 30 min (printed windows are often 27–28) | 30-minute — no daily listening |
 | 3–4 | 60 min | 60-minute |
-| 5 | 55 min | 55-minute (60-minute with five minutes off activity or listening) |
+| 5 | 55 min | 55-minute (60-minute with five minutes off Lesson + Activity) |
 | 6–8 unplugged | 60 min | 60-minute |
-| 6–8 production | 60 min | Production day — collapse warm-up and listening |
+| 6–8 production | 60 min | Production day — sign-in/sign-out around a long You-do |
 
 ## Concept rotation across meetings (post-intro)
 
@@ -33,10 +33,10 @@ The rotation for one concept (e.g. `BMT.1`):
    cycles are given over to lab time.
 
 Each meeting in the rotation is still a full class with the block shape below — it opens with
-the **Do Now** (the ticket in — see
-[routines-and-protocols.md](routines-and-protocols.md#do-now-the-ticket-in)) and closes with
-an exit. The rotation decides *which kind* of meeting it is; the blocks decide what happens
-inside it.
+**Mindfulness**, then **Mini Crew**, then **Do Now** or **Movement** as the ticket in (see
+[routines-and-protocols.md](routines-and-protocols.md#entry-and-exit-routines)) and closes
+with **Closing Crew**. The rotation decides *which kind* of meeting it is; the blocks decide
+what happens inside it.
 
 The **first lab meeting that uses Koala** is the file-management lesson (`KSN.5`), and
 continued iPad access is an earned privilege gated by that day's exit ticket — full procedure
@@ -47,24 +47,25 @@ and the written-learning fallback in
 
 | Block | Time | What happens |
 | --- | --- | --- |
-| Do Now | 3-5 min | Posted work during Threshold: teacher greets at the door; students start without a new explanation. Review or preview of today's lesson. |
-| Warm-up | 3-5 min | Body percussion, echo singing, or beat-keeping tied to today's strand — **when possible**. Weeks 1–3 may have none; the musical games are not taught yet. Do not invent a warm-up to fill the gap. |
-| Mini-lesson | 8-12 min | The day's concept, taught I do / We do on guitar; one concept only |
-| Activity / game (Activate) | 10-15 min | The You do: a game from [games.md](games.md) or hands-on work targeting the mini-lesson concept |
-| Listening | 5-8 min | Vanguard Song or weekly exemplar with one guiding question |
-| Reflection / exit | 3-5 min | One-word or one-sentence reflection, exit ticket, or quick informal check; line-up routine |
+| Mindfulness | 3–5 min | Threshold: breath on the beat, pulse, rest. Settles the room. Musical, not a separate SEL script — [routines-and-protocols.md](routines-and-protocols.md#mindfulness) |
+| Mini Crew | ~90 sec–2 min | Same prompt every day from seats: what are you carrying, what are you checking in. CRISP is named here or in Closing Crew, one sentence — [routines-and-protocols.md](routines-and-protocols.md#mini-crew) |
+| Do Now or Movement | 4–5 min (K–2: see 30-minute assembly) | **Do Now** is the ticket into discussion (notebook by default). **Movement** is the musical warm-up (body percussion, echo, beat) when the lesson needs bodies. Run one; both only if the clock allows. **K–2 first three lesson blocks take place of Do Now** |
+| Lesson + Activity | remainder | Mini-lesson (I do / We do) plus the You do: a game from [games.md](games.md) or hands-on work. On a Vanguard day, **listening lives inside this block** |
+| Closing Crew | 3–8 min | Crew question, exit ticket, or **Show me your greatness** share. On lab days the file-management check happens here — [routines-and-protocols.md](routines-and-protocols.md#closing-crew) |
 
 Notes:
 
-- Blocks are swappable, not optional in aggregate: every class has a Do Now, one focus, one
-  active block, and an exit. The middle varies.
-- Do Now and attention routines sit inside CREW / CRISP culture — see
-  [routines-and-protocols.md](routines-and-protocols.md).
-- For K-1, halve the mini-lesson and let the game carry the concept.
-- Written work, when used, replaces part of the activity block as a corrective — see
+- Blocks are swappable, not optional in aggregate: every class has Mindfulness, Mini Crew, one
+  ticket (Do Now or Movement), one Lesson + Activity, and Closing Crew. The middle varies.
+- CRISP is the habit language. It is **not** its own daily block. Name today’s habit in Mini
+  Crew or Closing Crew.
+- Full-circle CREW stays for week one, hard days, and a weekly close. Daily Mini Crew is from
+  seats.
+- For K-1, keep Lesson + Activity short on talk and let the game carry the concept.
+- Written work, when used, replaces part of Lesson + Activity as a corrective — see
   [../resources/written-work.md](../resources/written-work.md).
-- K–2 printed windows are often 27–28 minutes. Keep Do Now and exit tight; do not add a
-  listening block to "use the extra time" that is not actually there.
+- K–2 printed windows are often 27–28 minutes. Keep Mindfulness, Mini Crew, and Closing Crew
+  tight; do not add a listening block to "use the extra time" that is not actually there.
 
 ### Do Now by band
 
@@ -82,15 +83,19 @@ Default for **K–2**.
 
 | Min | Block |
 | --- | --- |
-| 0-5 | Do Now |
-| 5-7 | Warm-up (when possible) |
-| 7-15 | Mini-lesson |
-| 15-27 | Activity / game (Activate) |
-| 27-30 | Reflection / exit |
+| 0-2 | Mindfulness |
+| 2-4 | Mini Crew (one word or a thumb) |
+| 4-15 | Movement: the lesson's game, with 1–2 rules slides the class skips once it knows the game |
+| 15-27 | Lesson + Activity |
+| 27-30 | Closing Crew |
+
+K–2 does not use a Do Now. Mindfulness, Mini Crew, and Movement together take about 10–15
+minutes and are the way into the lesson. The student deck follows these blocks in order (see
+the K–2 lesson files in the portal).
 
 Listening is not a daily block at 30 minutes; run it as the activity one day per week
-(Vanguard Song day). If the printed window is 27 minutes, cut the activity, not the exit.
-If there is no warm-up yet, start the mini-lesson after Do Now.
+(Vanguard Song day). If the printed window is 27 minutes, cut Lesson + Activity, not Closing
+Crew. Skip a separate CRISP turn; name a habit in Mini Crew or the close if it fits.
 
 ## 60-minute assembly
 
@@ -98,26 +103,26 @@ Default for **grades 3–4** and **6–8 unplugged** days.
 
 | Min | Block |
 | --- | --- |
-| 0-5 | Do Now |
-| 5-8 | Warm-up (when possible) |
-| 8-20 | Mini-lesson |
-| 20-42 | Activity / game (Activate) |
-| 42-55 | Listening |
-| 55-60 | Reflection / exit |
+| 0-2 | Mindfulness |
+| 2-4 | Mini Crew |
+| 4-9 | Do Now or Movement |
+| 9-52 | Lesson + Activity (listening inside this block on song days) |
+| 52-60 | Closing Crew (8 min on a share day, 5 min on a normal day — take the extra from Lesson + Activity) |
+
+CRISP is one sentence inside Mini Crew or Closing Crew (“today’s habit is Persistence”).
 
 ## 55-minute assembly
 
 Default for **grade 5** (8:20–9:15). Same shape as 60 minutes; take the five minutes from
-activity or listening, not from Do Now or exit.
+Lesson + Activity, not from Mindfulness, Mini Crew, or Closing Crew.
 
 | Min | Block |
 | --- | --- |
-| 0-5 | Do Now |
-| 5-8 | Warm-up (when possible) |
-| 8-20 | Mini-lesson |
-| 20-40 | Activity / game (Activate) |
-| 40-50 | Listening |
-| 50-55 | Reflection / exit |
+| 0-2 | Mindfulness |
+| 2-4 | Mini Crew |
+| 4-9 | Do Now or Movement |
+| 9-50 | Lesson + Activity (listening inside this block on song days) |
+| 50-55 | Closing Crew |
 
 ## 6-8 production days
 
@@ -125,47 +130,22 @@ Thirty iPads are in the room, so 1:1 is always available — see
 [teaching-notes.md](teaching-notes.md). Production vs. unplugged is a choice for the
 lesson, not a rental calendar.
 
-On production days, collapse warm-up and listening to protect a long uninterrupted You-do.
-Device handout and collection are taught as routines with their own I do / We do / You do.
-Do Now still runs during Threshold before the mini-lesson.
+Mindfulness and Mini Crew replace the old musical-cue entry. Run a Do Now only if it is the
+ticket for that lesson. Sign-in and sign-out are taught steps around the You-do — see
+[../resources/device-privilege-and-file-management.md](../resources/device-privilege-and-file-management.md).
+Early lab days give those steps real minutes. Once the routine is automatic they stay short,
+and the long You-do is what remains.
 
 | Min | Block |
 | --- | --- |
-| 0-5 | Do Now |
-| 5-8 | Mini-lesson / I do (teacher iPad projected) |
-| 8-12 | Device handout (We do, then You do) |
-| 12-50 | Activity — You-do on iPads (Activate) |
-| 50-55 | Share one or two pads / patterns |
-| 55-60 | Devices away; reflection / exit |
+| 0-2 | Mindfulness |
+| 2-4 | Mini Crew |
+| 4-9 | Do Now (only if this lesson needs a ticket) or go to devices |
+| 9-16 | Device handout and **Clever sign-in** (We do, then You do). Early labs: use the full window. Later labs: compress toward 3–4 min |
+| 16-50 | Activity — You-do on iPads |
+| 50-55 | Share one or two pads / patterns (**Show me your greatness** when a revised piece is ready) |
+| 55-60 | **Sign-out**, local file clear, devices away; Closing Crew |
 
-## Portal lesson shape
-
-Every portal MDX file is **Do Now → Lesson → Activate**.
-
-1. **Do Now** — first child of the lesson body, under the hero. 3–5 min. Review or preview
-   of *this* lesson, not a random starter. After week one, no I do / We do / You do inside
-   the block; students run it themselves.
-2. **Lesson** — concept, listening, breaks.
-3. **Activate** — the You-do (the game or hands-on work). Keeps I do / We do / You do.
-
-### Materials tokens
-
-Pick from this list; do not invent a new icon per lesson. Groups render left to right with
-an arrow between them (`🎧+📱  ➡️  📓+✍🏾`).
-
-| Token | Icon | Means |
-| --- | --- | --- |
-| `headphones` | 🎧 | Listen with headphones |
-| `ipad` | 📱 | Work on the iPad |
-| `journal` | 📓 | Journal / notebook |
-| `write` | ✍🏾 | Write a response |
-| `look` | 👀 | Prompt is on the board or TV |
-| `partner` | 👥 | Talk to a partner (K–2 circle) |
-
-MDX: `materials={[["headphones", "ipad"], ["journal", "write"]]}` or
-`materials={[["look"], ["partner"]]}`. Listen-then-journal is the first shape; journal-only
-(`[["journal", "write"]]`) when the prompt is already on the board or in the lesson. K–2
-does not depend on iPads — see [teaching-notes.md](teaching-notes.md).
-
-No shared-include system. Copy the same Do Now snippet across a band's lessons for a given
-week.
+On the first lab (`KSN.5`) and the next few production meetings, expand sign-in and sign-out
+and shrink the You-do until the class can leave every iPad in a correct state. Then restore
+the long You-do.

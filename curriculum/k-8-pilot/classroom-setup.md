@@ -26,8 +26,8 @@ Working plan:
 - Students face each other and can see the staff board and the TV
 - Tables can be pushed into the middle when the room needs to rearrange
 - Piano / keyboard in the room
-- Plenty of wall space for posters or art — content undecided (music-store posters vs.
-  artist / art in general)
+- Plenty of wall space for the **Show me your greatness** documentation wall (album art +
+  QR) and other posters — see [resources/high-quality-work.md](resources/high-quality-work.md)
 
 ## On-site inventory (seen)
 
@@ -96,12 +96,18 @@ Task list from the walkthrough. Stipend vs. out-of-pocket is unknown.
 - MIDI USB cables (USB-A), plus USB-A to USB-C
 - Apple / iPad connector kits so keyboards can connect directly to iPads — research the
   exact Lightning / USB-C camera-adapter path per iPad generation
+- **Optional, station recording only:** one class-compliant audio interface with instrument
+  in and headphone out (iRig-class or similar USB-C). One chain for the room. A USB-C to
+  3.5 mm headphone adapter is not an input — see
+  [high-quality-work.md](resources/high-quality-work.md#station-recording-keyboard-into-koala).
+  Skip this until this year’s labs need a keyboard take inside Koala.
 
 ### Display and walls
 
 - TV projection: **done** — HDMI from the teacher laptop (Miracast abandoned; works for
   all classes whenever the laptop screen is needed)
-- Posters or art — music-store trip vs. general artist art, undecided
+- Posters or art — documentation wall first (album art + QR); extra music-store vs. general
+  artist art still undecided
 
 ### Books
 
@@ -111,7 +117,9 @@ Still follow [resources/booklist.md](resources/booklist.md). Quaver Giant Jam is
 
 - Stipend, or buy out of pocket?
 - Exact iPad adapters once iPad generation is known
-- Poster direction: music posters vs. artist / art in general
+- Poster extras: music posters vs. general artist art (documentation wall is decided)
+- Apple Shared iPad vs. a normal cart (does sign-out clear local Koala files?) — see
+  [resources/device-privilege-and-file-management.md](resources/device-privilege-and-file-management.md)
 - Whether basement closet inventory is usable for this classroom
 - Headphone model once budget is known
 - Photos / video of the room and closet, for a tighter configuration pass

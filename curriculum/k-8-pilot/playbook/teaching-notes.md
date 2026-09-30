@@ -21,13 +21,15 @@ instrument is the keyboard — see [Student instrument — keyboards](#student-i
 
 ## Notebooks
 
-Every student has a notebook. It is the default surface for the Do Now (the ticket into
+Every student has a notebook. It is the default surface for the **Do Now** (the ticket into
 class discussion — see
 [routines-and-protocols.md](routines-and-protocols.md#do-now-the-ticket-in)), for journal
 and listening responses, and for corrective written work. Notebooks are a standing
 expectation across all bands, not a per-lesson material: assume one is on the desk every
 class the same way a pencil is. Consumable notebook paper is on the acquisition list in
-[classroom-setup.md](../classroom-setup.md).
+[classroom-setup.md](../classroom-setup.md). The period still **opens** with Mindfulness and
+Mini Crew before the Do Now or Movement — see
+[lesson-structure.md](lesson-structure.md).
 
 - **K-2:** No student device access. Unplugged-first by design — games, movement, voice,
   found sounds, and classroom instruments, with Quaver activities run teacher-projected. Any
@@ -44,10 +46,11 @@ class the same way a pencil is. Consumable notebook paper is on the acquisition 
   Cluster Koala-heavy work (`KSN`, `D4` hands-on, project weeks) because the work needs an
   uninterrupted You-do, not because devices have to be reserved.
 
-See [lesson-structure.md](lesson-structure.md) for the 60-minute production-day assembly and
+See [lesson-structure.md](lesson-structure.md) for the production-day assembly and
 the post-intro concept rotation (Lesson → Review/Activity → Lab). The first Koala lab day is
-gated by a file-management lesson, and continued iPad access is an earned privilege — the
-full procedure and the written-learning fallback are in
+gated by a file-management lesson (Clever sign-in, per-student folder, sign-out), and
+continued iPad access is an earned privilege — the full procedure and the written-learning
+fallback are in
 [../resources/device-privilege-and-file-management.md](../resources/device-privilege-and-file-management.md).
 
 ## Student instrument — keyboards

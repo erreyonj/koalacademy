@@ -38,9 +38,10 @@ Strand definitions, the band model, and the K-8 vertical map:
   ([playbook/lesson-structure.md](playbook/lesson-structure.md))
 - Every game, lesson, and procedure is taught **I do / We do / You do**
   ([playbook/routines-and-protocols.md](playbook/routines-and-protocols.md))
-- Every class opens with a **Do Now** — the ticket into class discussion — done in the
-  student notebook
-  ([playbook/routines-and-protocols.md](playbook/routines-and-protocols.md#do-now-the-ticket-in))
+- Every class opens with **Mindfulness**, then **Mini Crew**, then **Do Now** or **Movement**;
+  it closes with **Closing Crew**. The Do Now (when used) is the ticket into discussion; K–2
+  always runs Movement and never a Do Now
+  ([playbook/routines-and-protocols.md](playbook/routines-and-protocols.md#entry-and-exit-routines))
 - Teacher demonstrations are **guitar-first**, piano as visual aid; the **student** hands-on
   instrument is the **keyboard**, with a keyboard-station rotation when 1:1 is not possible
   ([playbook/teaching-notes.md](playbook/teaching-notes.md#student-instrument--keyboards))
@@ -129,8 +130,10 @@ TBD: One City report card categories, grading scale, and progress-report languag
 - K-2 students: notebook and classroom supplies (unplugged-first; Quaver runs teacher-projected)
 - 6-8 students: 1:1 iPads (30 in the building) with Koala Sampler and headphones on
   production days — see [playbook/teaching-notes.md](playbook/teaching-notes.md). Continued
-  iPad access is an earned privilege gated by file management
+  iPad access is an earned privilege gated by file management: Clever sign-in, a
+  per-student folder, and sign-out
   ([resources/device-privilege-and-file-management.md](resources/device-privilege-and-file-management.md)).
+  Display of revised sound work: [resources/high-quality-work.md](resources/high-quality-work.md).
   Student keyboards have no MIDI out; the teacher keyboard does, by appointment.
 - Books and reproducibles: [resources/booklist.md](resources/booklist.md)
 
@@ -156,3 +159,5 @@ TBD — syllabus-night one-pager, what "music class" looks like this year, perfo
   [resources/calendars/music-6-day-schedule.md](resources/calendars/music-6-day-schedule.md)
 - Course description and requirements: [docs/README.md](../../docs/README.md)
 - Idea parking lot: [ideas-inbox.md](ideas-inbox.md)
+- High Quality Work / documentation wall:
+  [resources/high-quality-work.md](resources/high-quality-work.md)

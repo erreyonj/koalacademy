@@ -172,23 +172,15 @@ function StudentEntry({
 
 function ClassProgress({ state }: { state: SbState }) {
   const students = state.players.filter((p) => !p.isHost && !p.removed);
-  const quota = state.game.responsesPerPlayer;
-  const ready = students.filter((p) => p.cardsIn >= quota).length;
+  const ready = students.filter(
+    (p) => p.cardsIn >= state.game.responsesPerPlayer,
+  ).length;
   return (
     <Panel title="Class progress">
-      <p className="sb-note" role="status">
-        {ready} of {students.length} players have all their cards in.
+      <p className="sb-counter" role="status">
+        {ready} of {students.length}{" "}
+        {students.length === 1 ? "student" : "students"}
       </p>
-      <ul className="sb-list">
-        {students.map((p) => (
-          <li key={p.id} data-state={p.cardsIn >= quota ? "done" : undefined}>
-            <span>{p.displayName}</span>
-            <span className="sb-row-meta">
-              {p.cardsIn}/{quota}
-            </span>
-          </li>
-        ))}
-      </ul>
     </Panel>
   );
 }

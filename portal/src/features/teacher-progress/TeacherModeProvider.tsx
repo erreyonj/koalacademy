@@ -31,6 +31,7 @@ interface TeacherModeValue {
   error: string | null;
   cell: (section: string, slug: string) => CellFlags;
   unlock: (code: string) => Promise<void>;
+  lock: () => void;
   setPhase: (
     section: TeacherSection,
     slug: string,
@@ -90,6 +91,13 @@ export function TeacherModeProvider({ children }: { children: ReactNode }) {
     saveTeacherCode(nextCode);
     setCode(nextCode);
     setRows(data);
+    setError(null);
+  }, []);
+
+  const lock = useCallback(() => {
+    saveTeacherCode(null);
+    setCode(null);
+    setRows([]);
     setError(null);
   }, []);
 
@@ -180,10 +188,11 @@ export function TeacherModeProvider({ children }: { children: ReactNode }) {
       error,
       cell,
       unlock,
+      lock,
       setPhase,
       setAllPhases,
     }),
-    [ready, code, rows, error, cell, unlock, setPhase, setAllPhases],
+    [ready, code, rows, error, cell, unlock, lock, setPhase, setAllPhases],
   );
 
   return (

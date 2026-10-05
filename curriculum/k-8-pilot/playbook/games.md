@@ -362,7 +362,7 @@ game needs the Supabase project live — see
 
 | Strand | Grade band | Group size | Space | Materials |
 | --- | --- | --- | --- | --- |
-| `BEAT` | 2-8 | Whole class | Standing at desks or a circle | Soft ball, playback or live guitar |
+| `BEAT` | K-8 | Whole class | Standing at desks or a circle | Soft ball, playback or live guitar |
 
 **Setup:** Students stand spread around the room or in a circle. One ball.
 
@@ -388,6 +388,7 @@ placement.
 
 **Variations and ramps**
 
+- K-1: seated circle, roll the ball on beat one, cooperative chain only
 - Grade 2-3: downbeat only, moderate tempo, teacher counts aloud for the first round
 - Grade 4-5: beats two, three, or four; tempo changes mid-round
 - Grade 6-8: off-beat targets, two balls at once on different beats, or swing feel tracks

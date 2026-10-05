@@ -88,7 +88,7 @@ test("full classroom flow", async ({ browser }) => {
   // (Duplicate/banned submission handling is covered end-to-end in the DB
   // suite; here we verify the happy moderation path.)
   await expect(
-    teacher.page.getByText("3 of 3 players have all their cards in."),
+    teacher.page.getByText("3 of 3 students"),
   ).toBeVisible();
   await teacher.page.getByRole("button", { name: "Lock the bowl" }).click();
   await teacher.page

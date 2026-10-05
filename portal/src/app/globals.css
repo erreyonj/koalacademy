@@ -2518,6 +2518,21 @@ button.lesson-toolbar-item {
   border: 3px solid var(--ka-ink);
 }
 
+.sb-counter {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(2.4rem, 11vw, 4.2rem);
+  font-weight: 700;
+  line-height: 1.1;
+  text-align: center;
+  padding: 1rem 0.5rem;
+  background: var(--hw-panel);
+  color: var(--hw-screen);
+  border: 3px solid var(--ka-ink);
+  border-radius: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
 .sb-list {
   list-style: none;
   margin: 0;
@@ -2833,12 +2848,42 @@ button.lesson-toolbar-item {
   top: 0;
   right: 5.6rem;
   z-index: 30;
-  width: 8rem;
+  width: 10rem;
   padding: 0.55rem 0.5rem 0.6rem;
   background: var(--hw-panel);
   border: 3px solid var(--ka-ink);
   border-radius: 12px;
   box-shadow: 0 5px 0 var(--ka-ink);
+}
+
+.teacher-device-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 2.25rem;
+  align-items: stretch;
+  gap: 0.28rem;
+}
+
+.teacher-device-close {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  min-height: 100%;
+  padding: 0;
+  background: var(--hw-red);
+  border: 3px solid var(--ka-ink);
+  border-radius: 8px;
+  box-shadow: 0 3px 0 var(--ka-ink);
+  color: var(--ka-snow);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.teacher-device-close:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--ka-ink);
 }
 
 /* Inset is wide enough that wrap is centered with a real right gutter. */
@@ -2865,6 +2910,10 @@ button.lesson-toolbar-item {
 }
 
 .teacher-device-lcd {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   background: var(--hw-screen);
   border: 3px solid var(--ka-ink);
   border-radius: 8px;

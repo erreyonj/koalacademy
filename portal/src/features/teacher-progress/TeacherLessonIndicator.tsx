@@ -98,7 +98,7 @@ export function TeacherLessonIndicator({
   code,
   sequence,
 }: TeacherLessonIndicatorProps) {
-  const { unlocked, ready, error, cell, setPhase, setAllPhases, rows } =
+  const { unlocked, ready, error, cell, lock, setPhase, setAllPhases, rows } =
     useTeacherMode();
   const [picked, setPicked] = useState<TeacherSection | null>(null);
   const grades = BAND_GRADES[band] as readonly TeacherGrade[];
@@ -149,9 +149,19 @@ export function TeacherLessonIndicator({
         className="teacher-device"
         aria-label={`Class progress for ${code}`}
       >
-        <div className="teacher-device-lcd">
-          <span className="lcd">{SECTION_LABEL[section].toUpperCase()}</span>
-          <span className="lcd teacher-device-status">{status}</span>
+        <div className="teacher-device-head">
+          <div className="teacher-device-lcd">
+            <span className="lcd">{SECTION_LABEL[section].toUpperCase()}</span>
+            <span className="lcd teacher-device-status">{status}</span>
+          </div>
+          <button
+            type="button"
+            className="teacher-device-close"
+            aria-label="Lock teacher mode"
+            onClick={lock}
+          >
+            X
+          </button>
         </div>
         {error ? (
           <p className="teacher-grid-error" role="alert">

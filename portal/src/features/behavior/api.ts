@@ -10,6 +10,7 @@ function isStudent(value: unknown): value is BehaviorStudent {
     isCohort(row.cohort) &&
     typeof row.first_name === "string" &&
     typeof row.last_initial === "string" &&
+    (row.preferred_name === null || typeof row.preferred_name === "string") &&
     typeof row.marbles === "number" &&
     typeof row.prize === "boolean" &&
     typeof row.avatar_seed === "string"
@@ -27,6 +28,12 @@ function translate(message: string): Error {
   }
   if (/unknown_student/i.test(message)) {
     return new Error("That student is no longer on a roster.");
+  }
+  if (/invalid_total/i.test(message)) {
+    return new Error("That total is out of range.");
+  }
+  if (/invalid_name/i.test(message)) {
+    return new Error("Preferred names can be up to 60 characters.");
   }
   return new Error(message);
 }
@@ -129,6 +136,36 @@ export async function adjustPool(
   });
   if (error) throw translate(error.message);
   return asPools(data).get(cohort) ?? 0;
+}
+
+/** Sets the bucket's total; the server solves for the pool and returns it. */
+export async function setPoolTotal(
+  code: string,
+  cohort: Cohort,
+  total: number,
+): Promise<number> {
+  const { data, error } = await getSupabase().rpc("behavior_pool_set", {
+    p_code: code,
+    p_cohort: cohort,
+    p_total: total,
+  });
+  if (error) throw translate(error.message);
+  if (typeof data !== "number") throw new Error("The server returned no total.");
+  return data;
+}
+
+export function setPreferredName(
+  code: string,
+  studentId: string,
+  name: string,
+): Promise<BehaviorStudent> {
+  return single(
+    getSupabase().rpc("behavior_set_preferred_name", {
+      p_code: code,
+      p_student: studentId,
+      p_name: name,
+    }),
+  );
 }
 
 export async function emptyCohort(code: string, cohort: Cohort): Promise<void> {

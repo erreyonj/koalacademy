@@ -10,9 +10,11 @@ import {
   fetchRoster,
   moveStudent,
   removeStudent,
+  setPoolTotal,
+  setPreferredName,
   setPrize,
 } from "./api";
-import { COHORTS, type BehaviorStudent, type Cohort } from "./types";
+import { COHORTS, classTotal, type BehaviorStudent, type Cohort } from "./types";
 
 export type BehaviorStatus = "locked" | "loading" | "ready" | "error";
 
@@ -27,6 +29,10 @@ export interface BehaviorValue {
   adjust: (id: string, delta: 1 | -1) => void;
   adjustPool: (cohort: Cohort, delta: 1 | -1) => void;
   emptyBucket: (cohort: Cohort) => Promise<void>;
+  /** Sets the bucket to exactly `total` by adjusting only the class pool. */
+  setBucketTotal: (cohort: Cohort, total: number) => Promise<void>;
+  /** Blank clears the preferred name. */
+  setName: (id: string, name: string) => Promise<void>;
   move: (id: string, cohort: Cohort) => Promise<void>;
   remove: (id: string) => Promise<void>;
   togglePrize: (id: string) => void;
@@ -163,6 +169,54 @@ export function useBehavior(): BehaviorValue {
     [code, students, pools],
   );
 
+  const setBucketTotal = useCallback(
+    (cohort: Cohort, total: number) =>
+      new Promise<void>((resolve, reject) => {
+        if (!code) {
+          resolve();
+          return;
+        }
+        const beforePool = pools.get(cohort) ?? 0;
+        const studentSum = classTotal(students.filter((item) => item.cohort === cohort));
+        setPools((prev) => new Map(prev).set(cohort, total - studentSum));
+        setError(null);
+        enqueue(`pool:${cohort}`, async () => {
+          try {
+            const value = await setPoolTotal(code, cohort, total);
+            setPools((prev) => new Map(prev).set(cohort, value));
+            resolve();
+          } catch (err) {
+            setPools((prev) => new Map(prev).set(cohort, beforePool));
+            setError(err instanceof Error ? err.message : "Could not save the total.");
+            reject(err);
+          }
+        });
+      }),
+    [code, enqueue, pools, students],
+  );
+
+  const setName = useCallback(
+    async (id: string, name: string) => {
+      if (!code) return;
+      const before = students.find((item) => item.id === id);
+      if (!before) return;
+      const trimmed = name.trim();
+      setStudents((prev) =>
+        replaceStudent(prev, { ...before, preferred_name: trimmed || null }),
+      );
+      setError(null);
+      try {
+        const row = await setPreferredName(code, id, trimmed);
+        setStudents((prev) => replaceStudent(prev, row));
+      } catch (err) {
+        setStudents((prev) => replaceStudent(prev, before));
+        setError(err instanceof Error ? err.message : "Could not save the name.");
+        throw err;
+      }
+    },
+    [code, students],
+  );
+
   const move = useCallback(
     async (id: string, cohort: Cohort) => {
       if (!code) return;
@@ -236,6 +290,8 @@ export function useBehavior(): BehaviorValue {
     adjust,
     adjustPool,
     emptyBucket,
+    setBucketTotal,
+    setName,
     move,
     remove,
     togglePrize,

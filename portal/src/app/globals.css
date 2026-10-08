@@ -3215,6 +3215,29 @@ button.lesson-toolbar-item {
   transition: transform 160ms ease;
 }
 
+button.marble-bucket-number.is-editable {
+  pointer-events: auto;
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0 0.15em;
+  cursor: pointer;
+  text-decoration: underline dotted transparent;
+  text-underline-offset: 0.18em;
+  text-decoration-thickness: 2px;
+}
+
+button.marble-bucket-number.is-editable:hover,
+button.marble-bucket-number.is-editable:focus-visible {
+  text-decoration-color: var(--ka-ink);
+}
+
+button.marble-bucket-number.is-editable:focus-visible {
+  outline: 2px solid var(--ka-ink);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
 .marble-bucket-caption {
   font-family: var(--font-mono);
   font-size: 0.55rem;

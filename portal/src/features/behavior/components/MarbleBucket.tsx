@@ -1,7 +1,7 @@
 "use client";
 
 import { forwardRef } from "react";
-import { Minus, MoreVertical, Plus, Trash2 } from "lucide-react";
+import { Hash, LogOut, Minus, MoreVertical, Plus, Trash2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,7 +19,9 @@ interface MarbleBucketProps {
   teacher?: boolean;
   onAdd?: () => void;
   onRemove?: () => void;
+  onEditTotal?: () => void;
   onEmpty?: () => void;
+  onExit?: () => void;
 }
 
 /**
@@ -27,7 +29,10 @@ interface MarbleBucketProps {
  * the throw/drop animation supplies the motion.
  */
 export const MarbleBucket = forwardRef<HTMLDivElement, MarbleBucketProps>(
-  function MarbleBucket({ total, label, pulse, teacher, onAdd, onRemove, onEmpty }, ref) {
+  function MarbleBucket(
+    { total, label, pulse, teacher, onAdd, onRemove, onEditTotal, onEmpty, onExit },
+    ref,
+  ) {
     return (
       <div className={`marble-bucket${pulse ? ` is-pulse-${pulse}` : ""}`} ref={ref}>
         {teacher ? (
@@ -50,10 +55,19 @@ export const MarbleBucket = forwardRef<HTMLDivElement, MarbleBucketProps>(
                 <Minus aria-hidden="true" />
                 Remove marble
               </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => onEditTotal?.()}>
+                <Hash aria-hidden="true" />
+                Set total…
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem variant="destructive" onSelect={() => onEmpty?.()}>
                 <Trash2 aria-hidden="true" />
                 Empty bucket
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onSelect={() => onExit?.()}>
+                <LogOut aria-hidden="true" />
+                Exit
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -84,7 +98,19 @@ export const MarbleBucket = forwardRef<HTMLDivElement, MarbleBucketProps>(
             <path d="M30 36 L36 98" className="bucket-shine" />
           </svg>
           <div className="marble-bucket-count">
-            <span className="marble-bucket-number">{total}</span>
+            {teacher && onEditTotal ? (
+              <button
+                type="button"
+                className="marble-bucket-number is-editable"
+                aria-label="Set class marbles"
+                title="Set class marbles"
+                onClick={onEditTotal}
+              >
+                {total}
+              </button>
+            ) : (
+              <span className="marble-bucket-number">{total}</span>
+            )}
             <span className="marble-bucket-caption">class marbles</span>
           </div>
         </div>

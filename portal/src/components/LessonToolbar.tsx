@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
+import { saveReturnPath } from "@/features/behavior/storage";
 import { useLessonNotes } from "./LessonNotesProvider";
 import { skillHashtag, skillHref } from "@/lib/skills";
 
@@ -40,6 +42,7 @@ export function LessonToolbar({ slug, skills }: LessonToolbarProps) {
   const panelId = useId();
   const skillsId = useId();
   const { hasNotes, setOpen: setNotesOpen } = useLessonNotes();
+  const pathname = usePathname();
 
   useEffect(() => {
     if (!open) {
@@ -166,6 +169,7 @@ export function LessonToolbar({ slug, skills }: LessonToolbarProps) {
           <Link
             className="lesson-toolbar-item"
             href="/buckets/"
+            onClick={() => saveReturnPath(pathname)}
             onMouseEnter={() => setLcd("BUCKETS")}
             onMouseLeave={() => setLcd(IDLE_LCD)}
             onFocus={() => setLcd("BUCKETS")}

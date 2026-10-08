@@ -7,6 +7,7 @@ import {
   ChevronRight,
   Inbox,
   LayoutDashboard,
+  School,
   ListMusic,
   NotebookPen,
   Search,
@@ -34,6 +35,7 @@ import {
 import { BANDS } from "@/lib/types";
 import {
   isActivePath,
+  isClassesSection,
   isDashboardPath,
   isLessonsSection,
   isSkillsPath,
@@ -73,6 +75,19 @@ export function NavMain() {
               <Link href="/dashboard/">
                 <LayoutDashboard />
                 <span>Dashboard</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              isActive={isClassesSection(pathname)}
+              tooltip="Classes"
+            >
+              <Link href="/classes/">
+                <School />
+                <span>Classes</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

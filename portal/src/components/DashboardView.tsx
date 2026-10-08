@@ -10,6 +10,11 @@ import { BucketsLauncher } from "@/features/behavior/components/BucketsLauncher"
 
 const SHORTCUTS = [
   {
+    href: "/classes/",
+    title: "Classes",
+    description: "Homeroom screens — seats, marbles, and the lesson to pick back up.",
+  },
+  {
     href: "/lessons/",
     title: "Lessons",
     description: "Pick a grade band and open today's slide.",

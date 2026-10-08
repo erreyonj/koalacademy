@@ -1,10 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { TeacherCodeDialog } from "@/features/teacher-progress/TeacherCodeDialog";
 import { useTeacherMode } from "@/features/teacher-progress/TeacherModeProvider";
 import { dropMarble, playChime, playDing, throwMarble } from "../marbleFx";
-import { loadCohort, saveCohort } from "../storage";
+import { loadCohort, saveCohort, takeReturnPath } from "../storage";
 import {
   COHORTS,
   COHORT_NAME,
@@ -18,12 +19,18 @@ import { CohortBar } from "./CohortBar";
 import { EmptyBucketDialog } from "./EmptyBucketDialog";
 import { MarbleBucket } from "./MarbleBucket";
 import { MoveStudentModal } from "./MoveStudentModal";
+import { PreferredNameDialog } from "./PreferredNameDialog";
 import { RemoveStudentDialog } from "./RemoveStudentDialog";
+import { SetTotalDialog } from "./SetTotalDialog";
 import { StudentGrid } from "./StudentGrid";
 
 export function BehaviorPage() {
-  const { ready, unlocked } = useTeacherMode();
+  const router = useRouter();
+  const { ready, unlocked, lock } = useTeacherMode();
   const behavior = useBehavior();
+  const [renaming, setRenaming] = useState<BehaviorStudent | null>(null);
+  const [settingTotal, setSettingTotal] = useState<Cohort | null>(null);
+  const exiting = useRef(false);
   const [promptOpen, setPromptOpen] = useState(false);
   const [cohort, setCohort] = useState<Cohort>(COHORTS[0]);
   const [moving, setMoving] = useState<BehaviorStudent | null>(null);
@@ -38,8 +45,15 @@ export function BehaviorPage() {
   }, []);
 
   useEffect(() => {
-    if (ready && !unlocked) setPromptOpen(true);
+    if (ready && !unlocked && !exiting.current) setPromptOpen(true);
   }, [ready, unlocked]);
+
+  const handleExit = useCallback(() => {
+    exiting.current = true;
+    const target = takeReturnPath() ?? "/dashboard/";
+    lock();
+    router.push(target);
+  }, [lock, router]);
 
   const selectCohort = useCallback((next: Cohort) => {
     setCohort(next);
@@ -147,7 +161,9 @@ export function BehaviorPage() {
           teacher={unlocked}
           onAdd={() => handlePool(1)}
           onRemove={() => handlePool(-1)}
+          onEditTotal={() => setSettingTotal(cohort)}
           onEmpty={() => setEmptying(cohort)}
+          onExit={handleExit}
         />
       </div>
 
@@ -171,8 +187,21 @@ export function BehaviorPage() {
           onMove={setMoving}
           onRemove={setRemoving}
           onPrize={(student) => behavior.togglePrize(student.id)}
+          onRename={setRenaming}
         />
       )}
+
+      <SetTotalDialog
+        cohort={settingTotal}
+        current={total}
+        onClose={() => setSettingTotal(null)}
+        onSave={behavior.setBucketTotal}
+      />
+      <PreferredNameDialog
+        student={renaming}
+        onClose={() => setRenaming(null)}
+        onSave={(student, name) => behavior.setName(student.id, name)}
+      />
 
       <MoveStudentModal
         student={moving}

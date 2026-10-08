@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useTeacherMode } from "@/features/teacher-progress/TeacherModeProvider";
-import { loadCohort, saveCohort } from "../storage";
+import { clearReturnPath, loadCohort, saveCohort } from "../storage";
 import { COHORTS, COHORT_LABEL, COHORT_NAME, type Cohort } from "../types";
 
 type Step = "code" | "cohort";
@@ -68,6 +68,7 @@ export function BucketsLauncher() {
 
   function openBucket() {
     saveCohort(choice);
+    clearReturnPath();
     setOpen(false);
     router.push("/buckets/");
   }
@@ -141,6 +142,7 @@ export function BucketsLauncher() {
                       onDoubleClick={() => {
                         setChoice(cohort);
                         saveCohort(cohort);
+                        clearReturnPath();
                         setOpen(false);
                         router.push("/buckets/");
                       }}

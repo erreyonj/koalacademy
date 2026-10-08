@@ -34,6 +34,7 @@ export type BehaviorStudentRow = {
   cohort: string;
   first_name: string;
   last_initial: string;
+  preferred_name: string | null;
   marbles: number;
   prize: boolean;
   avatar_seed: string;
@@ -228,6 +229,14 @@ export interface Database {
       behavior_empty: {
         Args: { p_code: string; p_cohort: string };
         Returns: undefined;
+      };
+      behavior_pool_set: {
+        Args: { p_code: string; p_cohort: string; p_total: number };
+        Returns: number;
+      };
+      behavior_set_preferred_name: {
+        Args: { p_code: string; p_student: string; p_name: string };
+        Returns: BehaviorStudentRow[];
       };
     };
     Enums: {

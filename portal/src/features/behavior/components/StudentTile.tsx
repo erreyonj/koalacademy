@@ -6,6 +6,7 @@ import {
   Award,
   MessageCircle,
   MoreVertical,
+  PenLine,
   UserMinus,
 } from "lucide-react";
 import {
@@ -20,6 +21,7 @@ import {
   displayName,
   initials,
   marbleTone,
+  shownFirst,
   type BehaviorStudent,
 } from "../types";
 
@@ -31,6 +33,7 @@ export interface StudentTileProps {
   onMove: (student: BehaviorStudent) => void;
   onRemove: (student: BehaviorStudent) => void;
   onPrize: (student: BehaviorStudent) => void;
+  onRename: (student: BehaviorStudent) => void;
 }
 
 export function StudentTile({
@@ -40,6 +43,7 @@ export function StudentTile({
   onMove,
   onRemove,
   onPrize,
+  onRename,
 }: StudentTileProps) {
   const avatarRef = useRef<HTMLDivElement>(null);
   const hue = avatarHue(student.avatar_seed, student.first_name);
@@ -68,6 +72,10 @@ export function StudentTile({
               <Award aria-hidden="true" />
               {student.prize ? "Clear prize" : "Prize"}
             </DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => onRename(student)}>
+              <PenLine aria-hidden="true" />
+              Preferred name…
+            </DropdownMenuItem>
             <DropdownMenuItem onSelect={() => onMove(student)}>
               <ArrowRightLeft aria-hidden="true" />
               Move student
@@ -94,8 +102,11 @@ export function StudentTile({
         ) : null}
       </div>
 
-      <p className="student-name" title={name}>
-        {student.first_name}
+      <p
+        className="student-name"
+        title={student.preferred_name ? `${name} (roster: ${student.first_name})` : name}
+      >
+        {shownFirst(student)}
         {student.last_initial ? (
           <span className="student-name-initial"> {student.last_initial}.</span>
         ) : null}

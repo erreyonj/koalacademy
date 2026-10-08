@@ -66,6 +66,7 @@ export interface BehaviorStudent {
   cohort: Cohort;
   first_name: string;
   last_initial: string;
+  preferred_name: string | null;
   marbles: number;
   prize: boolean;
   avatar_seed: string;
@@ -84,14 +85,20 @@ export function marbleTone(marbles: number): MarbleTone {
   return "neutral";
 }
 
-export function displayName(student: Pick<BehaviorStudent, "first_name" | "last_initial">) {
-  return student.last_initial
-    ? `${student.first_name} ${student.last_initial}.`
-    : student.first_name;
+type NameParts = Pick<BehaviorStudent, "first_name" | "last_initial" | "preferred_name">;
+
+/** The name the student goes by: preferred name when set, else first name. */
+export function shownFirst(student: Pick<BehaviorStudent, "first_name" | "preferred_name">) {
+  return student.preferred_name?.trim() || student.first_name;
 }
 
-export function initials(student: Pick<BehaviorStudent, "first_name" | "last_initial">) {
-  const first = student.first_name.trim()[0] ?? "?";
+export function displayName(student: NameParts) {
+  const first = shownFirst(student);
+  return student.last_initial ? `${first} ${student.last_initial}.` : first;
+}
+
+export function initials(student: NameParts) {
+  const first = shownFirst(student).trim()[0] ?? "?";
   return `${first}${student.last_initial[0] ?? ""}`.toUpperCase();
 }
 

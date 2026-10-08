@@ -5,7 +5,8 @@
  *
  * Reads a school-export CSV (First Name, Last Name, Homeroom, …) and writes
  * ONLY the minimal fields the tracker needs: first name, last initial, cohort,
- * and an avatar seed. Every other column (DOB, gender, phones, emails, guardian
+ * an avatar seed, and (if the CSV has a "Preferred Name" column) the name the
+ * student goes by. Every other column (DOB, gender, phones, emails, guardian
  * contacts) is dropped in memory and never leaves this process.
  *
  * Needs the service-role key because the table is locked to anon/authenticated.
@@ -153,6 +154,8 @@ function col(name) {
 const FIRST = col("First Name");
 const LAST = col("Last Name");
 const HOMEROOM = col("Homeroom");
+// Optional: only used when the export has it.
+const PREFERRED = header.indexOf("preferred name");
 
 // ---------------------------------------------------------------------------
 // Homeroom → cohort. Anything not matched (4K, 6th–8th, blanks) is skipped.
@@ -195,10 +198,13 @@ for (const row of table.slice(1)) {
     skipped.set(key, (skipped.get(key) ?? 0) + 1);
     continue;
   }
+  const preferred = PREFERRED === -1 ? "" : cleanName(row[PREFERRED] ?? "");
   wanted.push({
     cohort,
     first_name: firstName,
     last_initial: (lastName[0] ?? "").toUpperCase(),
+    preferred_name:
+      preferred && preferred.toLowerCase() !== firstName.toLowerCase() ? preferred : null,
     last_name_full: lastName, // used for disambiguation only, never written
   });
 }
@@ -269,7 +275,7 @@ if (reset) {
 
 const { data: existing, error: readError } = await supabase
   .from("behavior_students")
-  .select("id, cohort, first_name, last_initial, active");
+  .select("id, cohort, first_name, last_initial, preferred_name, active");
 if (readError) throw new Error(`read failed: ${readError.message}`);
 
 const keyOf = (s) =>
@@ -279,13 +285,21 @@ for (const row of existing ?? []) existingByKey.set(keyOf(row), row);
 
 const toInsert = [];
 const toReactivate = [];
+// Names typed in the app win: only fill preferred_name where it is still null.
+const toName = [];
 const incomingKeys = new Set();
 for (const student of wanted) {
   const key = keyOf(student);
   incomingKeys.add(key);
   const row = existingByKey.get(key);
-  if (!row) toInsert.push(student);
-  else if (!row.active) toReactivate.push(row.id);
+  if (!row) {
+    toInsert.push(student);
+    continue;
+  }
+  if (!row.active) toReactivate.push(row.id);
+  if (student.preferred_name && row.preferred_name == null) {
+    toName.push({ id: row.id, preferred_name: student.preferred_name });
+  }
 }
 
 if (toInsert.length) {
@@ -301,6 +315,14 @@ if (toReactivate.length) {
     .update({ active: true })
     .in("id", toReactivate);
   if (error) throw new Error(`reactivate failed: ${error.message}`);
+}
+for (const { id, preferred_name } of toName) {
+  const { error } = await supabase
+    .from("behavior_students")
+    .update({ preferred_name })
+    .eq("id", id)
+    .is("preferred_name", null);
+  if (error) throw new Error(`preferred name failed: ${error.message}`);
 }
 
 let pruned = 0;
@@ -319,5 +341,5 @@ if (prune) {
 }
 
 console.log(
-  `done: inserted ${toInsert.length}, reactivated ${toReactivate.length}, unchanged ${wanted.length - toInsert.length - toReactivate.length}${prune ? `, pruned ${pruned}` : ""}`,
+  `done: inserted ${toInsert.length}, reactivated ${toReactivate.length}, preferred names filled ${toName.length}, unchanged ${wanted.length - toInsert.length - toReactivate.length}${prune ? `, pruned ${pruned}` : ""}`,
 );

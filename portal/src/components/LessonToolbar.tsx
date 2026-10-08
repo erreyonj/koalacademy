@@ -162,17 +162,17 @@ export function LessonToolbar({ slug, skills }: LessonToolbarProps) {
               </div>
             ) : null}
           </div>
-          {/* Hardcoded bottom item: class marble tracker (teacher code gated). */}
+          {/* Hardcoded bottom item: class marble buckets (teacher code gated). */}
           <Link
             className="lesson-toolbar-item"
-            href="/behavior/"
-            onMouseEnter={() => setLcd("BEHAVIOR")}
+            href="/buckets/"
+            onMouseEnter={() => setLcd("BUCKETS")}
             onMouseLeave={() => setLcd(IDLE_LCD)}
-            onFocus={() => setLcd("BEHAVIOR")}
+            onFocus={() => setLcd("BUCKETS")}
             onBlur={() => setLcd(IDLE_LCD)}
           >
             <span className="led led-red" aria-hidden="true" />
-            .Behavior
+            .Buckets
           </Link>
         </nav>
       </div>

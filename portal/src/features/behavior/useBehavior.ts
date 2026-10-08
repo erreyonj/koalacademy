@@ -4,6 +4,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTeacherMode } from "@/features/teacher-progress/TeacherModeProvider";
 import {
   adjustMarbles,
+  adjustPool as adjustPoolRpc,
+  emptyCohort,
+  fetchPools,
   fetchRoster,
   moveStudent,
   removeStudent,
@@ -18,8 +21,12 @@ export interface BehaviorValue {
   error: string | null;
   students: BehaviorStudent[];
   byCohort: Map<Cohort, BehaviorStudent[]>;
+  /** Class-level marbles in each bucket on top of the student sum. */
+  pools: Map<Cohort, number>;
   refresh: () => Promise<void>;
   adjust: (id: string, delta: 1 | -1) => void;
+  adjustPool: (cohort: Cohort, delta: 1 | -1) => void;
+  emptyBucket: (cohort: Cohort) => Promise<void>;
   move: (id: string, cohort: Cohort) => Promise<void>;
   remove: (id: string) => Promise<void>;
   togglePrize: (id: string) => void;
@@ -41,6 +48,7 @@ function replaceStudent(
 export function useBehavior(): BehaviorValue {
   const { ready, code } = useTeacherMode();
   const [students, setStudents] = useState<BehaviorStudent[]>([]);
+  const [pools, setPools] = useState<Map<Cohort, number>>(() => new Map());
   const [status, setStatus] = useState<BehaviorStatus>("locked");
   const [error, setError] = useState<string | null>(null);
   // Serialises +/- taps per student so a quick double tap cannot land out of
@@ -51,8 +59,12 @@ export function useBehavior(): BehaviorValue {
     if (!code) return;
     setStatus((current) => (current === "ready" ? current : "loading"));
     try {
-      const rows = await fetchRoster(code);
+      const [rows, poolMap] = await Promise.all([
+        fetchRoster(code),
+        fetchPools(code),
+      ]);
       setStudents(rows);
+      setPools(poolMap);
       setStatus("ready");
       setError(null);
     } catch (err) {
@@ -65,6 +77,7 @@ export function useBehavior(): BehaviorValue {
     if (!ready) return;
     if (!code) {
       setStudents([]);
+      setPools(new Map());
       setStatus("locked");
       setError(null);
       return;
@@ -108,6 +121,46 @@ export function useBehavior(): BehaviorValue {
       });
     },
     [code, enqueue],
+  );
+
+  const adjustPool = useCallback(
+    (cohort: Cohort, delta: 1 | -1) => {
+      if (!code) return;
+      setPools((prev) => new Map(prev).set(cohort, (prev.get(cohort) ?? 0) + delta));
+      setError(null);
+      enqueue(`pool:${cohort}`, async () => {
+        try {
+          const value = await adjustPoolRpc(code, cohort, delta);
+          setPools((prev) => new Map(prev).set(cohort, value));
+        } catch (err) {
+          setPools((prev) => new Map(prev).set(cohort, (prev.get(cohort) ?? 0) - delta));
+          setError(err instanceof Error ? err.message : "Could not save.");
+        }
+      });
+    },
+    [code, enqueue],
+  );
+
+  const emptyBucket = useCallback(
+    async (cohort: Cohort) => {
+      if (!code) return;
+      const beforeStudents = students;
+      const beforePool = pools.get(cohort) ?? 0;
+      setStudents((prev) =>
+        prev.map((item) => (item.cohort === cohort ? { ...item, marbles: 0 } : item)),
+      );
+      setPools((prev) => new Map(prev).set(cohort, 0));
+      setError(null);
+      try {
+        await emptyCohort(code, cohort);
+      } catch (err) {
+        setStudents(beforeStudents);
+        setPools((prev) => new Map(prev).set(cohort, beforePool));
+        setError(err instanceof Error ? err.message : "Could not empty the bucket.");
+        throw err;
+      }
+    },
+    [code, students, pools],
   );
 
   const move = useCallback(
@@ -178,8 +231,11 @@ export function useBehavior(): BehaviorValue {
     error,
     students,
     byCohort,
+    pools,
     refresh,
     adjust,
+    adjustPool,
+    emptyBucket,
     move,
     remove,
     togglePrize,

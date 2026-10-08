@@ -39,6 +39,12 @@ export type BehaviorStudentRow = {
   avatar_seed: string;
 };
 
+/** Class-level marbles held in a cohort's bucket beyond the student sum. */
+export type BehaviorPoolRow = {
+  cohort: string;
+  marbles: number;
+};
+
 export interface Database {
   public: {
     Tables: {
@@ -149,6 +155,12 @@ export interface Database {
         Update: never;
         Relationships: [];
       };
+      behavior_cohort_pool: {
+        Row: BehaviorPoolRow & { updated_at: string };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -204,6 +216,18 @@ export interface Database {
       behavior_prize: {
         Args: { p_code: string; p_student: string; p_on: boolean };
         Returns: BehaviorStudentRow[];
+      };
+      behavior_pools: {
+        Args: { p_code: string };
+        Returns: BehaviorPoolRow[];
+      };
+      behavior_pool_adjust: {
+        Args: { p_code: string; p_cohort: string; p_delta: number };
+        Returns: BehaviorPoolRow[];
+      };
+      behavior_empty: {
+        Args: { p_code: string; p_cohort: string };
+        Returns: undefined;
       };
     };
     Enums: {

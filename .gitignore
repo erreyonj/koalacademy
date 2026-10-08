@@ -17,3 +17,7 @@ supabase/.env
 .env
 .env.*
 !.env.example
+
+# Student rosters are PII and never enter git. Drop the school CSV here and
+# load it with `npm run roster:import -- --file ../rosters/<file>.csv`.
+rosters/

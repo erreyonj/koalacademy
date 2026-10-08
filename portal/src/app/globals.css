@@ -1010,9 +1010,11 @@ h1, h2, h3 {
   background: var(--hw-green);
 }
 
-.led-sky { background: var(--hw-sky); }
-.led-yellow { background: var(--hw-yellow); }
-.led-green { background: var(--hw-green); }
+/* Doubled selectors so the colour wins over `.lesson-toolbar-item .led`. */
+.led-sky, .lesson-toolbar-item .led-sky, .lesson-toolbar-pad .led-sky { background: var(--hw-sky); }
+.led-yellow, .lesson-toolbar-item .led-yellow, .lesson-toolbar-pad .led-yellow { background: var(--hw-yellow); }
+.led-green, .lesson-toolbar-item .led-green, .lesson-toolbar-pad .led-green { background: var(--hw-green); }
+.led-red, .lesson-toolbar-item .led-red, .lesson-toolbar-pad .led-red { background: var(--hw-red); }
 
 .lesson-toolbar-pad {
   display: inline-flex;
@@ -3041,4 +3043,406 @@ button.lesson-toolbar-item {
 .teacher-device-pad:active {
   transform: translateY(3px);
   box-shadow: 0 0 0 var(--ka-ink);
+}
+
+/* ---------- behavior marble tracker ---------- */
+
+.behavior {
+  display: grid;
+  gap: 1.1rem;
+}
+
+/* Cohort pads: Scholars, KB, KG, 1G … 5B. */
+.behavior-cohorts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  padding: 0.7rem;
+  background: var(--hw-panel);
+  border: 3px solid var(--ka-ink);
+  border-radius: 10px;
+  box-shadow: 0 5px 0 var(--ka-ink);
+}
+
+.behavior-cohort {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: var(--tap-min);
+  padding: 0.5rem 0.75rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ka-ink);
+  background: var(--ka-mist);
+  border: 3px solid var(--ka-ink);
+  border-radius: 8px;
+  box-shadow: 0 4px 0 var(--ka-ink);
+  cursor: pointer;
+  opacity: 0.8;
+  transition: transform 100ms ease, box-shadow 100ms ease, filter 150ms ease, opacity 150ms ease;
+}
+
+.behavior-cohort .led {
+  width: 0.6rem;
+  height: 0.6rem;
+  flex-shrink: 0;
+  border: 2px solid var(--ka-ink);
+  border-radius: 3px;
+  background: var(--ka-slate);
+}
+
+.behavior-cohort:hover { filter: brightness(1.06); opacity: 1; }
+
+.behavior-cohort:active,
+.behavior-cohort.is-selected {
+  transform: translateY(4px);
+  box-shadow: 0 0 0 var(--ka-ink);
+  opacity: 1;
+}
+
+.behavior-cohort.is-selected { background: var(--hw-green); }
+.behavior-cohort.is-selected .led { background: var(--hw-yellow); }
+
+.behavior-cohort.is-current {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.behavior-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.behavior-cohort-name {
+  font-size: 1.6rem;
+}
+
+.behavior-cohort-meta {
+  margin: 0.2rem 0 0;
+  font-size: 0.9rem;
+  color: var(--ka-charcoal);
+}
+
+/* Bucket */
+.marble-bucket {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  width: 8.5rem;
+  flex-shrink: 0;
+  transition: transform 160ms ease;
+}
+
+.marble-bucket-art {
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.bucket-body {
+  fill: var(--hw-sky);
+  stroke: var(--ka-ink);
+  stroke-width: 3.5;
+  stroke-linejoin: round;
+}
+
+.bucket-band {
+  fill: none;
+  stroke: var(--ka-ink);
+  stroke-width: 3;
+  opacity: 0.55;
+}
+
+.bucket-rim,
+.bucket-rim-back {
+  fill: var(--hw-screen);
+  stroke: var(--ka-ink);
+  stroke-width: 3.5;
+}
+
+.bucket-mouth {
+  fill: var(--hw-panel);
+  stroke: none;
+}
+
+.bucket-handle {
+  fill: none;
+  stroke: var(--ka-ink);
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+
+.bucket-shine {
+  stroke: var(--ka-snow);
+  stroke-width: 3;
+  stroke-linecap: round;
+  opacity: 0.55;
+}
+
+.marble-bucket-count {
+  position: absolute;
+  left: 50%;
+  top: 56%;
+  transform: translate(-50%, -50%);
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  pointer-events: none;
+}
+
+.marble-bucket-number {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.9rem;
+  line-height: 1;
+  color: var(--ka-ink);
+  font-variant-numeric: tabular-nums;
+  transition: transform 160ms ease;
+}
+
+.marble-bucket-caption {
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ka-ink);
+  opacity: 0.7;
+}
+
+.marble-bucket.is-pulse-in { transform: scale(1.05); }
+.marble-bucket.is-pulse-in .marble-bucket-number { transform: scale(1.25); }
+.marble-bucket.is-pulse-in .bucket-body { fill: var(--hw-green); }
+.marble-bucket.is-pulse-out { transform: translateY(3px) scale(0.98); }
+.marble-bucket.is-pulse-out .bucket-body { fill: var(--hw-red); }
+
+/* Flying marble (appended to body by marbleFx) */
+.marble-fx {
+  position: fixed;
+  z-index: 60;
+  width: 1.15rem;
+  height: 1.15rem;
+  border-radius: 50%;
+  border: 2px solid var(--ka-ink);
+  background:
+    radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.95) 0 14%, transparent 15%),
+    radial-gradient(circle at 50% 50%, hsl(var(--marble-hue) 70% 70%), hsl(var(--marble-hue) 60% 42%));
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.25);
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+/* Student grid */
+.student-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(7.25rem, 1fr));
+  gap: 0.75rem;
+}
+
+.student-tile {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 0.3rem;
+  padding: 0.85rem 0.5rem 0.6rem;
+  background: var(--ka-snow);
+  border: 3px solid var(--ka-ink);
+  border-radius: 12px;
+  box-shadow: 0 4px 0 var(--ka-ink);
+}
+
+.student-tile-menu {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.7rem;
+  height: 1.7rem;
+  padding: 0;
+  color: var(--ka-charcoal);
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.student-tile-menu:hover,
+.student-tile-menu[aria-expanded="true"] {
+  color: var(--ka-ink);
+  background: var(--ka-mist);
+}
+
+.student-tile-menu svg { width: 1rem; height: 1rem; }
+
+.student-tile-menu-content {
+  min-width: 11rem;
+  border: 3px solid var(--ka-ink);
+  box-shadow: 0 4px 0 var(--ka-ink);
+}
+
+.student-avatar {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  border: 3px solid var(--ka-ink);
+  background: hsl(var(--avatar-hue) 55% 72%);
+  color: var(--ka-ink);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+  transition: box-shadow 200ms ease;
+}
+
+.student-tile.is-prize .student-avatar {
+  box-shadow:
+    0 0 0 3px var(--ka-snow),
+    0 0 0 6px var(--hw-yellow),
+    0 0 14px 4px rgba(227, 178, 60, 0.55);
+}
+
+.student-avatar-star {
+  position: absolute;
+  right: -0.45rem;
+  bottom: -0.35rem;
+  display: grid;
+  place-items: center;
+  width: 1.2rem;
+  height: 1.2rem;
+  border-radius: 50%;
+  background: var(--hw-yellow);
+  border: 2px solid var(--ka-ink);
+  color: var(--ka-ink);
+}
+
+.student-avatar-star svg { width: 0.7rem; height: 0.7rem; }
+
+.student-name {
+  margin: 0.15rem 0 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.82rem;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.student-name-initial {
+  color: var(--ka-charcoal);
+  font-weight: 500;
+}
+
+.marble-count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 2.1rem;
+  height: 1.5rem;
+  padding: 0 0.45rem;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+  border: 2px solid var(--ka-ink);
+  border-radius: 999px;
+  background: var(--ka-mist);
+  color: var(--ka-ink);
+  transition: background 200ms ease, color 200ms ease, transform 120ms ease;
+}
+
+.marble-count.is-green {
+  background: var(--hw-green);
+}
+
+.marble-count.is-warn {
+  background: var(--hw-red);
+  color: var(--ka-snow);
+}
+
+.student-controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.35rem;
+  width: 100%;
+  margin-top: 0.2rem;
+}
+
+.marble-btn {
+  min-height: 2.25rem;
+  padding: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.15rem;
+  line-height: 1;
+  color: var(--ka-ink);
+  background: var(--ka-mist);
+  border: 3px solid var(--ka-ink);
+  border-radius: 8px;
+  box-shadow: 0 3px 0 var(--ka-ink);
+  cursor: pointer;
+  transition: transform 90ms ease, box-shadow 90ms ease, filter 150ms ease;
+  touch-action: manipulation;
+  user-select: none;
+}
+
+.marble-btn.is-plus { background: var(--hw-green); }
+.marble-btn.is-minus { background: var(--hw-sky); }
+
+.marble-btn:hover { filter: brightness(1.06); }
+
+.marble-btn:active {
+  transform: translateY(3px);
+  box-shadow: 0 0 0 var(--ka-ink);
+}
+
+/* Move modal */
+.behavior-dialog {
+  border: 3px solid var(--ka-ink);
+  box-shadow: 0 5px 0 var(--ka-ink);
+}
+
+.behavior-cohort-pick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding: 0.25rem 0 0.5rem;
+}
+
+.behavior-cohort-pick .behavior-cohort {
+  min-height: 2.4rem;
+  padding: 0.35rem 0.6rem;
+  font-size: 0.7rem;
+}
+
+@media (max-width: 36rem) {
+  .behavior-head {
+    align-items: center;
+  }
+
+  .marble-bucket { width: 6.5rem; }
+  .marble-bucket-number { font-size: 1.45rem; }
+  .behavior-cohort-name { font-size: 1.3rem; }
+  .student-grid { grid-template-columns: repeat(auto-fill, minmax(6.25rem, 1fr)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marble-bucket,
+  .marble-bucket-number,
+  .marble-count,
+  .marble-btn,
+  .behavior-cohort { transition: none; }
 }

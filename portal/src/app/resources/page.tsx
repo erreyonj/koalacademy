@@ -60,10 +60,7 @@ export default function ResourcesPage() {
               <div className="empty-note">
                 <p>
                   <Link href="/skills/">Skills hub</Link> — search tags and
-                  lesson titles. The{" "}
-                  <Link href="/tools/notation/">notation sandbox</Link> and{" "}
-                  <Link href="/tools/rhythm/">rhythm randomizer</Link> still
-                  live in Toolkit.
+                  lesson titles.
                 </p>
               </div>
             </section>

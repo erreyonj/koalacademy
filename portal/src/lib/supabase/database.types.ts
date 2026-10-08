@@ -24,6 +24,21 @@ export type SbResponseStatus = "pending" | "accepted" | "rejected" | "flagged";
 
 export type SbCardState = "bowl" | "hand" | "guessed";
 
+/**
+ * Row shape every behavior_* RPC returns (behavior_students minus flags).
+ * A type alias, not an interface: supabase-js constrains rows to
+ * Record<string, unknown>, which interfaces fail to satisfy.
+ */
+export type BehaviorStudentRow = {
+  id: string;
+  cohort: string;
+  first_name: string;
+  last_initial: string;
+  marbles: number;
+  prize: boolean;
+  avatar_seed: string;
+};
+
 export interface Database {
   public: {
     Tables: {
@@ -124,6 +139,16 @@ export interface Database {
         Update: never;
         Relationships: [];
       };
+      behavior_students: {
+        Row: BehaviorStudentRow & {
+          active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -159,6 +184,26 @@ export interface Database {
           review: boolean;
           lab: boolean;
         }[];
+      };
+      behavior_roster: {
+        Args: { p_code: string };
+        Returns: BehaviorStudentRow[];
+      };
+      behavior_adjust: {
+        Args: { p_code: string; p_student: string; p_delta: number };
+        Returns: BehaviorStudentRow[];
+      };
+      behavior_move: {
+        Args: { p_code: string; p_student: string; p_cohort: string };
+        Returns: BehaviorStudentRow[];
+      };
+      behavior_remove: {
+        Args: { p_code: string; p_student: string };
+        Returns: undefined;
+      };
+      behavior_prize: {
+        Args: { p_code: string; p_student: string; p_on: boolean };
+        Returns: BehaviorStudentRow[];
       };
     };
     Enums: {

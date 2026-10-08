@@ -6,6 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { BucketsLauncher } from "@/features/behavior/components/BucketsLauncher";
 
 const SHORTCUTS = [
   {
@@ -62,6 +63,9 @@ export function DashboardView() {
                 </Link>
               </li>
             ))}
+            <li>
+              <BucketsLauncher />
+            </li>
           </ul>
         </div>
       </div>

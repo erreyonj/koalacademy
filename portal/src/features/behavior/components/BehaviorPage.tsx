@@ -4,34 +4,22 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { TeacherCodeDialog } from "@/features/teacher-progress/TeacherCodeDialog";
 import { useTeacherMode } from "@/features/teacher-progress/TeacherModeProvider";
 import { dropMarble, playChime, playDing, throwMarble } from "../marbleFx";
+import { loadCohort, saveCohort } from "../storage";
 import {
   COHORTS,
   COHORT_NAME,
   avatarHue,
   classTotal,
-  isCohort,
   type BehaviorStudent,
   type Cohort,
 } from "../types";
 import { useBehavior } from "../useBehavior";
 import { CohortBar } from "./CohortBar";
+import { EmptyBucketDialog } from "./EmptyBucketDialog";
 import { MarbleBucket } from "./MarbleBucket";
 import { MoveStudentModal } from "./MoveStudentModal";
 import { RemoveStudentDialog } from "./RemoveStudentDialog";
 import { StudentGrid } from "./StudentGrid";
-
-const COHORT_KEY = "ka-behavior-cohort";
-
-function loadCohort(): Cohort {
-  if (typeof window === "undefined") return COHORTS[0];
-  try {
-    const stored = window.localStorage.getItem(COHORT_KEY);
-    if (stored && isCohort(stored)) return stored;
-  } catch {
-    // ignore
-  }
-  return COHORTS[0];
-}
 
 export function BehaviorPage() {
   const { ready, unlocked } = useTeacherMode();
@@ -40,6 +28,7 @@ export function BehaviorPage() {
   const [cohort, setCohort] = useState<Cohort>(COHORTS[0]);
   const [moving, setMoving] = useState<BehaviorStudent | null>(null);
   const [removing, setRemoving] = useState<BehaviorStudent | null>(null);
+  const [emptying, setEmptying] = useState<Cohort | null>(null);
   const [pulse, setPulse] = useState<"in" | "out" | null>(null);
   const bucketRef = useRef<HTMLDivElement>(null);
   const pulseTimer = useRef<number | null>(null);
@@ -54,15 +43,12 @@ export function BehaviorPage() {
 
   const selectCohort = useCallback((next: Cohort) => {
     setCohort(next);
-    try {
-      window.localStorage.setItem(COHORT_KEY, next);
-    } catch {
-      // ignore
-    }
+    saveCohort(next);
   }, []);
 
   const students = behavior.byCohort.get(cohort) ?? [];
-  const total = useMemo(() => classTotal(students), [students]);
+  const pool = behavior.pools.get(cohort) ?? 0;
+  const total = useMemo(() => classTotal(students) + pool, [students, pool]);
   const counts = useMemo(() => {
     const map = new Map<Cohort, number>();
     for (const [key, list] of behavior.byCohort) map.set(key, list.length);
@@ -105,6 +91,20 @@ export function BehaviorPage() {
     [behavior, flashBucket],
   );
 
+  const handlePool = useCallback(
+    (delta: 1 | -1) => {
+      behavior.adjustPool(cohort, delta);
+      if (delta === 1) {
+        playChime();
+        flashBucket("in");
+      } else {
+        playDing();
+        flashBucket("out");
+      }
+    },
+    [behavior, cohort, flashBucket],
+  );
+
   if (!ready) {
     return <p className="teacher-grid-status">Opening teacher mode…</p>;
   }
@@ -113,7 +113,7 @@ export function BehaviorPage() {
     return (
       <>
         <p className="teacher-grid-status">
-          The marble tracker stays locked until the classroom code is entered.{" "}
+          Class Buckets stay locked until the classroom code is entered.{" "}
           <button
             type="button"
             className="teacher-unlock-btn"
@@ -144,6 +144,10 @@ export function BehaviorPage() {
           total={total}
           label={COHORT_NAME[cohort]}
           pulse={pulse}
+          teacher={unlocked}
+          onAdd={() => handlePool(1)}
+          onRemove={() => handlePool(-1)}
+          onEmpty={() => setEmptying(cohort)}
         />
       </div>
 
@@ -179,6 +183,11 @@ export function BehaviorPage() {
         student={removing}
         onClose={() => setRemoving(null)}
         onRemove={(student) => behavior.remove(student.id)}
+      />
+      <EmptyBucketDialog
+        cohort={emptying}
+        onClose={() => setEmptying(null)}
+        onEmpty={behavior.emptyBucket}
       />
     </div>
   );

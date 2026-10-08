@@ -3138,6 +3138,16 @@ button.lesson-toolbar-item {
   transition: transform 160ms ease;
 }
 
+.student-tile-menu.marble-bucket-menu {
+  top: 0;
+  right: 0;
+  z-index: 1;
+  color: var(--ka-ink);
+  background: var(--ka-snow);
+  border: 2px solid var(--ka-ink);
+  box-shadow: 0 2px 0 var(--ka-ink);
+}
+
 .marble-bucket-art {
   width: 100%;
   height: auto;

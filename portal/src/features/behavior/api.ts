@@ -92,6 +92,53 @@ export async function removeStudent(
   if (error) throw translate(error.message);
 }
 
+function asPools(data: unknown): Map<Cohort, number> {
+  const map = new Map<Cohort, number>();
+  if (!Array.isArray(data)) return map;
+  for (const row of data) {
+    if (
+      row &&
+      typeof row === "object" &&
+      typeof row.cohort === "string" &&
+      isCohort(row.cohort) &&
+      typeof row.marbles === "number"
+    ) {
+      map.set(row.cohort, row.marbles);
+    }
+  }
+  return map;
+}
+
+export async function fetchPools(code: string): Promise<Map<Cohort, number>> {
+  const { data, error } = await getSupabase().rpc("behavior_pools", {
+    p_code: code,
+  });
+  if (error) throw translate(error.message);
+  return asPools(data);
+}
+
+export async function adjustPool(
+  code: string,
+  cohort: Cohort,
+  delta: number,
+): Promise<number> {
+  const { data, error } = await getSupabase().rpc("behavior_pool_adjust", {
+    p_code: code,
+    p_cohort: cohort,
+    p_delta: delta,
+  });
+  if (error) throw translate(error.message);
+  return asPools(data).get(cohort) ?? 0;
+}
+
+export async function emptyCohort(code: string, cohort: Cohort): Promise<void> {
+  const { error } = await getSupabase().rpc("behavior_empty", {
+    p_code: code,
+    p_cohort: cohort,
+  });
+  if (error) throw translate(error.message);
+}
+
 export function setPrize(
   code: string,
   studentId: string,

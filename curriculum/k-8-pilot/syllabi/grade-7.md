@@ -27,20 +27,20 @@ Tuesday 9:20–10:20 is 7th-grade expeditions (not a core syllabus class). Full 
 
 ## Year mapping
 
-Same component structure as [grade-6.md](grade-6.md); pacing and the grade-7 emphasis within
-each component TBD.
+Same five-unit structure as [grade-6.md](grade-6.md), roughly four weeks per unit across the
+~36-week year; the grade-7 emphasis within each component is still being tuned.
 
-| Stretch | Component | Codes | Grade-7 emphasis (TBD) |
+| Unit | Component | Codes | Grade-7 emphasis |
 | --- | --- | --- | --- |
-| TBD | Basic Music Theory | `BMT.1`-`BMT.5` | Modes and key relationships (`BMT.2`, `BMT.3`) |
-| TBD | Koala Sampler Navigation | `KSN.1`-`KSN.5` | Faster review if covered in 6th |
-| TBD | Understanding Sampling | `US.1`-`US.5` | Deeper case-study discussion |
-| TBD | Digital Drumming | `D4.1`-`D4.5` | Swing and groove (`D4.3`) |
-| TBD | Song Forms | `SONGFORM.1`-`SONGFORM.5` | Contrast and stylistic identity |
-| TBD | Sampling Rights | `SRP.1`-`SRP.5` | Gray areas (`SRP.4`) |
-| TBD | Defining Your Sound | `DYS.1`-`DYS.5` | Style articulation |
-| TBD | Artist Appreciation | `AW.1`-`AW.5` | Final project; production days |
-| TBD | Advanced FX / Performance | `AEP`, `PERFORMANCE` | Live performance |
+| 1 · C1 | Basic Music Theory | `BMT.1`-`BMT.5` | Modes and key relationships (`BMT.2`, `BMT.3`) |
+| 1 · C2 | Koala Sampler Navigation | `KSN.1`-`KSN.5` | Faster review if covered in 6th |
+| 2 · C1 | Understanding Sampling | `US.1`-`US.5` | Deeper case-study discussion |
+| 2 · C2 | Digital Drumming | `D4.1`-`D4.5` | Swing and groove (`D4.3`) |
+| 3 · C1 | Song Forms | `SONGFORM.1`-`SONGFORM.5` | Contrast and stylistic identity |
+| 3 · C2 | Sampling Rights | `SRP.1`-`SRP.5` | Gray areas (`SRP.4`) |
+| 4 · C1 | Defining Your Sound | `DYS.1`-`DYS.5` | Style articulation |
+| 4 · C2 | Artist Appreciation | `AW.1`-`AW.5` | Final project; production days |
+| 5 | Advanced FX / Performance | `AEP`, `PERFORMANCE` | Live performance |
 
 ## Devices
 
@@ -50,12 +50,20 @@ appointment — see [playbook/teaching-notes.md](../playbook/teaching-notes.md).
 
 ## Vanguard Songs
 
-Three anchors — TBD in [vanguard-songs/song-list.md](../vanguard-songs/song-list.md).
+Three anchors — see [vanguard-songs/song-list.md](../vanguard-songs/song-list.md):
+
+1. **"Birds of a Feather"** — Billie Eilish
+2. **"Chicago"** — Michael Jackson — **Primary** [3-5 Companion]
+3. **"California Dreaming"** — José Feliciano
+
+Students receive the 6-8 [student guide](../vanguard-songs/student-guide.md) and keep a
+listening journal.
 
 ## Assessment and grading
 
-As grade 6: project spine, journals, exit tickets, corrective written work
-([resources/written-work.md](../resources/written-work.md)). Gradebook mapping TBD.
+As grade 6: project spine, journals, and exit tickets as graded work; theory worksheets
+lean corrective ([resources/written-work.md](../resources/written-work.md)). Gradebook
+mapping TBD.
 
 ## Standards alignment
 
@@ -65,7 +73,10 @@ TBD.
 
 ### Wisconsin DPI Music Standards
 
-TBD.
+The 6-8 column in
+[koalacademy-WI-standards-alignment.md](../koalacademy-WI-standards-alignment.md) shows every
+6-8 indicator addressed by written lessons. How the three grades divide that work is TBD
+alongside differentiation.
 
 ## Open questions
 

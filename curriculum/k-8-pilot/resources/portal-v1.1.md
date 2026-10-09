@@ -1,12 +1,14 @@
 # Student Portal — V1.1
 
-> **Status: living spec** as of 2026-08-24. The lesson slide hub shipped. School year starts
-> 2026-09-02. The original proposal is frozen at
-> [portal-v1.md](portal-v1.md).
+> **Status: living spec** as of 2026-10-09. The lesson slide hub shipped before school
+> started (2026-09-02). Teacher mode, Class Buckets, homeroom pages, the newsletter, and
+> the Rhythm Randomizer have shipped since. The original proposal is frozen at
+> [portal-v1.md](portal-v1.md). Structure and how-to: [docs/portal.md](../../../docs/portal.md).
 
 This file records what is live, what is still content work (not platform), and the access
 decision for the pilot year: no student or guardian accounts; unlisted class link now;
-optional host-level class password later — not FERPA auth.
+optional host-level class password later — not FERPA auth. A shared teacher code gates
+section progress and Class Buckets; that is not a student login.
 
 ---
 
@@ -14,8 +16,9 @@ optional host-level class password later — not FERPA auth.
 
 The portal is where students go to see the lesson: a page per lesson, phone-readable,
 holding the same material a projector would show — the concept, the listening example, the
-links, and the jokes that keep a room awake. It is useful on day one of the pilot with no
-accounts, no database, and no submission flow. Everything heavier gets built on top of it.
+links, and the jokes that keep a room awake. It is useful with no student accounts and no
+submission flow. Teacher-only classroom tools (homerooms, marble tracking, lesson progress)
+sit behind a shared code; the lesson library itself stays unlisted.
 
 Live app: [https://koalacademy-portal.netlify.app/](https://koalacademy-portal.netlify.app/).
 Marketing bridge: [site/portal.html](../../../site/portal.html).
@@ -39,59 +42,72 @@ is **content**, not stack.
 | --- | --- |
 | Next.js static export (`output: "export"`) | [`portal/`](../../../portal/), Netlify publish |
 | Slide page per lesson | MDX + [`SlideShell`](../../../portal/src/components/SlideShell.tsx), [`DoNow`](../../../portal/src/components/DoNow.tsx), [`Activate`](../../../portal/src/components/Activate.tsx), [`Break`](../../../portal/src/components/Break.tsx), click-to-load [`YouTubeEmbed`](../../../portal/src/components/YouTubeEmbed.tsx), prev/next [`LessonNav`](../../../portal/src/components/LessonNav.tsx) |
-| Band indexes | `/grades/k-2/`, `/grades/3-5/`, `/grades/6-8/` (not per single grade) |
-| No login | [`layout.tsx`](../../../portal/src/app/layout.tsx) is `robots: noindex, nofollow` |
+| K–2 decks | [`Deck`](../../../portal/src/components/Deck.tsx), [`Notes`](../../../portal/src/components/Notes.tsx), `Mindfulness` / `MiniCrew` MDX blocks |
+| Band indexes + Components toolbar | `/grades/k-2/`, `/grades/3-5/`, `/grades/6-8/` |
+| Homeroom pages | `/classes/`, `/classes/[cohort]/` |
+| Class Buckets | `/buckets/` |
+| Teacher mode | `/teacher/` |
+| Newsletter | `/newsletter/` |
+| Rhythm Randomizer | `/tools/rhythm/` |
+| No student login | [`layout.tsx`](../../../portal/src/app/layout.tsx) is `robots: noindex, nofollow` |
 | Hardware / LCD tokens | Copied into [`portal/src/styles/tokens.css`](../../../portal/src/styles/tokens.css) |
 | Marketing bridge | [`site/portal.html`](../../../site/portal.html) links the live portal |
 
 ### Content in the portal today
 
-Eight MDX files under [`portal/content/lessons/`](../../../portal/content/lessons/) versus
-~50 6–8 lessons in [KOALACADEMY.md](../../KOALACADEMY.md) plus K–5 strands.
+Thirty-seven MDX files under [`portal/content/lessons/`](../../../portal/content/lessons/)
+versus ~50 6–8 lessons in [KOALACADEMY.md](../../KOALACADEMY.md) plus K–2 strand sessions.
 
 | Band | In the portal today |
 | --- | --- |
-| 6–8 | INTRO-68, BMT.1, KSN.1, KSN.2, BMT.4 |
-| 3–5 | INTRO-35 |
-| K–2 | INTRO-K2, BEAT-K2-01 |
+| 6–8 | INTRO-68, BMT.1–5, KSN.1/2/4/5, US.1–5 |
+| 3–5 | Matching ports of the 6–8 files above (separate MDX, `bands: ["3-5"]`) |
+| K–2 | INTRO-K2, BEAT-K2-01/02, TIMBRE-K2-01, FORM-K2-01, PITCH-K2-01, CREATE-K2-01 |
 
-Missing: BMT.2–3, BMT.5, KSN.3–5, and Units 2–5; K–5 strands after the first BEAT. Day one
-(9/2) can run on intros + early Unit 1. The rest is writing ahead of the 6-day rotation,
-using the split-lesson workflow — not a platform rewrite.
+Missing from 6–8: KSN.3, then D4, SONGFORM, SRP, DYS, AW, AEP, PERFORMANCE. The rest is
+writing ahead of the 6-day rotation, using the split-lesson workflow — not a platform
+rewrite.
 
 ### Already past V1
 
-Notation sandbox, Circle of Fifths, and Skills hub are live. See
-[docs/portal-next.md](../../../docs/portal-next.md) for the product notes that drove them.
+Notation sandbox, Circle of Fifths, Skills hub, and the Rhythm Randomizer are live. See
+[docs/portal-next.md](../../../docs/portal-next.md) for the product notes that drove the
+first two, and [docs/portal.md](../../../docs/portal.md) for the current route map.
 
 Profile, settings, submissions, and playlists are stubs (“auth not wired”).
 
-**Toolkit → Games → Salad Bowl** is live and is the first real Supabase use:
-[`supabase/`](../../../supabase/) now carries a migration, an Edge Function, and enabled
-anonymous sign-ins for it. See the boundary note below — this is deliberately *not* the
-accounts slice.
+**Toolkit → Games → Salad Bowl** is live and was the first real Supabase use.
+Teacher mode and Class Buckets now share that same hosted project
+(`fyurkhqtujqrbqlsiuyu`) and the same `db push` flow. See the boundary note below —
+none of this is the student-accounts slice.
 
-### Classroom game sessions vs “no database”
+### Classroom tools vs “no database”
 
-V1 said “no accounts, no database, no submission flow.” Salad Bowl narrows that honestly
-rather than breaking it:
+V1 said “no accounts, no database, no submission flow.” That still holds for students.
+Salad Bowl, Teacher mode, and Class Buckets narrow it honestly rather than breaking it:
 
-- **Still no accounts.** Players are anonymous Supabase auth sessions — a random id per
-  browser, no email, no password, no roster, no names tied to identity.
-- **Ephemeral, not stored records.** A game holds first names/initials and game cards for the
+- **Still no student or guardian accounts.** Salad Bowl players are anonymous Supabase
+  auth sessions — a random id per browser, no email, no password. Teacher mode is one
+  shared code, not a roster login.
+- **Salad Bowl is ephemeral.** A game holds first names/initials and game cards for the
   session only. Games expire ~6 hours after the last action and a scheduled job deletes them;
-  old anonymous auth users are purged on a 7-day cycle. Nothing resembles an education record
-  (no grades, no progress, no submissions kept).
-- **Curriculum text stays in git.** The game tables hold game state only; the no-CMS rule is
-  untouched.
-- **Teacher stays in control.** Every card passes teacher review in Free-For-All mode, a
-  banned-word list plus per-game teacher additions screen submissions, and the teacher can
-  pause, undo, or clear the bowl at any time.
+  old anonymous auth users are purged on a 7-day cycle.
+- **Class Buckets stores a minimum.** First name, last initial, preferred name, marble
+  counts, prize flag, avatar seed. No emails, phones, DOB, or guardian contacts. Direct
+  table access is locked; code-checked functions are the only write path. Import from a
+  school CSV with
+  [`portal/scripts/import-behavior-roster.mjs`](../../../portal/scripts/import-behavior-roster.mjs).
+- **Lesson progress is per section, not per named student.** `class_lesson_progress`
+  (Lesson / Review / Lab checks) supersedes the V1 sketch of a per-student `progress`
+  table for this year. It is not grades, homework, or submissions.
+- **Curriculum text stays in git.** Game tables and teacher tables hold state only; the
+  no-CMS rule is untouched.
 
-Before wider rollout, confirm the school is comfortable with temporary first-name + game-card
-storage. It is far narrower than an account system, but “no actual users” is not the same as
-“no student data is processed.” Full setup, deployment, privacy, and smoke-test procedure:
-[docs/salad-bowl-v1.md](../../../docs/salad-bowl-v1.md).
+Before wider rollout, confirm the school is comfortable with temporary Salad Bowl names
+and the minimal Buckets roster. It is far narrower than an account system, but “no actual
+users” is not the same as “no student data is processed.” Full Salad Bowl procedure:
+[docs/salad-bowl-v1.md](../../../docs/salad-bowl-v1.md). Classroom-tool how-to:
+[docs/portal.md](../../../docs/portal.md).
 
 ### Still true from V1
 
@@ -102,7 +118,7 @@ strings. Do not build a lessons CMS table — it would duplicate git and fight s
 MDX (portal/content/lessons)
         │
         ▼
-Static HTML export ──► Unlisted Netlify URL  (9/2)
+Static HTML export ──► Unlisted Netlify URL
                               │
                               ┊ optional later
                               ▼
@@ -110,8 +126,11 @@ Static HTML export ──► Unlisted Netlify URL  (9/2)
                               │
                               ┊ when admin has bandwidth
                               ▼
-                    students / progress tables
+                    student / guardian accounts
 ```
+
+Code-gated teacher data (`class_lesson_progress`, `behavior_students`) already sits beside
+this stack. It does not replace the later accounts slice.
 
 ---
 
@@ -151,16 +170,16 @@ desired).
 
 ## Content model
 
-A slide page is one lesson — a scrolling page, not a deck you arrow
-through. Shape is **Do Now → Lesson → Activate**.
+Unchanged from V1. A slide page is one lesson — a scrolling page, not a deck you arrow
+through.
 
 | Block | What it holds |
 | --- | --- |
 | Header | Lesson code or strand, grade band, one-line focus statement |
-| Do Now | Posted work at the top of every lesson (3–5 min during Threshold) |
+| Do Now | Silent journal prompt (K–2 uses Movement instead, inside the deck) |
 | Concept | The teaching text, short and in the register of the grade band |
 | Listening | Click-to-load YouTube embed |
-| Activate | The You-do — game or hands-on work for the day (formerly Do) |
+| Activate | The game or activity for the day (I do / We do / You do) |
 | Breaks | Gifs and memes between blocks — attention resets, not decoration |
 | Links | Vanguard Song pages, resources, worksheets, anything the lesson points at |
 | Footer | Previous and next lesson in the sequence |
@@ -182,10 +201,11 @@ Chosen and running — not a recommendation:
 - **MDX** under `portal/content/lessons/`; `getAllLessons()` indexes at build time
 - **No server runtime**, no search API, no lessons table
 
-Root `package.json` has Supabase CLI (`npx supabase …`). The Salad Bowl slice added the
-first migration, an Edge Function, and anonymous sign-ins (see
-[docs/salad-bowl-v1.md](../../../docs/salad-bowl-v1.md)); an accounts/progress schema is
-still a separate, later slice.
+Root `package.json` has Supabase CLI (`npx supabase …`). Salad Bowl, Teacher mode, and
+Class Buckets share hosted project `fyurkhqtujqrbqlsiuyu` (see
+[docs/salad-bowl-v1.md](../../../docs/salad-bowl-v1.md) and
+[docs/portal.md](../../../docs/portal.md)). An accounts schema is still a separate, later
+slice.
 
 ---
 
@@ -196,7 +216,10 @@ Not built this year. Recorded so V1.1 choices stay compatible.
 **Supabase** remains the recommendation when accounts arrive: hosted Postgres with row-level
 security, built-in auth, storage for student uploads. Free tier covers a single-school pilot.
 
-First schema sketch (roster/progress — **not** a lessons catalog):
+First schema sketch (roster/progress — **not** a lessons catalog). Two of these ideas
+already have a narrower stand-in: `class_lesson_progress` is per-section Lesson / Review /
+Lab checks, and `behavior_students` is the marble roster. Neither is the per-student
+progress table below.
 
 | Table | Holds |
 | --- | --- |
@@ -246,10 +269,12 @@ students submit work or earn points directly.
 ## Related documents
 
 - Original V1 proposal (frozen): [portal-v1.md](portal-v1.md)
-- Next-feature notes (Circle of Fifths, Skills): [docs/portal-next.md](../../../docs/portal-next.md)
+- Portal how-to (routes, Teacher mode, Buckets, homerooms, deploy): [docs/portal.md](../../../docs/portal.md)
+- Next-feature notes (Circle of Fifths, Skills — both shipped): [docs/portal-next.md](../../../docs/portal-next.md)
+- Salad Bowl: [docs/salad-bowl-v1.md](../../../docs/salad-bowl-v1.md)
 - Live portal: [https://koalacademy-portal.netlify.app/](https://koalacademy-portal.netlify.app/)
 - Marketing bridge: [site/portal.html](../../../site/portal.html)
 - Full 6–8 lesson content and codes: [curriculum/KOALACADEMY.md](../../KOALACADEMY.md)
-- K–5 strand codes: [scope-and-sequence.md](../scope-and-sequence.md)
+- K–2 strand codes: [scope-and-sequence.md](../scope-and-sequence.md)
 - Class period structure: [playbook/lesson-structure.md](../playbook/lesson-structure.md)
 - Vanguard Song framework: [vanguard-songs/framework.md](../vanguard-songs/framework.md)

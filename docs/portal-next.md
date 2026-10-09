@@ -1,13 +1,15 @@
-git# Portal next features
+# Portal next features
 
-> **Status: spec.** Nothing in this file is built yet. It records what to implement next on the student portal, in enough detail that a later pass can start without re-litigating the product decisions.
+> **Status: shipped** for both items below (Circle of Fifths at `/tools/circle-of-fifths/`,
+> Skills hub at `/skills/`). This file is the product note that drove them, kept as a
+> reference — not a build queue. Current portal structure lives in [portal.md](portal.md).
 
-The original V1 proposal lives in [curriculum/k-8-pilot/resources/portal-v1.md](../curriculum/k-8-pilot/resources/portal-v1.md). That document scoped the lesson slide hub. The hub exists. This file is the next slice:
+The original V1 proposal lives in [curriculum/k-8-pilot/resources/portal-v1.md](../curriculum/k-8-pilot/resources/portal-v1.md). That document scoped the lesson slide hub. The hub exists. This file recorded the next slice:
 
 1. An interactive Circle of Fifths tool
 2. A Skills search hub, wired from the lesson Options toolbar
 
-Implementation belongs in `portal/`.
+Implementation belongs in `portal/` (branch `portalv1-dev`).
 
 ---
 
@@ -103,7 +105,7 @@ From `Key.majorKey(tonic)` / `Key.minorKey(tonic)`, show:
 
 The one-line blurb is a small keyed map in `lib` (C major, G major, A minor, …), with a generic fallback for keys that have no copy yet. Tonal does not write marketing sentences.
 
-x  cxccKey names stay in Tonal’s existing spelling: `"C"`, `"G"`, `"F#m"`, `"Bb"`. Same convention as `[ScoreExcerpt.key](../portal/src/lib/notation/types.ts)`.
+Key names stay in Tonal’s existing spelling: `"C"`, `"G"`, `"F#m"`, `"Bb"`. Same convention as `[ScoreExcerpt.key](../portal/src/lib/notation/types.ts)`.
 
 ### Suggested files (when built)
 

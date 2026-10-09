@@ -26,6 +26,10 @@ The complete course content lives in
 - Programs that need a low-cost production course; Koala runs on iOS devices schools often
   already have, without a computer lab or a per-seat DAW license
 
+The One City K–8 pilot runs the same course in three bands: **K–2** (strands plus Quaver,
+unplugged-first), **3–5** (age-adapted ports of the Koalacademy lessons), and **6–8** (the
+full production course on 1:1 iPads). See [curriculum/k-8-pilot/](../curriculum/k-8-pilot/README.md).
+
 ## Course outcomes
 
 By the end of the course, a student can:
@@ -82,9 +86,14 @@ The course's assessment spine is one project that begins in Unit 4 and is perfor
 **Per classroom**
 
 - Audio playback capable of filling the room, for listening sessions and performances
-- A keyboard or piano for theory demonstration
+- A guitar (teacher demonstrations) and student keyboards (hands-on); piano as visual aid
 - A means of playing reference recordings for the class
 - Optionally, a second mobile DAW on at least one device for the comparison work in `AEP.4`
+
+At One City, thirty iPads make 6–8 production days 1:1. Production vs. unplugged is a lesson
+choice, not a rental calendar. Every class opens with Mindfulness → Mini Crew → Do Now or
+Movement (K–2 always Movement) and closes with Closing Crew. CRISP is named inside Crew, not
+run as its own block.
 
 ## Who can teach this course
 
@@ -116,13 +125,17 @@ curriculum stands on its own without them.
 ## Repository layout
 
 ```text
-curriculum/KOALACADEMY.md   Full course content — the source of truth
-curriculum/k-8-pilot/       K-8 adaptation for One City Schools (pilot, in progress)
+curriculum/KOALACADEMY.md   Full 6–8 course content — the source of truth
+curriculum/k-8-pilot/       K–8 adaptation for One City Schools (pilot)
 curriculum/assets/          Logo and brand image assets
 docs/README.md              This file: course description, requirements, teaching notes
+docs/portal.md              Portal structure, Teacher mode, Class Buckets, homerooms, deploy
 docs/brand-palette.md       v1 color palette and logo reference for design tasks
-docs/portal-next.md         Next portal features: Circle of Fifths tool and Skills hub
-docs/salad-bowl-v1.md       Salad Bowl game: Supabase setup, deployment, privacy, smoke test
+docs/portal-next.md         Roadmap notes for Circle of Fifths and Skills hub (both shipped)
+docs/salad-bowl-v1.md       Salad Bowl: Supabase setup, deployment, privacy, smoke test
+site/                       Marketing site (branch webv1-dev)
+portal/                     Course Portal (branch portalv1-dev)
+supabase/                   Portal migrations and Edge Functions (with portalv1-dev)
 units/                      Per-unit folders for materials and activities
 apps/                       Blooprint suite concepts (native iOS)
 ```

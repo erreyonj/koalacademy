@@ -1,6 +1,8 @@
 # Salad Bowl V1 — setup, deployment, and rollout
 
-The first live game under **Toolkit → Games** and the portal's first real Supabase use.
+The first live game under **Toolkit → Games**, and the portal's first real Supabase use.
+Teacher mode and Class Buckets now share the same hosted project and the same
+`npx supabase db push` flow — see [portal.md](portal.md).
 Classroom rules live in
 [curriculum/k-8-pilot/playbook/games.md](../curriculum/k-8-pilot/playbook/games.md#salad-bowl);
 the spec boundary (why this doesn't break "no accounts") is recorded in
@@ -41,7 +43,7 @@ Key properties:
 
 ## One-time hosted setup
 
-Everything below happens in the hosted Supabase project (`qthafgqbfsnuomqqgyyc`):
+Everything below happens in the hosted Supabase project (`fyurkhqtujqrbqlsiuyu`):
 
 1. **Enable anonymous sign-ins**: Dashboard → Authentication → Sign In / Up → Anonymous.
 2. **Raise the anonymous rate limit**: Auth → Rate Limits → anonymous users → **90/hour**
@@ -51,7 +53,7 @@ Everything below happens in the hosted Supabase project (`qthafgqbfsnuomqqgyyc`)
    widget **secret key** (not the site key). The portal already embeds the invisible widget
    and passes tokens to `signInAnonymously`. Widget site key:
    `NEXT_PUBLIC_TURNSTILE_SITE_KEY` (see `portal/.env.example`).
-4. **Push the migration**: `npx supabase link --project-ref qthafgqbfsnuomqqgyyc`, then
+4. **Push the migration**: `npx supabase link --project-ref fyurkhqtujqrbqlsiuyu`, then
    `npx supabase db push`. The migration schedules an hourly `pg_cron` cleanup
    (`salad-bowl-cleanup`); confirm it appears under Integrations → Cron.
 5. **Deploy the Edge Function**: `npx supabase functions deploy salad-bowl`. Platform env

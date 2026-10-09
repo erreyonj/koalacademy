@@ -28,20 +28,20 @@ and Thursday 10:25–11:25 are 8th-grade expeditions (not a core syllabus class)
 
 ## Year mapping
 
-Same component structure as [grade-6.md](grade-6.md); pacing TBD. Grade 8 carries the full
-final-project arc with the least scaffolding.
+Same five-unit structure as [grade-6.md](grade-6.md), roughly four weeks per unit across the
+~36-week year. Grade 8 carries the full final-project arc with the least scaffolding.
 
-| Stretch | Component | Codes | Grade-8 emphasis (TBD) |
+| Unit | Component | Codes | Grade-8 emphasis |
 | --- | --- | --- | --- |
-| TBD | Basic Music Theory | `BMT.1`-`BMT.5` | Full extended theory, accelerated per prior knowledge |
-| TBD | Koala Sampler Navigation | `KSN.1`-`KSN.5` | Review-speed if returning students |
-| TBD | Understanding Sampling | `US.1`-`US.5` | Production-technique identification |
-| TBD | Song Forms | `SONGFORM.1`-`SONGFORM.5` | Beat flips and transitions (`SONGFORM.5`) |
-| TBD | Sampling Rights | `SRP.1`-`SRP.5` | Case law discussion (`SRP.5`) |
-| TBD | Digital Drumming | `D4.1`-`D4.5` | FX and processing (`D4.5`) |
-| TBD | Defining Your Sound | `DYS.1`-`DYS.5` | Full playlist analysis |
-| TBD | Artist Appreciation | `AW.1`-`AW.5` | Final project; production days |
-| TBD | Advanced FX / Performance | `AEP`, `PERFORMANCE` | Live recording and performance |
+| 1 · C1 | Basic Music Theory | `BMT.1`-`BMT.5` | Full extended theory, accelerated per prior knowledge |
+| 1 · C2 | Koala Sampler Navigation | `KSN.1`-`KSN.5` | Review-speed if returning students |
+| 2 · C1 | Understanding Sampling | `US.1`-`US.5` | Production-technique identification |
+| 2 · C2 | Digital Drumming | `D4.1`-`D4.5` | FX and processing (`D4.5`) |
+| 3 · C1 | Song Forms | `SONGFORM.1`-`SONGFORM.5` | Beat flips and transitions (`SONGFORM.5`) |
+| 3 · C2 | Sampling Rights | `SRP.1`-`SRP.5` | Case law discussion (`SRP.5`) |
+| 4 · C1 | Defining Your Sound | `DYS.1`-`DYS.5` | Full playlist analysis |
+| 4 · C2 | Artist Appreciation | `AW.1`-`AW.5` | Final project; production days |
+| 5 | Advanced FX / Performance | `AEP`, `PERFORMANCE` | Live recording and performance |
 
 ## Devices
 
@@ -51,15 +51,21 @@ appointment — see [playbook/teaching-notes.md](../playbook/teaching-notes.md).
 
 ## Vanguard Songs
 
-Three anchors. Candidate from the original framework: Jordan G. Welch's cover of
-"Forever YHWH" as a primary discourse piece — arrangement restraint, harmonic pacing,
-performance intention, production minimalism. Remaining two TBD in
-[vanguard-songs/song-list.md](../vanguard-songs/song-list.md).
+Three anchors — locked in [vanguard-songs/song-list.md](../vanguard-songs/song-list.md):
+
+1. **"Forever YHWH"** — Jordan G. Welch (cover) — primary discourse piece: arrangement
+   restraint, harmonic pacing, performance intention, production minimalism
+2. **"A Thousand Miles"** — Vanessa Carlton
+3. **"DO 4 LOVE"** — Snoh Aalegra
+
+Students receive the 6-8 [student guide](../vanguard-songs/student-guide.md) and keep a
+listening journal.
 
 ## Assessment and grading
 
-As grades 6-7: project spine, listening journal, exit tickets, corrective written work
-([resources/written-work.md](../resources/written-work.md)). Gradebook mapping TBD.
+As grades 6-7: project spine, listening journal, and exit tickets as graded work; theory
+worksheets lean corrective ([resources/written-work.md](../resources/written-work.md)).
+Gradebook mapping TBD.
 
 ## Standards alignment
 
@@ -69,7 +75,10 @@ TBD.
 
 ### Wisconsin DPI Music Standards
 
-TBD.
+The 6-8 column in
+[koalacademy-WI-standards-alignment.md](../koalacademy-WI-standards-alignment.md) shows every
+6-8 indicator in scope addressed by written lessons, with grade 8 carrying the deepest
+interpretive work. How the three grades divide that work is TBD alongside differentiation.
 
 ## Open questions
 

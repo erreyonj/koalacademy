@@ -2,7 +2,7 @@
  * Canonical lesson-code descriptions for tooltip display.
  *
  * 6–8 codes map to Koalacademy lessons (KOALACADEMY.md).
- * K–5 codes map to concept strands used across the elementary band.
+ * K–2 codes map to concept strands and the early strand lessons.
  *
  * Range entries (e.g. "BMT") describe the component; numbered entries
  * (e.g. "BMT.1") describe the individual lesson. The tooltip resolver
@@ -10,6 +10,11 @@
  */
 
 const codes = {
+  // ── Course introductions ───────────────────────────────────────────
+  "INTRO-68":     "Welcome to Koalacademy",
+  "INTRO-35":     "Welcome to Music Class",
+  "INTRO-K2":     "Welcome to Music",
+
   // ── Unit 1: Music Theory and Koala Sampler Navigation ──────────────
   BMT:            "Basic Music Theory",
   "BMT.1":        "Basic Music Theory — intervals, scales, chords, key signatures",
@@ -30,7 +35,7 @@ const codes = {
   "US.1":         "Sampling as a Practice",
   "US.2":         "Case Study: \u201CWe Need a Resolution\u201D",
   "US.3":         "Case Study: \u201CThrough the Wire\u201D",
-  "US.4":         "Case Study: \u201CN.Y. State of Mind\u201D",
+  "US.4":         "Case Study: \u201CLord I Need You\u201D",
   "US.5":         "Case Study: \u201CNo Problem\u201D",
 
   D4:             "Digital Drumming / Drum Design",
@@ -85,7 +90,15 @@ const codes = {
   "PERFORMANCE.4":"Class Presentations I",
   "PERFORMANCE.5":"Class Presentations II and Course Close",
 
-  // ── K–5 concept strands ────────────────────────────────────────────
+  // ── K–2 strand lessons ─────────────────────────────────────────────
+  "BEAT-K2-01":   "Finding the Beat",
+  "BEAT-K2-02":   "Beat One",
+  "PITCH-K2-01":  "High and Low",
+  "TIMBRE-K2-01": "How It Sounds",
+  "FORM-K2-01":   "Same and Different",
+  "CREATE-K2-01": "Move the Mood",
+
+  // ── K–2 concept strands ────────────────────────────────────────────
   BEAT:           "Steady beat, pulse, and rest — the rhythmic foundation strand",
   PITCH:          "High/low, melody, echo singing, and tonal awareness",
   TIMBRE:         "Sound qualities — smooth, scratchy, bright, dark",

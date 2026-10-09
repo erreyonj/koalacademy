@@ -88,9 +88,9 @@ function chromeMarkup(key) {
     </details>
 
     <a class="drawer-item" href="/resources.html"${current("/resources.html", key)}><span class="led led-pop"></span>Resources</a>
-    <a class="drawer-item" href="https://koalacademy-web.netlify.app/portal.html" rel="noopener"><span class="led led-yellow"></span>Course Portal</a>
+    <a class="drawer-item" href="/portal.html"${current("/portal.html", key)}><span class="led led-yellow"></span>Course Portal</a>
   </nav>
-  <p class="drawer-fine">K–8 Music Pilot · One City Schools, Madison, WI. Pages marked scaffold are placeholders for the pilot year.</p>
+  <p class="drawer-fine">K–8 Music Pilot · One City Schools, Madison, WI.</p>
 </aside>`;
 }
 

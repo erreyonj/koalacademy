@@ -451,7 +451,7 @@ main {
 .chip-red { background: var(--hw-red); }
 
 /* ==========================================================================
-   02 — Two bands
+   02 — Three bands
    ========================================================================== */
 
 .bands {
@@ -468,6 +468,14 @@ main {
 }
 
 .band-k5 h3 { color: var(--ka-bark); }
+
+.band-35 {
+  background: color-mix(in srgb, var(--ka-pith) 55%, var(--ka-snow));
+  border-bottom: 3px solid var(--ka-ink);
+  color: color-mix(in srgb, var(--ka-bark) 60%, var(--ka-ink));
+}
+
+.band-35 h3 { color: var(--ka-bark); }
 
 .band-68 {
   background: color-mix(in srgb, var(--ka-eucalyptus) 42%, var(--ka-snow));
@@ -529,8 +537,9 @@ main {
     display: grid;
     grid-template-columns: 1fr 1fr;
   }
-  .band-k5 { border-bottom: 3px solid var(--ka-ink); border-right: 3px solid var(--ka-ink); }
-  .band-68 { border-top: 3px solid var(--ka-ink); }
+  .bands-3 { grid-template-columns: repeat(3, 1fr); }
+  .band-k5, .band-35, .band-68 { border-top: 3px solid var(--ka-ink); border-bottom: 3px solid var(--ka-ink); }
+  .bands-3 .band-k5, .bands-3 .band-35 { border-right: 3px solid var(--ka-ink); }
   .wrap-half { max-width: 34rem; }
 }
 

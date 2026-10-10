@@ -1,22 +1,17 @@
-import type { ClassId } from "./registry";
-
 /**
- * Homeroom seating, transcribed from the chart photos dropped in `/rosters`.
+ * Homeroom furniture. One table is a 1:2 rectangle; each piece is sized in
+ * those units (short side = 1). The TV is at the top, so "top" seats face
+ * away from the screen.
  *
- * `ROOM` is the physical room and is shared by every class: one table is a
- * 1:2 rectangle, and each piece of furniture is sized in those units (short
- * side = 1). The TV is at the top, so "top" seats face away from the screen.
- *
- * `SEATING` only says who sits where. Each side lists names in order
- * (top→bottom for left/right, left→right for top/bottom); `null` or a short
- * list leaves the rest of the slots as empty seats. Keep first names only,
- * as they appear on the 26-27 roster.
+ * Who sits where lives in Supabase (`class_seating`), keyed by `seatKey`.
  */
 export type SeatSide = "top" | "right" | "bottom" | "left";
 
 export const SEAT_SIDES: readonly SeatSide[] = ["top", "right", "bottom", "left"];
 
 export type TableId = "left" | "middle" | "back" | "right";
+
+export type SeatKey = `${TableId}:${SeatSide}:${number}`;
 
 export interface RoomTable {
   id: TableId;
@@ -38,51 +33,10 @@ export const ROOM: readonly RoomTable[] = [
   { id: "right", cols: 1, rows: 4, seats: { top: 1, right: 4, bottom: 1, left: 0 } },
 ];
 
-export type SeatRow = readonly (string | null)[];
-
-export interface SeatingChart {
-  tables: Partial<Record<TableId, Partial<Record<SeatSide, SeatRow>>>>;
-  /** Students on the roster who have no seat on the chart yet. */
-  unseated?: readonly string[];
+export function seatKey(table: TableId, side: SeatSide, index: number): SeatKey {
+  return `${table}:${side}:${index}`;
 }
 
-export const SEATING: Partial<Record<ClassId, SeatingChart>> = {
-  // rosters/3g-homeroom-seating — 2026-10-08
-  "3g": {
-    tables: {
-      left: {
-        top: ["Russell"],
-        bottom: ["Yara"],
-        left: [null, "Ameela", "Iveyah", "Emmy"],
-      },
-      middle: {
-        left: ["Majesty"],
-        right: ["Ari"],
-        bottom: ["Naliyah", "Leo"],
-      },
-      back: {
-        left: ["Torrion", null],
-        bottom: ["Kalel", null],
-      },
-      right: {
-        right: ["Ella", "Jhenea", "Teagan", "Atalyah"],
-        bottom: ["Dai'Vion"],
-      },
-    },
-    unseated: ["Arriana", "Yanis"],
-  },
-};
-
-export function getSeating(id: ClassId): SeatingChart | undefined {
-  return SEATING[id];
-}
-
-/** Names for one side, padded with empty seats to the room's slot count. */
-export function seatsFor(
-  chart: SeatingChart | null,
-  table: RoomTable,
-  side: SeatSide,
-): (string | null)[] {
-  const names = chart?.tables[table.id]?.[side] ?? [];
-  return Array.from({ length: table.seats[side] }, (_, i) => names[i] ?? null);
+export function isSeatKey(value: string): value is SeatKey {
+  return /^(left|middle|back|right):(top|right|bottom|left):[0-3]$/.test(value);
 }

@@ -17,12 +17,14 @@ interface TeacherCodeDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onUnlocked?: (code: string) => void;
+  description?: string;
 }
 
 export function TeacherCodeDialog({
   open,
   onOpenChange,
   onUnlocked,
+  description = "Enter the classroom code to show class progress on 6–8 lessons.",
 }: TeacherCodeDialogProps) {
   const { unlock } = useTeacherMode();
   const [code, setCode] = useState("");
@@ -65,9 +67,7 @@ export function TeacherCodeDialog({
         <form onSubmit={handleSubmit}>
           <AlertDialogHeader>
             <AlertDialogTitle>Teacher mode</AlertDialogTitle>
-            <AlertDialogDescription>
-              Enter the classroom code to show class progress on 6–8 lessons.
-            </AlertDialogDescription>
+            <AlertDialogDescription>{description}</AlertDialogDescription>
           </AlertDialogHeader>
           <div className="grid gap-2 py-2">
             <Input

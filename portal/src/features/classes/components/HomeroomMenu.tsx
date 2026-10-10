@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FolderKanban, LayoutGrid, ListMusic, Menu } from "lucide-react";
+import { Armchair, FolderKanban, LayoutGrid, ListMusic, Menu } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,10 +13,11 @@ import {
 
 interface HomeroomMenuProps {
   className: string;
+  onEditSeating: () => void;
 }
 
-/** Top-left hamburger: class projects (placeholder) and the Vanguard songs. */
-export function HomeroomMenu({ className }: HomeroomMenuProps) {
+/** Top-left hamburger: class projects, seating editor, and the Vanguard songs. */
+export function HomeroomMenu({ className, onEditSeating }: HomeroomMenuProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -30,6 +31,10 @@ export function HomeroomMenu({ className }: HomeroomMenuProps) {
         <DropdownMenuItem disabled title="Untitled app projects, art, and more — coming soon.">
           <FolderKanban aria-hidden="true" />
           Class Projects
+        </DropdownMenuItem>
+        <DropdownMenuItem onSelect={onEditSeating}>
+          <Armchair aria-hidden="true" />
+          Create/Edit Seating Chart
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <Link href="/playlists/">

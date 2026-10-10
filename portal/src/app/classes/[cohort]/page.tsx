@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { HomeroomView } from "@/features/classes/components/HomeroomView";
 import { CLASS_IDS, getClass } from "@/features/classes/registry";
-import { getSeating } from "@/features/classes/seating";
 import { getLessonsForBand } from "@/lib/lessons";
 
 interface PageProps {
@@ -33,10 +32,6 @@ export default async function HomeroomPage({ params }: PageProps) {
   }));
 
   return (
-    <HomeroomView
-      entry={entry}
-      seating={getSeating(entry.id) ?? null}
-      sequence={sequence}
-    />
+    <HomeroomView entry={entry} sequence={sequence} />
   );
 }

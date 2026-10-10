@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * Import the Scholars + K–5 roster into behavior_students for the marble
- * tracker.
+ * Import the Scholars + K–8 roster into behavior_students for marble
+ * buckets (K–5 + Scholars) and homeroom seating (all of them).
  *
  * Reads a school-export CSV (First Name, Last Name, Homeroom, …) and writes
  * ONLY the minimal fields the tracker needs: first name, last initial, cohort,
@@ -158,15 +158,24 @@ const HOMEROOM = col("Homeroom");
 const PREFERRED = header.indexOf("preferred name");
 
 // ---------------------------------------------------------------------------
-// Homeroom → cohort. Anything not matched (4K, 6th–8th, blanks) is skipped.
+// Homeroom → cohort. Anything not matched (4K, blanks) is skipped.
 // ---------------------------------------------------------------------------
 
-const GRADE_WORD = { "1st": "1", "2nd": "2", "3rd": "3", "4th": "4", "5th": "5" };
+const GRADE_WORD = {
+  "1st": "1",
+  "2nd": "2",
+  "3rd": "3",
+  "4th": "4",
+  "5th": "5",
+  "6th": "6",
+  "7th": "7",
+  "8th": "8",
+};
 
 function toCohort(homeroom) {
   const value = homeroom.trim().toLowerCase().replace(/\s+/g, " ");
   if (value === "scholars") return "scholars";
-  const m = value.match(/^(kg|1st|2nd|3rd|4th|5th) (blue|gold)$/);
+  const m = value.match(/^(kg|1st|2nd|3rd|4th|5th|6th|7th|8th) (blue|gold)$/);
   if (!m) return null;
   const grade = m[1] === "kg" ? "k" : GRADE_WORD[m[1]];
   const colour = m[2] === "blue" ? "b" : "g";
@@ -247,7 +256,7 @@ for (const [cohort, n] of [...perCohort.entries()].sort()) {
   console.log(`  ${cohort.padEnd(9)} ${n}`);
 }
 if (skipped.size) {
-  console.log("skipped (outside Scholars/K–5):");
+  console.log("skipped (outside Scholars/K–8):");
   for (const [k, n] of [...skipped.entries()].sort()) console.log(`  ${k.padEnd(12)} ${n}`);
 }
 

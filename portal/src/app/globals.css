@@ -3727,6 +3727,98 @@ button.marble-bucket-number.is-editable:focus-visible {
   min-height: 0;
 }
 
+.homeroom-floor.is-editing {
+  grid-template-columns: minmax(8.5rem, 11rem) 1fr;
+  align-items: stretch;
+  justify-items: stretch;
+}
+
+.homeroom-floor-room {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.homeroom-locked-hint,
+.homeroom-save-error {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--ka-charcoal);
+}
+
+.homeroom-save-error { color: var(--hw-red); }
+
+.seating-roster {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  min-width: 0;
+  padding: 0.6rem 0.7rem;
+  background: var(--ka-snow);
+  border: 3px solid var(--ka-edge);
+  border-radius: 12px;
+  box-shadow: 0 4px 0 var(--ka-edge);
+  overflow: hidden;
+}
+
+.seating-roster-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1rem;
+}
+
+.seating-roster-hint,
+.seating-roster-empty {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--ka-charcoal);
+}
+
+.seating-roster-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.25rem;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.seating-roster-name {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 2rem;
+  padding: 0.25rem 0.5rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-align: left;
+  color: var(--ka-ink);
+  background: var(--ka-pith);
+  border: 2px solid var(--ka-edge);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.seating-roster-name:disabled {
+  cursor: default;
+  opacity: 0.85;
+}
+
+.seating-roster-name:not(:disabled):hover { filter: brightness(1.05); }
+
+.seating-roster-name.is-seated { opacity: 0.55; }
+
+.seating-roster-check {
+  font-size: 0.85rem;
+}
+
 /* Furniture is sized in table units (one table = 1 x 2 units), so tables
    stay rigid and names fit the seat instead of stretching the table. */
 .seating-room {
@@ -3798,6 +3890,8 @@ button.marble-bucket-number.is-editable:focus-visible {
 .seating-side.is-left   { grid-area: 2 / 1; flex-direction: column; }
 .seating-side.is-right  { grid-area: 2 / 3; flex-direction: column; }
 
+.seating-side > li { display: contents; }
+
 .seating-seat {
   display: flex;
   align-items: center;
@@ -3828,6 +3922,20 @@ button.marble-bucket-number.is-editable:focus-visible {
   box-shadow: none;
 }
 
+button.seating-seat {
+  appearance: none;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+
+button.seating-seat:hover { filter: brightness(1.06); }
+
+.seating-seat.is-selected {
+  background: var(--hw-yellow);
+  box-shadow: 0 0 0 3px var(--ka-ink);
+}
+
 /* Names down the long sides read like the sketch: turned to face the table. */
 .seating-side.is-left .seating-seat  { writing-mode: vertical-rl; transform: rotate(180deg); }
 .seating-side.is-right .seating-seat { writing-mode: vertical-rl; }
@@ -3850,6 +3958,20 @@ button.marble-bucket-number.is-editable:focus-visible {
   align-items: flex-end;
   justify-content: space-between;
   gap: var(--homeroom-pad);
+}
+
+.homeroom-bottom-right {
+  display: grid;
+  justify-items: end;
+  gap: 0.5rem;
+}
+
+.homeroom-edit-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.4rem;
 }
 
 .homeroom-marbles {
@@ -3955,6 +4077,10 @@ button.marble-bucket-number.is-editable:focus-visible {
 
   .seating-room {
     --unit: clamp(2rem, 9vw, 3.25rem);
+  }
+
+  .homeroom-floor.is-editing {
+    grid-template-columns: 1fr;
   }
 }
 

@@ -238,6 +238,25 @@ export interface Database {
         Args: { p_code: string; p_student: string; p_name: string };
         Returns: BehaviorStudentRow[];
       };
+      class_seating_get: {
+        Args: { p_code: string; p_class: string };
+        Returns: {
+          seats: Record<string, string>;
+          students: {
+            id: string;
+            first_name: string;
+            preferred_name: string | null;
+          }[];
+        };
+      };
+      class_seating_set: {
+        Args: {
+          p_code: string;
+          p_class: string;
+          p_seats: Record<string, string>;
+        };
+        Returns: undefined;
+      };
     };
     Enums: {
       sb_game_status: SbGameStatus;

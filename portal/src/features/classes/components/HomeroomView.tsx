@@ -9,6 +9,7 @@ import type { ClassEntry } from "../registry";
 import type { SeatKey } from "../seating";
 import { shownName, useSeating } from "../useSeating";
 import { ClassMarbles } from "./ClassMarbles";
+import { ClassSwitcher } from "./ClassSwitcher";
 import { HomeroomMenu } from "./HomeroomMenu";
 import { LastLessonLink, type SequenceEntry } from "./LastLessonLink";
 import { NowPlaying } from "./NowPlaying";
@@ -170,9 +171,7 @@ export function HomeroomView({ entry, sequence }: HomeroomViewProps) {
           <QuickInfoTicker />
         </div>
         <div className="homeroom-top-right">
-          <span className="homeroom-class-pad" aria-label={entry.name}>
-            {entry.label}
-          </span>
+          <ClassSwitcher entry={entry} />
         </div>
       </div>
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { TeacherCodeDialog } from "@/features/teacher-progress/TeacherCodeDialog";
 import { useTeacherMode } from "@/features/teacher-progress/TeacherModeProvider";
@@ -147,7 +148,11 @@ export function BehaviorPage() {
 
       <div className="behavior-head">
         <div className="behavior-head-text">
-          <h2 className="behavior-cohort-name">{COHORT_NAME[cohort]}</h2>
+          <h2 className="behavior-cohort-name">
+            <Link href={`/classes/${cohort}/`} title={`Open the ${COHORT_NAME[cohort]} homeroom`}>
+              {COHORT_NAME[cohort]}
+            </Link>
+          </h2>
           <p className="behavior-cohort-meta">
             {students.length} {students.length === 1 ? "student" : "students"}
             {behavior.status === "loading" ? " · loading…" : ""}

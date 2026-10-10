@@ -1,8 +1,11 @@
 import type { Metadata, Viewport } from "next";
 import { Outfit, Space_Grotesk } from "next/font/google";
 import { AppShell } from "@/components/app-shell";
+import { ThemeProvider } from "@/features/theme/ThemeProvider";
 import { cn } from "@/lib/utils";
 import "./globals.css";
+
+const THEME_BOOTSTRAP = `(function(){try{var t=localStorage.getItem("ka-theme");if(t!=="light"&&t!=="dark"){t=window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";}if(t==="dark")document.documentElement.classList.add("dark");}catch(e){}})();`;
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -33,7 +36,10 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#2f5648",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#2f5648" },
+    { media: "(prefers-color-scheme: dark)", color: "#171a21" },
+  ],
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -41,12 +47,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html
       lang="en"
       className={cn(outfit.variable, spaceGrotesk.variable, "font-sans")}
+      suppressHydrationWarning
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_BOOTSTRAP }} />
+      </head>
       <body>
         <a className="skip-link" href="#main">
           Skip to content
         </a>
-        <AppShell>{children}</AppShell>
+        <ThemeProvider>
+          <AppShell>{children}</AppShell>
+        </ThemeProvider>
       </body>
     </html>
   );

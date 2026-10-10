@@ -35,6 +35,11 @@
   --hw-body: #4a505c;
   --hw-panel: #3a3f49;
 
+  /* Role aliases — same values as ink/snow in light; stay fixed in dark. */
+  --ka-edge: #000000;
+  --ka-on-dark: #ffffff;
+  --ka-on-accent: #000000;
+
   --font-display: var(--font-space-grotesk), "Avenir Next", sans-serif;
   --font-body: var(--font-outfit), "Avenir Next", sans-serif;
   --font-mono: "SF Mono", "Menlo", "Consolas", monospace;
@@ -47,4 +52,16 @@
   --slide-wrap: 46rem;
   --tap-min: 44px;
   --header-height: 4.5rem;
+}
+
+.dark {
+  --ka-mist: #171a21;
+  --ka-slate: #5b6375;
+  --ka-charcoal: #a2aaba;
+  --ka-ink: #eceff5;
+  --ka-snow: #232833;
+  --ka-pith: #2b2822;
+  --ka-bamboo: #6b5b43;
+  --ka-edge: #07080b;
+  --line: color-mix(in srgb, var(--ka-charcoal) 30%, transparent);
 }

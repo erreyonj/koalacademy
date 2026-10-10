@@ -57,7 +57,7 @@ export function DashboardView() {
             {SHORTCUTS.map((item) => (
               <li key={item.href}>
                 <Link href={item.href} className="block no-underline">
-                  <Card className="h-full border-[3px] border-foreground shadow-[0_5px_0_var(--ka-ink)]">
+                  <Card className="h-full border-[3px] border-[color:var(--ka-edge)] shadow-[0_5px_0_var(--ka-edge)]">
                     <CardHeader>
                       <CardTitle className="font-heading text-xl">
                         {item.title}

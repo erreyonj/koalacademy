@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ClipboardCheck, ExternalLink, LogOut, Settings, UserRound } from "lucide-react";
+import { ClipboardCheck, ExternalLink, LogOut, Moon, Settings, UserRound } from "lucide-react";
 import { TeacherCodeDialog } from "@/features/teacher-progress/TeacherCodeDialog";
 import { useTeacherMode } from "@/features/teacher-progress/TeacherModeProvider";
+import { useTheme } from "@/features/theme/ThemeProvider";
+import { Switch } from "@/components/ui/switch";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -38,8 +40,10 @@ const PILOT_USER = {
 
 export function NavUser() {
   const { unlocked } = useTeacherMode();
+  const { theme, setTheme } = useTheme();
   const [logoutOpen, setLogoutOpen] = useState(false);
   const [teacherOpen, setTeacherOpen] = useState(false);
+  const dark = theme === "dark";
 
   return (
     <>
@@ -101,6 +105,27 @@ export function NavUser() {
                   <ExternalLink />
                   Koalacademy Site
                 </a>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                role="menuitemcheckbox"
+                aria-label="Dark mode"
+                aria-checked={dark}
+                onSelect={(event) => {
+                  event.preventDefault();
+                  setTheme(dark ? "light" : "dark");
+                }}
+              >
+                <Moon />
+                Dark mode
+                <Switch
+                  className="pointer-events-none ml-auto"
+                  checked={dark}
+                  onCheckedChange={(checked) =>
+                    setTheme(checked ? "dark" : "light")
+                  }
+                  tabIndex={-1}
+                  aria-hidden
+                />
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               {unlocked ? (

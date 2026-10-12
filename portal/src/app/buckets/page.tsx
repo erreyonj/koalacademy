@@ -3,7 +3,7 @@ import { BehaviorPage } from "@/features/behavior/components/BehaviorPage";
 
 export const metadata: Metadata = {
   title: "Class Buckets",
-  description: "Class marble buckets for Scholars and K–5. Teacher code required.",
+  description: "Class marble buckets for Scholars and K–8. Teacher code required.",
 };
 
 export default function BucketsRoute() {

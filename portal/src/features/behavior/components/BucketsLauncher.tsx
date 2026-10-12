@@ -79,7 +79,7 @@ export function BucketsLauncher() {
         <Card className="h-full border-[3px] border-[color:var(--ka-edge)] shadow-[0_5px_0_var(--ka-edge)]">
           <CardHeader>
             <CardTitle className="font-heading text-xl">Buckets</CardTitle>
-            <CardDescription>Class marble buckets for Scholars and K–5.</CardDescription>
+            <CardDescription>Class marble buckets for Scholars and K–8.</CardDescription>
           </CardHeader>
         </Card>
       </button>

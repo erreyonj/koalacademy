@@ -1,5 +1,5 @@
 /**
- * Behavior marble tracker — Scholars + K–5 cohorts.
+ * Behavior marble tracker — Scholars + K–8 cohorts.
  *
  * Cohort codes match the teacher-progress section codes (`kb`, `1g`, …) so
  * one vocabulary covers both features; `scholars` is the only extra.
@@ -19,6 +19,12 @@ export const COHORTS = [
   "4b",
   "5g",
   "5b",
+  "6g",
+  "6b",
+  "7g",
+  "7b",
+  "8g",
+  "8b",
 ] as const;
 
 export type Cohort = (typeof COHORTS)[number];
@@ -38,6 +44,12 @@ export const COHORT_LABEL: Record<Cohort, string> = {
   "4b": "4B",
   "5g": "5G",
   "5b": "5B",
+  "6g": "6G",
+  "6b": "6B",
+  "7g": "7G",
+  "7b": "7B",
+  "8g": "8G",
+  "8b": "8B",
 };
 
 /** Long label for modals and screen readers. */
@@ -55,6 +67,12 @@ export const COHORT_NAME: Record<Cohort, string> = {
   "4b": "4th Blue",
   "5g": "5th Gold",
   "5b": "5th Blue",
+  "6g": "6th Gold",
+  "6b": "6th Blue",
+  "7g": "7th Gold",
+  "7b": "7th Blue",
+  "8g": "8th Gold",
+  "8b": "8th Blue",
 };
 
 export function isCohort(value: string): value is Cohort {

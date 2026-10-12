@@ -29,11 +29,7 @@ export function ClassesIndex() {
                           <span className="classes-card-label">{entry.label}</span>
                           <span className="classes-card-name">{entry.name}</span>
                         </CardTitle>
-                        <CardDescription>
-                          {entry.marbleCohort
-                            ? `Class ${entry.unit}.`
-                            : "Class points coming soon."}
-                        </CardDescription>
+                        <CardDescription>Class marbles.</CardDescription>
                       </CardHeader>
                     </Card>
                   </Link>

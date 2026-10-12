@@ -210,7 +210,7 @@ export function HomeroomView({ entry, sequence }: HomeroomViewProps) {
       </div>
 
       <div className="homeroom-bottom">
-        <ClassMarbles cohort={entry.marbleCohort} unit={entry.unit} />
+        <ClassMarbles cohort={entry.marbleCohort} />
         <div className="homeroom-bottom-right">
           {editing ? (
             <div className="homeroom-edit-actions">

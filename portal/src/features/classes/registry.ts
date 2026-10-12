@@ -1,5 +1,5 @@
 import type { BandId } from "@/lib/types";
-import { isCohort, type Cohort } from "@/features/behavior/types";
+import type { Cohort } from "@/features/behavior/types";
 import {
   TEACHER_SECTIONS,
   sectionBand,
@@ -10,8 +10,7 @@ import {
  * Classes — one homeroom launch page per cohort.
  *
  * A class id is the shared cohort / section code (`kg`, `3g`, `7b`) plus
- * `scholars`. Scholars has a marble bucket but no lesson-progress section;
- * 6–8 has lesson progress but no bucket yet (their "Class Points" land later).
+ * `scholars`. Scholars has a marble bucket but no lesson-progress section.
  */
 export interface ClassEntry {
   id: ClassId;
@@ -20,12 +19,10 @@ export interface ClassEntry {
   /** Long name for headings and screen readers, e.g. "3rd Gold". */
   name: string;
   band: BandId;
-  /** Behavior cohort when this class has a marble bucket. */
-  marbleCohort: Cohort | null;
+  /** Marble-bucket cohort for this class. */
+  marbleCohort: Cohort;
   /** Teacher-progress section when this class tracks lessons. */
   section: TeacherSection | null;
-  /** "marbles" for Scholars + K–5, "points" for 6–8. */
-  unit: "marbles" | "points";
 }
 
 export const CLASS_IDS = ["scholars", ...TEACHER_SECTIONS] as const;
@@ -53,9 +50,8 @@ function sectionEntry(section: TeacherSection): ClassEntry {
     label: section.toUpperCase(),
     name: `${GRADE_WORD[grade]} ${house}`,
     band,
-    marbleCohort: isCohort(section) ? section : null,
+    marbleCohort: section as Cohort,
     section,
-    unit: band === "6-8" ? "points" : "marbles",
   };
 }
 
@@ -67,7 +63,6 @@ export const CLASSES: readonly ClassEntry[] = [
     band: "k-2",
     marbleCohort: "scholars",
     section: null,
-    unit: "marbles",
   },
   ...TEACHER_SECTIONS.map(sectionEntry),
 ];

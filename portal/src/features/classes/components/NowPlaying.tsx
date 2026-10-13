@@ -1,10 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Pause, Play, Shuffle } from "lucide-react";
+import { Maximize2, Minimize2, Pause, Play, Shuffle } from "lucide-react";
+import type { BandId } from "@/lib/types";
 
 /** Entry music. One is picked at random each time the homeroom opens. */
 const VIDEOS = ["CBSlu_VMS9U", "kWnxXiFUkag", "lq_bftO4_Bs"] as const;
+/** K-2: the mindfulness animal film from the slides, plus two more to shuffle. */
+const K2_VIDEOS = ["oRDRfikj2z8", "EOZxywobD_I", "g5cQJ43KPWA"] as const;
 
 /* Minimal slice of the YouTube IFrame API that this player touches. */
 interface YTPlayer {
@@ -59,8 +62,12 @@ function loadYouTubeApi(): Promise<YTNamespace> {
   return apiPromise;
 }
 
-function pickVideo(except?: string): string {
-  const pool = VIDEOS.filter((id) => id !== except);
+function videosFor(band: BandId): readonly string[] {
+  return band === "k-2" ? K2_VIDEOS : VIDEOS;
+}
+
+function pickVideo(band: BandId, except?: string): string {
+  const pool = videosFor(band).filter((id) => id !== except);
   return pool[Math.floor(Math.random() * pool.length)];
 }
 
@@ -71,17 +78,18 @@ type Status = "loading" | "ready" | "playing" | "paused";
  * its iframe, so the video sits inside the small "screen" box with the chrome
  * turned off; the controls beside it are the only thing meant to be touched.
  */
-export function NowPlaying() {
+export function NowPlaying({ band }: { band: BandId }) {
   const mount = useRef<HTMLDivElement>(null);
   const player = useRef<YTPlayer | null>(null);
   const [status, setStatus] = useState<Status>("loading");
   const [title, setTitle] = useState<string>("");
   const [videoId, setVideoId] = useState<string | null>(null);
+  const [expanded, setExpanded] = useState(false);
 
   // Picked on the client only so the server markup matches on hydration.
   useEffect(() => {
-    setVideoId(pickVideo());
-  }, []);
+    setVideoId(pickVideo(band));
+  }, [band]);
 
   useEffect(() => {
     if (!videoId || !mount.current || player.current) return;
@@ -135,18 +143,36 @@ export function NowPlaying() {
 
   const shuffle = useCallback(() => {
     if (!player.current || !videoId) return;
-    const next = pickVideo(videoId);
+    const next = pickVideo(band, videoId);
     setVideoId(next);
     setStatus("ready");
     player.current.loadVideoById(next);
-  }, [videoId]);
+  }, [band, videoId]);
+
+  const toggleExpanded = useCallback(() => {
+    setExpanded((open) => !open);
+  }, []);
+
+  useEffect(() => {
+    if (!expanded) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setExpanded(false);
+    };
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [expanded]);
 
   const playing = status === "playing";
   const caption =
     status === "loading" ? "Tuning in…" : playing ? `Now playing · ${title}` : title || "Ready";
 
   return (
-    <div className="homeroom-screen">
+    <div className={`homeroom-screen${expanded ? " is-expanded" : ""}`}>
       <span className="homeroom-screen-label">Screen</span>
       <div className="homeroom-player" ref={mount} aria-hidden="true" />
       <div className="homeroom-screen-side">
@@ -169,6 +195,16 @@ export function NowPlaying() {
             title="Pick another song"
           >
             <Shuffle aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            className="homeroom-screen-button"
+            onClick={toggleExpanded}
+            aria-label={expanded ? "Shrink screen" : "Expand screen"}
+            title={expanded ? "Shrink screen" : "Expand screen"}
+            aria-pressed={expanded}
+          >
+            {expanded ? <Minimize2 aria-hidden="true" /> : <Maximize2 aria-hidden="true" />}
           </button>
         </div>
         <p className="lcd homeroom-screen-lcd" aria-live="polite">

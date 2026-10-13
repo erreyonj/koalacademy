@@ -167,7 +167,7 @@ export function HomeroomView({ entry, sequence }: HomeroomViewProps) {
       <div className="homeroom-top">
         <HomeroomMenu className={entry.name} onEditSeating={handleEditSeating} />
         <div className="homeroom-top-center">
-          <NowPlaying />
+          <NowPlaying band={entry.band} />
           <QuickInfoTicker />
         </div>
         <div className="homeroom-top-right">

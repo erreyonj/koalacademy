@@ -12,6 +12,7 @@ import {
   COHORT_NAME,
   avatarHue,
   classTotal,
+  cohortGoal,
   type BehaviorStudent,
   type Cohort,
 } from "../types";
@@ -161,6 +162,7 @@ export function BehaviorPage() {
         <MarbleBucket
           ref={bucketRef}
           total={total}
+          goal={cohortGoal(cohort)}
           label={COHORT_NAME[cohort]}
           pulse={pulse}
           teacher={unlocked}

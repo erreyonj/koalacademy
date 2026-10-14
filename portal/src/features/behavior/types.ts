@@ -136,3 +136,22 @@ export function avatarHue(seed: string, fallback: string): number {
 export function classTotal(students: readonly BehaviorStudent[]): number {
   return students.reduce((sum, student) => sum + student.marbles, 0);
 }
+
+/** Marble goal for a grade; Blue and Gold share the same number. */
+const GRADE_GOAL: Record<string, number> = {
+  scholars: 35,
+  k: 30,
+  "1": 20,
+  "2": 35,
+  "3": 30,
+  "4": 30,
+  "5": 30,
+  "6": 35,
+  "7": 30,
+  "8": 30,
+};
+
+export function cohortGoal(cohort: Cohort): number {
+  if (cohort === "scholars") return GRADE_GOAL.scholars;
+  return GRADE_GOAL[cohort[0]] ?? 30;
+}

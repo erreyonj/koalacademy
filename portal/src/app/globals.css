@@ -3221,6 +3221,13 @@ button.lesson-toolbar-item {
   pointer-events: none;
 }
 
+.marble-bucket-score {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  transition: transform 160ms ease;
+}
+
 .marble-bucket-number {
   font-family: var(--font-display);
   font-weight: 700;
@@ -3228,7 +3235,16 @@ button.lesson-toolbar-item {
   line-height: 1;
   color: var(--ka-ink);
   font-variant-numeric: tabular-nums;
-  transition: transform 160ms ease;
+}
+
+.marble-bucket-goal {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.05rem;
+  line-height: 1;
+  color: var(--ka-ink);
+  opacity: 0.55;
+  font-variant-numeric: tabular-nums;
 }
 
 button.marble-bucket-number.is-editable {
@@ -3264,7 +3280,7 @@ button.marble-bucket-number.is-editable:focus-visible {
 }
 
 .marble-bucket.is-pulse-in { transform: scale(1.05); }
-.marble-bucket.is-pulse-in .marble-bucket-number { transform: scale(1.25); }
+.marble-bucket.is-pulse-in .marble-bucket-score { transform: scale(1.25); }
 .marble-bucket.is-pulse-in .bucket-body { fill: var(--hw-green); }
 .marble-bucket.is-pulse-out { transform: translateY(3px) scale(0.98); }
 .marble-bucket.is-pulse-out .bucket-body { fill: var(--hw-red); }
@@ -3484,12 +3500,14 @@ button.marble-bucket-number.is-editable:focus-visible {
 
   .marble-bucket { width: 6.5rem; }
   .marble-bucket-number { font-size: 1.45rem; }
+  .marble-bucket-goal { font-size: 0.85rem; }
   .behavior-cohort-name { font-size: 1.3rem; }
   .student-grid { grid-template-columns: repeat(auto-fill, minmax(6.25rem, 1fr)); }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .marble-bucket,
+  .marble-bucket-score,
   .marble-bucket-number,
   .marble-count,
   .marble-btn,
@@ -4098,11 +4116,25 @@ a.homeroom-marbles:active {
   background: var(--ka-mist);
 }
 
+.homeroom-marbles-score {
+  display: flex;
+  align-items: baseline;
+}
+
 .homeroom-marbles-count {
   font-family: var(--font-display);
   font-weight: 700;
   font-size: clamp(1.6rem, 1.2rem + 1.5vw, 2.4rem);
   line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.homeroom-marbles-goal {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(0.85rem, 0.65rem + 0.8vw, 1.25rem);
+  line-height: 1;
+  opacity: 0.55;
   font-variant-numeric: tabular-nums;
 }
 

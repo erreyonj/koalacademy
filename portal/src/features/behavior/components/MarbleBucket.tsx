@@ -12,6 +12,7 @@ import {
 
 interface MarbleBucketProps {
   total: number;
+  goal: number;
   label: string;
   /** Set briefly after a throw lands or a marble drops. */
   pulse: "in" | "out" | null;
@@ -30,7 +31,7 @@ interface MarbleBucketProps {
  */
 export const MarbleBucket = forwardRef<HTMLDivElement, MarbleBucketProps>(
   function MarbleBucket(
-    { total, label, pulse, teacher, onAdd, onRemove, onEditTotal, onEmpty, onExit },
+    { total, goal, label, pulse, teacher, onAdd, onRemove, onEditTotal, onEmpty, onExit },
     ref,
   ) {
     return (
@@ -72,7 +73,11 @@ export const MarbleBucket = forwardRef<HTMLDivElement, MarbleBucketProps>(
             </DropdownMenuContent>
           </DropdownMenu>
         ) : null}
-        <div role="status" aria-live="polite" aria-label={`${label} class marbles: ${total}`}>
+        <div
+          role="status"
+          aria-live="polite"
+          aria-label={`${label} class marbles: ${total} of ${goal}`}
+        >
           <svg
             className="marble-bucket-art"
             viewBox="0 0 120 120"
@@ -98,19 +103,24 @@ export const MarbleBucket = forwardRef<HTMLDivElement, MarbleBucketProps>(
             <path d="M30 36 L36 98" className="bucket-shine" />
           </svg>
           <div className="marble-bucket-count">
-            {teacher && onEditTotal ? (
-              <button
-                type="button"
-                className="marble-bucket-number is-editable"
-                aria-label="Set class marbles"
-                title="Set class marbles"
-                onClick={onEditTotal}
-              >
-                {total}
-              </button>
-            ) : (
-              <span className="marble-bucket-number">{total}</span>
-            )}
+            <div className="marble-bucket-score">
+              {teacher && onEditTotal ? (
+                <button
+                  type="button"
+                  className="marble-bucket-number is-editable"
+                  aria-label="Set class marbles"
+                  title="Set class marbles"
+                  onClick={onEditTotal}
+                >
+                  {total}
+                </button>
+              ) : (
+                <span className="marble-bucket-number">{total}</span>
+              )}
+              <span className="marble-bucket-goal" aria-hidden="true">
+                /{goal}
+              </span>
+            </div>
             <span className="marble-bucket-caption">class marbles</span>
           </div>
         </div>

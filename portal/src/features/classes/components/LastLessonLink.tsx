@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { useTeacherMode } from "@/features/teacher-progress/TeacherModeProvider";
-import { nextUnfinishedSlug, type TeacherSection } from "@/features/teacher-progress/types";
+import { lastTaughtSlug, type TeacherSection } from "@/features/teacher-progress/types";
 import type { BandId } from "@/lib/types";
 
 export interface SequenceEntry {
@@ -21,20 +21,21 @@ interface LastLessonLinkProps {
 }
 
 /**
- * "Today's →" — the earliest lesson in the band order that this class has
- * not fully finished (any of Lesson / Review / Lab still open). Falls back to
- * the band's lesson list when Teacher Mode is locked or nothing is tracked.
+ * "Today's →" — the latest lesson in the band order whose Lesson checkbox is
+ * on. Review and Lab are ignored. Falls back to the first lesson when none
+ * are checked, and to the band's lesson list when Teacher Mode is locked.
  */
 export function LastLessonLink({ band, section, sequence }: LastLessonLinkProps) {
   const { unlocked, rows } = useTeacherMode();
 
   const target = useMemo(() => {
     if (!unlocked || !section) return null;
-    const slug = nextUnfinishedSlug(
-      rows,
-      section,
-      sequence.map((item) => item.slug),
-    );
+    const slug =
+      lastTaughtSlug(
+        rows,
+        section,
+        sequence.map((item) => item.slug),
+      ) ?? sequence[0]?.slug;
     return sequence.find((item) => item.slug === slug) ?? null;
   }, [unlocked, section, rows, sequence]);
 

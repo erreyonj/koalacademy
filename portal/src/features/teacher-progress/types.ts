@@ -178,3 +178,18 @@ export function nextUnfinishedSlug(
     return !cellComplete(cell);
   });
 }
+
+/** Latest lesson in band order whose Lesson checkbox is on. Review and Lab are ignored. */
+export function lastTaughtSlug(
+  rows: TeacherProgressRow[],
+  section: TeacherSection,
+  sequence: readonly string[],
+): string | undefined {
+  const map = rowsToCellMap(rows);
+  let latest: string | undefined;
+  for (const slug of sequence) {
+    const cell = map.get(progressKey(section, slug)) ?? emptyCell();
+    if (cell.lesson) latest = slug;
+  }
+  return latest;
+}

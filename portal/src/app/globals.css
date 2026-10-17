@@ -578,6 +578,22 @@ h1, h2, h3 {
   margin: 0;
 }
 
+/* Do Now fills the slide. The inner card label and border stay off. */
+.k2-deck-stage:has(.donow-block) {
+  background: color-mix(in srgb, var(--ka-bamboo) 45%, var(--ka-snow));
+}
+
+.k2-deck-stage .donow-block {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.k2-deck-stage .donow-block > .eyebrow {
+  display: none;
+}
+
 .k2-slide-copy-body table {
   display: block;
   overflow-x: auto;

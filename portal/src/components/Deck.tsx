@@ -21,6 +21,11 @@ export interface SlideProps {
   lines?: string[];
   /** One or two short lines under the idea or under the media. */
   sub?: string | string[];
+  /**
+   * Left-aligned reading block for 3–5 (paragraphs, lists, tables, Do Now).
+   * K-2 slides leave this off and keep the giant headline.
+   */
+  copy?: boolean;
   /** Rules slide the class can skip once it knows the game. */
   optional?: boolean;
   /** Block name shown in the counter. Set by Section. */
@@ -30,11 +35,11 @@ export interface SlideProps {
 }
 
 /** One idea. Deck reads these as markers and shows one at a time. */
-export function Slide({ kicker, line, lines, sub, children }: SlideProps) {
+export function Slide({ kicker, line, lines, sub, copy, children }: SlideProps) {
   const subLines = sub == null ? [] : Array.isArray(sub) ? sub : [sub];
 
   return (
-    <div className="k2-slide">
+    <div className={copy ? "k2-slide k2-slide-copy" : "k2-slide"}>
       {kicker ? <p className="k2-slide-kicker">{kicker}</p> : null}
       {line ? <p className="k2-slide-line">{line}</p> : null}
       {lines && lines.length > 0 ? (
@@ -44,7 +49,9 @@ export function Slide({ kicker, line, lines, sub, children }: SlideProps) {
           ))}
         </ul>
       ) : null}
-      {children ? <div className="k2-slide-media">{children}</div> : null}
+      {children ? (
+        <div className={copy ? "k2-slide-copy-body" : "k2-slide-media"}>{children}</div>
+      ) : null}
       {subLines.length > 0 ? (
         <div className="k2-slide-sub">
           {subLines.map((item) => (
@@ -93,7 +100,7 @@ interface DeckProps {
   children: ReactNode;
 }
 
-/** One-idea-per-screen player for K-2, grouped by class block. */
+/** One-idea-per-screen player, grouped by class block. */
 export function Deck({ children }: DeckProps) {
   const slides = collectSlides(children);
   const count = slides.length;

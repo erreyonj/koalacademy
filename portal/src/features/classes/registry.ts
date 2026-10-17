@@ -10,7 +10,7 @@ import {
  * Classes — one homeroom launch page per cohort.
  *
  * A class id is the shared cohort / section code (`kg`, `3g`, `7b`) plus
- * `scholars`. Scholars has a marble bucket but no lesson-progress section.
+ * `scholars`. Scholars is one K–2 lesson-progress section.
  */
 export interface ClassEntry {
   id: ClassId;
@@ -62,7 +62,7 @@ export const CLASSES: readonly ClassEntry[] = [
     name: "Scholars",
     band: "k-2",
     marbleCohort: "scholars",
-    section: null,
+    section: "scholars",
   },
   ...TEACHER_SECTIONS.map(sectionEntry),
 ];

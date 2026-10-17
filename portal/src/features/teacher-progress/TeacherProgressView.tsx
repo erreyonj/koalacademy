@@ -58,6 +58,11 @@ export function TeacherProgressGrid({ scan }: TeacherProgressGridProps) {
                 {grade.label}
               </th>
             ))}
+            {scan.band === "k-2" ? (
+              <th rowSpan={2} scope="col">
+                Scholars
+              </th>
+            ) : null}
           </tr>
           <tr>
             {grades.flatMap((grade) => [

@@ -6,12 +6,16 @@ bands: ["3-5"]
 sequence: 8
 created: "2026-09-11"
 component: "Basic Music Theory"
+presentation: "deck"
 skills:
   - relative keys
   - parallel keys
 ---
 
-<DoNow title="Same shelf, different door" materials={[["look"], ["journal", "write"]]}>
+<Deck>
+  <Section name="Do Now">
+    <Slide copy kicker="Do Now">
+      <DoNow title="Same shelf, different door" materials={[["look"], ["journal", "write"]]}>
 
 Write **your name** at the top of the page.
 
@@ -23,76 +27,113 @@ Silent. Two short answers.
 Pens down when you are done.
 
 </DoNow>
+    </Slide>
+  </Section>
 
-## Two kinds of cousins
+  <Section name="Two kinds of cousins">
+    <Slide copy kicker="Two kinds of cousins">
 
 Some keys are related, like cousins. There are two easy pairs:
 
 - **Relative keys** — the **same notes**, but a different **home note**.
 - **Parallel keys** — the **same home note**, but a different mood.
 
-## Relative keys
+</Slide>
+  </Section>
+
+  <Section name="Relative keys">
+    <Slide copy kicker="Relative keys">
 
 **C major** and **A minor** are **relative** keys. They use the exact same notes — no sharps or flats. The only difference is where you **start**: C for one, A for the other.
 
-<NotationExcerpt
-  clef="treble"
-  keySig="C"
-  time="4/4"
-  notes="C4/8 D4/8 E4/8 F4/8 G4/8 A4/8 B4/8 C5/8"
-  caption="C major"
-/>
+</Slide>
+    <Slide kicker="Relative keys" sub="C major">
+      <NotationExcerpt
+        clef="treble"
+        keySig="C"
+        time="4/4"
+        notes="C4/8 D4/8 E4/8 F4/8 G4/8 A4/8 B4/8 C5/8"
+      />
+    </Slide>
+    <Slide kicker="Relative keys" sub="A minor — same notes, starts on A">
+      <NotationExcerpt
+        clef="treble"
+        keySig="Am"
+        time="4/4"
+        notes="A3/8 B3/8 C4/8 D4/8 E4/8 F4/8 G4/8 A4/8"
+      />
+    </Slide>
+    <Slide kicker="Listen" sub="Bright, C major energy.">
+      <YouTubeEmbed
+        id="Gs069dndIYk"
+        title="September"
+        artist="Earth, Wind & Fire"
+      />
+    </Slide>
+    <Slide kicker="Listen" sub="Heavier, A minor — the relative of C major. Same notes, different home.">
+      <YouTubeEmbed
+        id="YuKfiH0Scao"
+        title="Ain’t No Sunshine"
+        artist="Bill Withers"
+      />
+    </Slide>
+  </Section>
 
-<NotationExcerpt
-  clef="treble"
-  keySig="Am"
-  time="4/4"
-  notes="A3/8 B3/8 C4/8 D4/8 E4/8 F4/8 G4/8 A4/8"
-  caption="A minor — same notes, starts on A"
-/>
-
-<YouTubeEmbed
-  id="Gs069dndIYk"
-  title="September"
-  artist="Earth, Wind & Fire"
-/>
-
-Bright, C major energy.
-
-<YouTubeEmbed
-  id="YuKfiH0Scao"
-  title="Ain’t No Sunshine"
-  artist="Bill Withers"
-/>
-
-Heavier, A minor — the **relative** of C major. Same notes, different home.
-
-## Parallel keys
+  <Section name="Parallel keys">
+    <Slide copy kicker="Parallel keys">
 
 **Parallel** keys share the **same home note** but have a different mood. **C major** and **C minor** both start on **C**, but C major sounds bright and C minor sounds heavier.
 
+</Slide>
+    <Slide copy kicker="Parallel keys">
+
 Relative = same notes, different home. Parallel = same home, different mood.
 
-<Break
-  src="/assets/ka-main-smile-decal-no-bg.png"
-  alt="The koala holds two keys that look alike until you read the tags."
-  caption="Read the tag"
-/>
+</Slide>
+    <Slide kicker="Parallel keys">
+      <Break
+        src="/assets/ka-main-smile-decal-no-bg.png"
+        alt="The koala holds two keys that look alike until you read the tags."
+        caption="Read the tag"
+      />
+    </Slide>
+  </Section>
 
-## What you should be able to do after this
+  <Section name="After this">
+    <Slide copy kicker="What you should be able to do after this">
 
 1. Say what **relative** keys share (the notes).
 2. Say what **parallel** keys share (the home note).
 3. Name the relative minor of **C major** (A minor).
 
-<Activate title="Name the cousin">
+</Slide>
+  </Section>
+
+  <Section name="Name the cousin">
+    <Slide copy kicker="Name the cousin">
 
 Guitar first, keyboard as the map. No iPad needed.
 
+</Slide>
+    <Slide copy kicker="Name the cousin">
+
 1. *I do:* Mr. Erreyon plays **C major** then **A minor** (relative), then **C major** then **C minor** (parallel).
+
+</Slide>
+    <Slide copy kicker="Name the cousin">
+
 2. *We do:* The class answers **relative** or **parallel** after each pair.
+
+</Slide>
+    <Slide copy kicker="Name the cousin">
+
 3. *You do:* At the keyboard, start on **C** and walk up. Then start on **A** and walk up using the same white keys. Notice the mood change.
+
+</Slide>
+    <Slide copy kicker="Name the cousin">
 
 Share: one volunteer names the relative minor of C major.
 
-</Activate>
+</Slide>
+  </Section>
+</Deck>

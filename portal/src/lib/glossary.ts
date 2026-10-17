@@ -1,158 +1,34 @@
 import type { Lesson } from "./types";
 
-/** One glossary term, introduced by a single curriculum code (KSN.1, not a band file). */
+/** One glossary term. `lessonCode` is the 6–8 curriculum code (KSN.1, not KSN.1-35). */
 export interface GlossaryEntry {
-  /** Stable kebab-case id. */
   id: string;
   term: string;
   definition: string;
-  /** Curriculum code that introduced the term, e.g. "KSN.1". */
   lessonCode: string;
+  /** Order inside the lesson. */
+  position: number;
 }
 
 export interface GlossaryLesson {
   code: string;
   title: string;
+  /** Deck path segment, so the heading code can open the lesson. */
+  slug: string;
 }
 
 /**
- * Approved glossary entries, in the order each lesson introduced them.
- * Tiles are derived from these codes, so a lesson with no entries has no tile.
+ * Glossary key for a lesson page. 6–8 uses its own code. A 3–5 file uses the
+ * 6–8 twin (`BMT.1-35` → `BMT.1`, `intro-35` → `INTRO-68`). K–2 has none.
  */
-export const GLOSSARY_ENTRIES: readonly GlossaryEntry[] = [
-  {
-    id: "waveform",
-    term: "Waveform",
-    definition: "Visual representation of sound.",
-    lessonCode: "KSN.1",
-  },
-  {
-    id: "sampler",
-    term: "Sampler",
-    definition: "Lets you play a sound like an instrument.",
-    lessonCode: "KSN.1",
-  },
-  {
-    id: "koala-sampler",
-    term: "Koala Sampler",
-    definition: "Mobile sampler DAW.",
-    lessonCode: "KSN.1",
-  },
-  {
-    id: "daw",
-    term: "DAW",
-    definition: "Digital Audio Workstation.",
-    lessonCode: "KSN.1",
-  },
-  {
-    id: "sample-tab",
-    term: "Sample Tab",
-    definition: "Holds samples and sample banks.",
-    lessonCode: "KSN.1",
-  },
-  {
-    id: "sequence-tab",
-    term: "Sequence Tab",
-    definition: "Holds Sequences and arrangements.",
-    lessonCode: "KSN.1",
-  },
-  {
-    id: "perform-tab",
-    term: "Perform Tab",
-    definition: "Holds FX (effects) and other Functions.",
-    lessonCode: "KSN.1",
-  },
-  {
-    id: "volume-knob",
-    term: "Volume Knob",
-    definition: "Controls volume of a sample.",
-    lessonCode: "KSN.1",
-  },
-  {
-    id: "pitch-knob",
-    term: "Pitch Knob",
-    definition: "Controls pitch of a sample.",
-    lessonCode: "KSN.1",
-  },
-  {
-    id: "pan",
-    term: "Pan",
-    definition: "Controls left and right placement of sample.",
-    lessonCode: "KSN.1",
-  },
-  {
-    id: "amplitude",
-    term: "Amplitude",
-    definition: "Volume range of a sound.",
-    lessonCode: "KSN.1",
-  },
-  {
-    id: "tempo",
-    term: "Tempo",
-    definition: "Controls the speed of music.",
-    lessonCode: "KSN.2",
-  },
-  {
-    id: "undo",
-    term: "Undo",
-    definition: "Undoes last action.",
-    lessonCode: "KSN.2",
-  },
-  {
-    id: "solo",
-    term: "Solo",
-    definition: "Isolates a sample or sound.",
-    lessonCode: "KSN.2",
-  },
-  {
-    id: "mute",
-    term: "Mute",
-    definition: "Turns off a sample.",
-    lessonCode: "KSN.2",
-  },
-  {
-    id: "bar-measure",
-    term: "Bar/Measure",
-    definition: "A single unit of music.",
-    lessonCode: "KSN.2",
-  },
-  {
-    id: "transport",
-    term: "Transport",
-    definition: "Play, record, tempo, quantize functions and more.",
-    lessonCode: "KSN.2",
-  },
-];
-
-/** Lessons that have at least one entry, in first-seen seed order. */
-export function glossaryLessons(): GlossaryLesson[] {
-  const seen = new Set<string>();
-  const lessons: GlossaryLesson[] = [];
-  for (const entry of GLOSSARY_ENTRIES) {
-    if (seen.has(entry.lessonCode)) continue;
-    seen.add(entry.lessonCode);
-    lessons.push({ code: entry.lessonCode, title: entry.lessonCode });
-  }
-  return lessons;
-}
-
-/**
- * Title for a glossary tile. Prefer the 6–8 lesson when both bands exist;
- * otherwise the first matching lesson. Falls back to the code.
- */
-export function glossaryLessonTitle(
-  code: string,
-  lessons: Pick<Lesson, "code" | "title" | "bands">[]
-): string {
-  const matches = lessons.filter((lesson) => lesson.code === code);
-  const preferred =
-    matches.find((lesson) => lesson.bands.includes("6-8")) ?? matches[0];
-  return preferred?.title ?? code;
-}
-
-/** Terms for one lesson, in seed order. */
-export function termsForLesson(code: string): GlossaryEntry[] {
-  return GLOSSARY_ENTRIES.filter((entry) => entry.lessonCode === code);
+export function glossaryCodeForLesson(
+  lesson: Pick<Lesson, "slug" | "code" | "bands">
+): string | null {
+  if (!lesson.bands.includes("3-5") && !lesson.bands.includes("6-8")) return null;
+  if (lesson.bands.includes("6-8")) return lesson.code;
+  if (lesson.slug === "intro-35") return "INTRO-68";
+  if (lesson.code.endsWith("-35")) return lesson.code.slice(0, -3);
+  return null;
 }
 
 /** Case-insensitive substring match on term, definition, and lesson code. */
@@ -166,15 +42,14 @@ export function entryMatches(entry: GlossaryEntry, query: string): boolean {
   );
 }
 
-export function filterEntries(query: string): GlossaryEntry[] {
-  return GLOSSARY_ENTRIES.filter((entry) => entryMatches(entry, query));
-}
-
-/** All matching terms, A–Z. No ranking. */
-export function termsAlphabetically(query = ""): GlossaryEntry[] {
-  return filterEntries(query).sort((a, b) =>
-    a.term.localeCompare(b.term, undefined, { sensitivity: "base" })
-  );
+/** Terms for one lesson, in authored order. */
+export function termsForLesson(
+  entries: readonly GlossaryEntry[],
+  code: string
+): GlossaryEntry[] {
+  return entries
+    .filter((entry) => entry.lessonCode === code)
+    .sort((a, b) => a.position - b.position || a.term.localeCompare(b.term));
 }
 
 export interface GlossaryLetterGroup {
@@ -183,9 +58,12 @@ export interface GlossaryLetterGroup {
 }
 
 /** Alphabetical terms grouped by first letter. Empty letters are omitted. */
-export function termsByLetter(query = ""): GlossaryLetterGroup[] {
+export function termsByLetter(entries: readonly GlossaryEntry[]): GlossaryLetterGroup[] {
+  const sorted = [...entries].sort((a, b) =>
+    a.term.localeCompare(b.term, undefined, { sensitivity: "base" })
+  );
   const groups: GlossaryLetterGroup[] = [];
-  for (const entry of termsAlphabetically(query)) {
+  for (const entry of sorted) {
     const letter = entry.term.charAt(0).toUpperCase() || "#";
     const last = groups[groups.length - 1];
     if (!last || last.letter !== letter) {

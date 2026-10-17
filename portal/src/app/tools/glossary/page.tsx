@@ -1,8 +1,7 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { GlossaryHub, GlossaryHubFallback } from "@/components/GlossaryHub";
-import { glossaryLessonTitle, glossaryLessons } from "@/lib/glossary";
-import { getAllLessons } from "@/lib/lessons";
+import { getLessonsForBand } from "@/lib/lessons";
 
 export const metadata: Metadata = {
   title: "Glossary",
@@ -10,17 +9,15 @@ export const metadata: Metadata = {
 };
 
 export default function GlossaryPage() {
-  const lessons = getAllLessons();
-  const titles = Object.fromEntries(
-    glossaryLessons().map((lesson) => [
-      lesson.code,
-      glossaryLessonTitle(lesson.code, lessons),
-    ])
-  );
+  const catalog = getLessonsForBand("6-8").map((lesson) => ({
+    code: lesson.code,
+    title: lesson.title,
+    slug: lesson.slug,
+  }));
 
   return (
     <Suspense fallback={<GlossaryHubFallback />}>
-      <GlossaryHub titles={titles} />
+      <GlossaryHub catalog={catalog} />
     </Suspense>
   );
 }

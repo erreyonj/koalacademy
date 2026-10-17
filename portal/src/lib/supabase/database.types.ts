@@ -162,6 +162,18 @@ export interface Database {
         Update: never;
         Relationships: [];
       };
+      glossary_terms: {
+        Row: {
+          id: string;
+          lesson_code: string;
+          term: string;
+          definition: string;
+          position: number;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -255,6 +267,40 @@ export interface Database {
           p_class: string;
           p_seats: Record<string, string>;
         };
+        Returns: undefined;
+      };
+      glossary_add_term: {
+        Args: {
+          p_code: string;
+          p_lesson_code: string;
+          p_term: string;
+          p_definition: string;
+        };
+        Returns: {
+          id: string;
+          lesson_code: string;
+          term: string;
+          definition: string;
+          position: number;
+        }[];
+      };
+      glossary_update_term: {
+        Args: {
+          p_code: string;
+          p_id: string;
+          p_term: string;
+          p_definition: string;
+        };
+        Returns: {
+          id: string;
+          lesson_code: string;
+          term: string;
+          definition: string;
+          position: number;
+        }[];
+      };
+      glossary_delete_term: {
+        Args: { p_code: string; p_id: string };
         Returns: undefined;
       };
     };

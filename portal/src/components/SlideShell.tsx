@@ -1,8 +1,10 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { GlossaryModal } from "./GlossaryModal";
 import { LessonNav } from "./LessonNav";
 import { LessonNotesProvider } from "./LessonNotesProvider";
 import { LessonToolbar } from "./LessonToolbar";
+import { glossaryCodeForLesson } from "@/lib/glossary";
 import { bandsLabel, getLessonsForBand } from "@/lib/lessons";
 import { TeacherLessonIndicator } from "@/features/teacher-progress/TeacherLessonIndicator";
 import { BAND_IDS, type LessonWithNeighbours } from "@/lib/types";
@@ -18,6 +20,7 @@ interface SlideShellProps extends LessonWithNeighbours {
  */
 export function SlideShell({ lesson, band, prev, next, children }: SlideShellProps) {
   const isDeck = lesson.presentation === "deck";
+  const glossaryCode = glossaryCodeForLesson(lesson);
   const teacherBand = BAND_IDS.find((id) => lesson.bands.includes(id));
   const context = lesson.component
     ? lesson.unit != null
@@ -38,6 +41,7 @@ export function SlideShell({ lesson, band, prev, next, children }: SlideShellPro
           </p>
           <h1 className="page-title">{lesson.title}</h1>
           <p className="page-lede">{lesson.focus}</p>
+          {glossaryCode ? <GlossaryModal lessonCode={glossaryCode} /> : null}
         </div>
       </header>
 

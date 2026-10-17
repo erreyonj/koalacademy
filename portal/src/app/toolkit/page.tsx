@@ -17,6 +17,10 @@ export default function ToolkitPage() {
       <article className="slide-body">
         <div className="empty-note">
           <p>
+            <Link href="/tools/glossary/">Glossary</Link> — course terms by
+            lesson, and an A–Z list.
+          </p>
+          <p>
             <Link href="/toolkit/games/">Games</Link> — classroom games played
             on the iPads. Salad Bowl is first up.
           </p>

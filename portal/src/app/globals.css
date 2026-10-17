@@ -2162,11 +2162,326 @@ button.lesson-toolbar-item {
 }
 
 .glossary-letter {
-  margin: 0 0 0.65rem;
+  margin: 0 0 0.35rem;
   font-family: var(--font-mono);
   font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: 0.14em;
+  color: var(--ka-charcoal);
+}
+
+.glossary-lesson-head {
+  position: relative;
+  margin-bottom: 0.5rem;
+}
+
+.glossary-pad {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--tap-min);
+  margin: 0;
+  padding: 0.45rem 0.85rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--ka-ink);
+  background: var(--ka-snow);
+  border: 3px solid var(--ka-edge);
+  border-radius: 10px;
+  box-shadow: 0 4px 0 var(--ka-edge);
+  cursor: pointer;
+}
+
+.glossary-pad:hover {
+  filter: brightness(1.04);
+}
+
+.glossary-pad:active {
+  transform: translateY(4px);
+  box-shadow: 0 0 0 var(--ka-edge);
+}
+
+.glossary-lesson-title-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.glossary-lesson-code {
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: color-mix(in srgb, var(--ka-charcoal) 62%, transparent);
+  text-decoration: none;
+}
+
+.glossary-lesson-code:hover {
+  color: var(--ka-charcoal);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.glossary-lesson-title {
+  max-width: 100%;
+  font-size: clamp(1.15rem, 1rem + 0.7vw, 1.5rem);
+  text-align: left;
+  justify-content: flex-start;
+}
+
+.glossary-lesson-menu {
+  position: absolute;
+  z-index: 5;
+  left: 0;
+  right: 0;
+  max-height: 18rem;
+  overflow: auto;
+  margin: 0.45rem 0 0;
+  padding: 0.35rem;
+  list-style: none;
+  background: var(--ka-snow);
+  border: 1px solid color-mix(in srgb, var(--ka-charcoal) 18%, transparent);
+  border-radius: 12px;
+  box-shadow: 0 10px 28px color-mix(in srgb, var(--ka-charcoal) 16%, transparent);
+}
+
+.glossary-lesson-option {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+  width: 100%;
+  margin: 0;
+  padding: 0.55rem 0.7rem;
+  text-align: left;
+  color: inherit;
+  background: none;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.glossary-lesson-option:hover {
+  background: color-mix(in srgb, var(--ka-eucalyptus) 28%, var(--ka-snow));
+}
+
+.glossary-lesson-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 0.65rem;
+}
+
+.glossary-lesson-count {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--ka-charcoal);
+}
+
+.glossary-dict {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.glossary-dict-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.55rem 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--ka-charcoal) 22%, transparent);
+}
+
+.glossary-dict-row > .glossary-modal-error {
+  flex-basis: 100%;
+  margin: 0;
+}
+
+.glossary-dict-text {
+  margin: 0;
+  min-width: 0;
+  font-size: 1.02rem;
+  line-height: 1.45;
+}
+
+.glossary-dict-term {
+  font-weight: 700;
+}
+
+.glossary-dict-code {
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ka-charcoal);
+}
+
+.glossary-dict-delete {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 2.25rem;
+  height: 2.25rem;
+  margin: 0;
+  padding: 0;
+  color: var(--ka-charcoal);
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.glossary-dict-delete:hover {
+  color: var(--ka-ink);
+  background: color-mix(in srgb, var(--ka-charcoal) 8%, transparent);
+}
+
+.glossary-dict-delete svg {
+  width: 1.35rem;
+  height: 1.35rem;
+}
+
+.glossary-dict-confirm {
+  display: inline-flex;
+  flex-shrink: 0;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+.glossary-dict-confirm button {
+  margin: 0;
+  padding: 0.15rem 0.2rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--ka-charcoal);
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.glossary-dict-confirm button:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.glossary-dict-field {
+  min-width: 0;
+  margin: 0;
+  padding: 0.1rem 0.15rem;
+  font: inherit;
+  font-size: 1.02rem;
+  line-height: 1.45;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px dashed color-mix(in srgb, var(--ka-charcoal) 45%, transparent);
+  border-radius: 0;
+}
+
+.glossary-dict-field.is-term {
+  flex: 0 1 11rem;
+  font-weight: 700;
+}
+
+.glossary-dict-field:not(.is-term) {
+  flex: 1 1 12rem;
+}
+
+.glossary-dict-field:focus {
+  outline: none;
+  border-bottom-color: var(--ka-ink);
+  background: color-mix(in srgb, var(--ka-eucalyptus) 18%, transparent);
+}
+
+.glossary-dict-form {
+  display: grid;
+  gap: 0.35rem;
+  width: 100%;
+}
+
+.glossary-dict-form-actions {
+  display: flex;
+  gap: 0.35rem;
+  margin-top: 0.25rem;
+}
+
+.glossary-hero-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem;
+  margin: 0.35rem 0 0;
+  padding: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ka-eucalyptus);
+  background: none;
+  border: 0;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.page-hero-deck .glossary-hero-link {
+  margin-top: 0.15rem;
+  min-height: 1.75rem;
+}
+
+.glossary-modal {
+  width: min(56rem, calc(100vw - 2rem));
+  max-width: min(56rem, calc(100vw - 2rem));
+}
+
+.glossary-modal-list {
+  min-height: 0;
+  overflow: auto;
+}
+
+.glossary-modal-terms {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.glossary-modal-line {
+  margin: 0;
+  line-height: 1.45;
+}
+
+.glossary-modal-term {
+  font-weight: 600;
+}
+
+.glossary-modal-dash {
+  white-space: pre;
+}
+
+.glossary-modal-definition {
+  color: var(--ka-charcoal);
+}
+
+.glossary-modal-add {
+  display: grid;
+  gap: 0.35rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid color-mix(in srgb, var(--ka-charcoal) 18%, transparent);
+}
+
+.glossary-modal-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.glossary-modal-error {
+  margin: 0;
+  font-size: 0.85rem;
   color: var(--ka-charcoal);
 }
 

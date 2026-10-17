@@ -39,7 +39,7 @@ const PILOT_USER = {
 };
 
 export function NavUser() {
-  const { unlocked } = useTeacherMode();
+  const { unlocked, lock } = useTeacherMode();
   const { theme, setTheme } = useTheme();
   const [logoutOpen, setLogoutOpen] = useState(false);
   const [teacherOpen, setTeacherOpen] = useState(false);
@@ -128,24 +128,29 @@ export function NavUser() {
                 />
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              {unlocked ? (
-                <DropdownMenuItem asChild>
-                  <Link href="/teacher/">
-                    <ClipboardCheck />
-                    Teacher mode
-                  </Link>
-                </DropdownMenuItem>
-              ) : (
-                <DropdownMenuItem
-                  onSelect={(event) => {
-                    event.preventDefault();
-                    setTeacherOpen(true);
+              <DropdownMenuItem
+                role="menuitemcheckbox"
+                aria-label="Teacher mode"
+                aria-checked={unlocked}
+                onSelect={(event) => {
+                  event.preventDefault();
+                  if (unlocked) lock();
+                  else setTeacherOpen(true);
+                }}
+              >
+                <ClipboardCheck />
+                Teacher mode
+                <Switch
+                  className="pointer-events-none ml-auto"
+                  checked={unlocked}
+                  onCheckedChange={(checked) => {
+                    if (checked) setTeacherOpen(true);
+                    else lock();
                   }}
-                >
-                  <ClipboardCheck />
-                  Teacher mode
-                </DropdownMenuItem>
-              )}
+                  tabIndex={-1}
+                  aria-hidden
+                />
+              </DropdownMenuItem>
               <DropdownMenuItem
                 onSelect={(event) => {
                   event.preventDefault();

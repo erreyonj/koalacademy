@@ -1,27 +1,29 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useId, useMemo, useState } from "react";
-import { Search, X } from "lucide-react";
+import { useEffect, useId, useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
+import { Search, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { useTeacherMode } from "@/features/teacher-progress/TeacherModeProvider";
+import {
+  addGlossaryTerm,
+  deleteGlossaryTerm,
+  fetchGlossaryTerms,
+  updateGlossaryTerm,
+} from "@/lib/glossary-api";
 import {
   entryMatches,
-  glossaryLessons,
   termsByLetter,
   termsForLesson,
   type GlossaryEntry,
+  type GlossaryLesson,
 } from "@/lib/glossary";
 
 interface GlossaryHubProps {
-  /** Curriculum code → lesson title. Missing codes fall back to the code. */
-  titles: Record<string, string>;
+  /** 6–8 lessons, in catalog order. */
+  catalog: GlossaryLesson[];
 }
 
 function glossaryHref(q: string, lesson: string, view: string) {
@@ -35,18 +37,43 @@ function glossaryHref(q: string, lesson: string, view: string) {
   return qs ? `/tools/glossary/?${qs}` : "/tools/glossary/";
 }
 
-export function GlossaryHub({ titles }: GlossaryHubProps) {
+export function GlossaryHub({ catalog }: GlossaryHubProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { unlocked, code: teacherCode } = useTeacherMode();
   const searchId = useId();
+  const menuId = useId();
   const qParam = searchParams.get("q") ?? "";
   const lessonParam = searchParams.get("lesson") ?? "";
   const view = searchParams.get("view") === "az" ? "az" : "lesson";
   const [draft, setDraft] = useState(qParam);
   const [ready, setReady] = useState(false);
+  const [entries, setEntries] = useState<GlossaryEntry[]>([]);
+  const [status, setStatus] = useState<"loading" | "ready" | "unavailable">("loading");
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [adding, setAdding] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  const teacher = unlocked && teacherCode ? teacherCode : null;
 
   useEffect(() => {
     setReady(true);
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchGlossaryTerms()
+      .then((rows) => {
+        if (cancelled) return;
+        setEntries(rows);
+        setStatus("ready");
+      })
+      .catch(() => {
+        if (!cancelled) setStatus("unavailable");
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
@@ -61,56 +88,69 @@ export function GlossaryHub({ titles }: GlossaryHubProps) {
     return () => window.clearTimeout(timeout);
   }, [draft, lessonParam, qParam, router, view]);
 
-  const lessons = useMemo(() => glossaryLessons(), []);
-  const visibleLessons = useMemo(
-    () =>
-      lessons.filter((lesson) =>
-        termsForLesson(lesson.code).some((entry) => entryMatches(entry, qParam))
-      ),
-    [lessons, qParam]
-  );
-  const selectedTerms = useMemo(() => {
-    if (!lessonParam) return [];
-    if (!visibleLessons.some((lesson) => lesson.code === lessonParam)) return [];
-    return termsForLesson(lessonParam).filter((entry) => entryMatches(entry, qParam));
-  }, [lessonParam, qParam, visibleLessons]);
-  const letterGroups = useMemo(() => termsByLetter(qParam), [qParam]);
+  useEffect(() => {
+    if (!menuOpen) return;
+    function onPointer(event: MouseEvent) {
+      if (!menuRef.current?.contains(event.target as Node)) setMenuOpen(false);
+    }
+    document.addEventListener("mousedown", onPointer);
+    return () => document.removeEventListener("mousedown", onPointer);
+  }, [menuOpen]);
 
-  const filtered = Boolean(qParam.trim());
+  const selected = useMemo(
+    () => catalog.find((lesson) => lesson.code === lessonParam) ?? catalog[0] ?? null,
+    [catalog, lessonParam]
+  );
+
+  const otherLessons = useMemo(
+    () => catalog.filter((lesson) => lesson.code !== selected?.code),
+    [catalog, selected]
+  );
+
+  const selectedTerms = useMemo(() => {
+    if (!selected) return [];
+    return termsForLesson(entries, selected.code).filter((entry) =>
+      entryMatches(entry, qParam)
+    );
+  }, [entries, qParam, selected]);
+
+  const letterGroups = useMemo(
+    () => termsByLetter(entries.filter((entry) => entryMatches(entry, qParam))),
+    [entries, qParam]
+  );
+
   const showClear = Boolean(draft.trim() || lessonParam || view === "az");
-  const summary =
-    view === "az"
-      ? `${letterGroups.reduce((sum, group) => sum + group.entries.length, 0)} ${
-          letterGroups.reduce((sum, group) => sum + group.entries.length, 0) === 1
-            ? "term"
-            : "terms"
-        }`
-      : filtered
-        ? `${visibleLessons.length} of ${lessons.length} lessons`
-        : `${lessons.length} ${lessons.length === 1 ? "lesson" : "lessons"}`;
+  const azCount = letterGroups.reduce((sum, group) => sum + group.entries.length, 0);
 
   function setView(next: "lesson" | "az") {
-    router.replace(glossaryHref(draft, lessonParam, next), { scroll: false });
+    setMenuOpen(false);
+    router.replace(glossaryHref(draft, selected?.code ?? lessonParam, next), { scroll: false });
   }
 
   function setLesson(code: string) {
-    const next = lessonParam === code ? "" : code;
-    router.replace(glossaryHref(draft, next, "lesson"), { scroll: false });
+    setMenuOpen(false);
+    setAdding(false);
+    router.replace(glossaryHref(draft, code, "lesson"), { scroll: false });
   }
 
   function clearFilters() {
     setDraft("");
+    setMenuOpen(false);
+    setAdding(false);
     router.replace("/tools/glossary/", { scroll: false });
   }
 
-  function titleFor(code: string) {
-    return titles[code] || code;
+  function replaceEntry(next: GlossaryEntry) {
+    setEntries((current) => current.map((entry) => (entry.id === next.id ? next : entry)));
+  }
+
+  function removeEntry(id: string) {
+    setEntries((current) => current.filter((entry) => entry.id !== id));
   }
 
   if (!ready) return <GlossaryHubFallback />;
 
-  const azEmpty = view === "az" && letterGroups.length === 0;
-  const lessonEmpty = view === "lesson" && visibleLessons.length === 0;
+  const azEmpty = status === "ready" && view === "az" && letterGroups.length === 0;
 
   return (
     <div className="skills-page">
@@ -174,81 +214,139 @@ export function GlossaryHub({ titles }: GlossaryHubProps) {
               </button>
             </li>
           </ul>
-          <p className="skills-count">{summary}</p>
+          {view === "az" ? (
+            <p className="skills-count">
+              {azCount} {azCount === 1 ? "term" : "terms"}
+            </p>
+          ) : null}
         </div>
       </header>
 
       <div className="section skills-catalog">
         <div className="skills-wrap">
-          {azEmpty || lessonEmpty ? (
+          {status === "loading" ? (
+            <p className="glossary-prompt">Loading terms…</p>
+          ) : status === "unavailable" ? (
             <div className="skills-empty" role="status">
-              <p>No matching terms</p>
-              <p>
-                Nothing in the glossary uses this filter yet. Clear it to see every
-                lesson, or try another word.
-              </p>
+              <p>Glossary isn&apos;t available</p>
+              <p>The term list could not be loaded. Try again in a moment.</p>
             </div>
           ) : view === "az" ? (
-            <div className="glossary-letters">
-              {letterGroups.map((group) => (
-                <section key={group.letter} aria-labelledby={`glossary-${group.letter}`}>
-                  <h2 className="glossary-letter" id={`glossary-${group.letter}`}>
-                    {group.letter}
-                  </h2>
-                  <ul className="skills-grid">
-                    {group.entries.map((entry) => (
-                      <li key={entry.id}>
-                        <TermCard entry={entry} />
+            azEmpty ? (
+              <div className="skills-empty" role="status">
+                <p>No matching terms</p>
+                <p>Nothing in the glossary uses this filter yet. Clear it, or try another word.</p>
+              </div>
+            ) : (
+              <div className="glossary-letters">
+                {letterGroups.map((group) => (
+                  <section key={group.letter} aria-labelledby={`glossary-${group.letter}`}>
+                    <h2 className="glossary-letter" id={`glossary-${group.letter}`}>
+                      {group.letter}
+                    </h2>
+                    <ul className="glossary-dict">
+                      {group.entries.map((entry) => (
+                        <DictionaryRow
+                          key={entry.id}
+                          entry={entry}
+                          showLesson
+                          teacherCode={teacher}
+                          onSaved={replaceEntry}
+                          onDeleted={removeEntry}
+                        />
+                      ))}
+                    </ul>
+                  </section>
+                ))}
+              </div>
+            )
+          ) : selected ? (
+            <section aria-labelledby="glossary-lesson-heading">
+              <div className="glossary-lesson-head" ref={menuRef}>
+                <div className="glossary-lesson-title-row">
+                  <Link
+                    href={`/lessons/${selected.slug}/`}
+                    className="glossary-lesson-code"
+                    title={`Open ${selected.title}`}
+                  >
+                    {selected.code}
+                  </Link>
+                  <button
+                    type="button"
+                    id="glossary-lesson-heading"
+                    className="glossary-pad glossary-lesson-title"
+                    aria-expanded={menuOpen}
+                    aria-controls={menuId}
+                    onClick={() => setMenuOpen((open) => !open)}
+                  >
+                    {selected.title}
+                  </button>
+                </div>
+                {menuOpen ? (
+                  <ul className="glossary-lesson-menu" id={menuId} role="listbox">
+                    {otherLessons.map((lesson) => (
+                      <li key={lesson.code}>
+                        <button
+                          type="button"
+                          className="glossary-lesson-option"
+                          role="option"
+                          onClick={() => setLesson(lesson.code)}
+                        >
+                          <span className="skills-card-code">{lesson.code}</span>
+                          <span>{lesson.title}</span>
+                        </button>
                       </li>
                     ))}
                   </ul>
-                </section>
-              ))}
-            </div>
-          ) : (
-            <>
-              <ul className="skills-grid" role="list">
-                {visibleLessons.map((lesson) => {
-                  const selected = lessonParam === lesson.code;
-                  const count = termsForLesson(lesson.code).filter((entry) =>
-                    entryMatches(entry, qParam)
-                  ).length;
-                  return (
-                    <li key={lesson.code}>
-                      <button
-                        type="button"
-                        className={`glossary-tile${selected ? " is-selected" : ""}`}
-                        aria-pressed={selected}
-                        onClick={() => setLesson(lesson.code)}
-                      >
-                        <p className="skills-card-code">{lesson.code}</p>
-                        <p className="glossary-tile-title">{titleFor(lesson.code)}</p>
-                        <p className="glossary-tile-count">
-                          {count} {count === 1 ? "term" : "terms"}
-                        </p>
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-              {lessonParam && selectedTerms.length > 0 ? (
-                <section className="glossary-lesson-terms" aria-labelledby="glossary-lesson-heading">
-                  <h2 className="glossary-lesson-heading" id="glossary-lesson-heading">
-                    <span className="skills-card-code">{lessonParam}</span>
-                    {titleFor(lessonParam)}
-                  </h2>
-                  <ul className="skills-grid">
-                    {selectedTerms.map((entry) => (
-                      <li key={entry.id}>
-                        <TermCard entry={entry} />
-                      </li>
-                    ))}
-                  </ul>
-                </section>
+                ) : null}
+                <div className="glossary-lesson-meta">
+                  <p className="glossary-lesson-count">
+                    {selectedTerms.length} {selectedTerms.length === 1 ? "term" : "terms"}
+                  </p>
+                  {teacher ? (
+                    <button
+                      type="button"
+                      className="glossary-pad"
+                      onClick={() => setAdding((open) => !open)}
+                    >
+                      Add a definition
+                    </button>
+                  ) : null}
+                </div>
+                {teacher && adding ? (
+                  <AddTermForm
+                    teacherCode={teacher}
+                    lessonCode={selected.code}
+                    onAdded={(entry) => {
+                      setEntries((current) => [...current, entry]);
+                      setAdding(false);
+                    }}
+                    onCancel={() => setAdding(false)}
+                  />
+                ) : null}
+              </div>
+              {selectedTerms.length > 0 ? (
+                <ul className="glossary-dict">
+                  {selectedTerms.map((entry) => (
+                    <DictionaryRow
+                      key={entry.id}
+                      entry={entry}
+                      teacherCode={teacher}
+                      onSaved={replaceEntry}
+                      onDeleted={removeEntry}
+                    />
+                  ))}
+                </ul>
               ) : (
-                <p className="glossary-prompt">Pick a lesson to see its terms.</p>
+                <p className="glossary-prompt">
+                  {qParam.trim()
+                    ? "No matching terms in this lesson."
+                    : "No terms for this lesson yet."}
+                </p>
               )}
-            </>
+            </section>
+          ) : (
+            <p className="glossary-prompt">No lessons in the catalog yet.</p>
           )}
         </div>
       </div>
@@ -256,15 +354,229 @@ export function GlossaryHub({ titles }: GlossaryHubProps) {
   );
 }
 
-function TermCard({ entry }: { entry: GlossaryEntry }) {
+function AddTermForm({
+  teacherCode,
+  lessonCode,
+  onAdded,
+  onCancel,
+}: {
+  teacherCode: string;
+  lessonCode: string;
+  onAdded: (entry: GlossaryEntry) => void;
+  onCancel: () => void;
+}) {
+  const termId = useId();
+  const definitionId = useId();
+  const [term, setTerm] = useState("");
+  const [definition, setDefinition] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function onSubmit(event: FormEvent) {
+    event.preventDefault();
+    if (saving) return;
+    setSaving(true);
+    setError(null);
+    try {
+      const added = await addGlossaryTerm(teacherCode, lessonCode, term, definition);
+      onAdded(added);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not add that term.");
+      setSaving(false);
+    }
+  }
+
   return (
-    <Card className="skills-card" size="sm">
-      <CardHeader>
-        <p className="skills-card-code">{entry.lessonCode}</p>
-        <CardTitle>{entry.term}</CardTitle>
-        <CardDescription>{entry.definition}</CardDescription>
-      </CardHeader>
-    </Card>
+    <form className="glossary-dict-form" onSubmit={onSubmit}>
+      <label className="glossary-modal-label" htmlFor={termId}>
+        Term
+      </label>
+      <Input
+        id={termId}
+        value={term}
+        maxLength={80}
+        autoComplete="off"
+        onChange={(event) => setTerm(event.target.value)}
+      />
+      <label className="glossary-modal-label" htmlFor={definitionId}>
+        Definition
+      </label>
+      <Input
+        id={definitionId}
+        value={definition}
+        maxLength={400}
+        autoComplete="off"
+        onChange={(event) => setDefinition(event.target.value)}
+      />
+      {error ? (
+        <p className="glossary-modal-error" role="alert">
+          {error}
+        </p>
+      ) : null}
+      <div className="glossary-dict-form-actions">
+        <Button type="submit" size="sm" disabled={saving || !term.trim() || !definition.trim()}>
+          {saving ? "Adding…" : "Add"}
+        </Button>
+        <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
+          Cancel
+        </Button>
+      </div>
+    </form>
+  );
+}
+
+function DictionaryRow({
+  entry,
+  showLesson = false,
+  teacherCode,
+  onSaved,
+  onDeleted,
+}: {
+  entry: GlossaryEntry;
+  showLesson?: boolean;
+  teacherCode: string | null;
+  onSaved: (entry: GlossaryEntry) => void;
+  onDeleted: (id: string) => void;
+}) {
+  const termId = useId();
+  const definitionId = useId();
+  const [confirming, setConfirming] = useState(false);
+  const [term, setTerm] = useState(entry.term);
+  const [definition, setDefinition] = useState(entry.definition);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const skipSave = useRef(false);
+  const termRef = useRef(term);
+  const definitionRef = useRef(definition);
+  termRef.current = term;
+  definitionRef.current = definition;
+
+  useEffect(() => {
+    setTerm(entry.term);
+    setDefinition(entry.definition);
+  }, [entry.term, entry.definition]);
+
+  async function persist() {
+    if (!teacherCode || busy) return;
+    const nextTerm = termRef.current.trim();
+    const nextDefinition = definitionRef.current.trim();
+    if (nextTerm === entry.term && nextDefinition === entry.definition) {
+      setError(null);
+      return;
+    }
+    if (!nextTerm || !nextDefinition) {
+      setError("Add a term and a short definition.");
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      const saved = await updateGlossaryTerm(teacherCode, entry.id, nextTerm, nextDefinition);
+      onSaved(saved);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not save that term.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function onBlur() {
+    if (skipSave.current) {
+      skipSave.current = false;
+      return;
+    }
+    void persist();
+  }
+
+  function onKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+    if (event.key !== "Escape") return;
+    skipSave.current = true;
+    setTerm(entry.term);
+    setDefinition(entry.definition);
+    setError(null);
+    event.currentTarget.blur();
+  }
+
+  async function onDelete() {
+    if (!teacherCode || busy) return;
+    setBusy(true);
+    setError(null);
+    try {
+      await deleteGlossaryTerm(teacherCode, entry.id);
+      onDeleted(entry.id);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not delete that term.");
+      setBusy(false);
+    }
+  }
+
+  return (
+    <li className="glossary-dict-row">
+      {teacherCode ? (
+        confirming ? (
+          <span className="glossary-dict-confirm">
+            <button type="button" onClick={onDelete} disabled={busy}>
+              Delete
+            </button>
+            <button type="button" onClick={() => setConfirming(false)} disabled={busy}>
+              Keep
+            </button>
+          </span>
+        ) : (
+          <button
+            type="button"
+            className="glossary-dict-delete"
+            aria-label={`Delete ${entry.term}`}
+            onClick={() => setConfirming(true)}
+          >
+            <Trash2 />
+          </button>
+        )
+      ) : null}
+      {showLesson ? <span className="glossary-dict-code">{entry.lessonCode}</span> : null}
+      {teacherCode ? (
+        <>
+          <input
+            id={termId}
+            className="glossary-dict-field is-term"
+            aria-label={`Term, ${entry.term}`}
+            value={term}
+            maxLength={80}
+            autoComplete="off"
+            disabled={busy}
+            onChange={(event) => setTerm(event.target.value)}
+            onBlur={onBlur}
+            onKeyDown={onKeyDown}
+          />
+          <span className="glossary-dict-dash" aria-hidden="true">
+            —
+          </span>
+          <input
+            id={definitionId}
+            className="glossary-dict-field"
+            aria-label={`Definition of ${entry.term}`}
+            value={definition}
+            maxLength={400}
+            autoComplete="off"
+            disabled={busy}
+            onChange={(event) => setDefinition(event.target.value)}
+            onBlur={onBlur}
+            onKeyDown={onKeyDown}
+          />
+        </>
+      ) : (
+        <p className="glossary-dict-text">
+          <span className="glossary-dict-term">{entry.term}</span>
+          <span className="glossary-dict-dash"> — </span>
+          <span>{entry.definition}</span>
+        </p>
+      )}
+      {error ? (
+        <p className="glossary-modal-error" role="alert">
+          {error}
+        </p>
+      ) : null}
+    </li>
   );
 }
 

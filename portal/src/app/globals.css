@@ -465,8 +465,11 @@ h1, h2, h3 {
 
 .k2-deck-stage {
   display: grid;
-  place-items: center;
+  justify-items: center;
+  align-items: safe center;
   min-height: calc(100dvh - var(--header-height) - 14rem);
+  max-height: calc(100dvh - var(--header-height) - 14rem);
+  overflow-y: auto;
   padding: clamp(1.25rem, 4vw, 2.75rem);
   background: var(--ka-snow);
   border: 3px solid var(--ka-edge);
@@ -508,14 +511,50 @@ h1, h2, h3 {
 }
 
 .k2-slide-media .embed,
-.k2-slide-media .break {
+.k2-slide-media .break,
+.k2-slide-media .notation-excerpt,
+.k2-slide-media figure {
   margin: 0;
 }
 
-.k2-slide-media .break img {
+.k2-slide-copy-body {
+  width: min(100%, 46rem);
+  text-align: left;
+  font-size: clamp(1.15rem, 0.55vw + 1rem, 1.45rem);
+  line-height: 1.45;
+}
+
+.k2-slide-copy-body > *:first-child {
+  margin-top: 0;
+}
+
+.k2-slide-copy-body > *:last-child {
+  margin-bottom: 0;
+}
+
+.k2-slide-copy-body h2,
+.k2-slide-copy-body h3 {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
+.k2-slide-copy-body .donow-block,
+.k2-slide-copy-body .activate-block {
+  margin: 0;
+}
+
+.k2-slide-copy-body table {
+  display: block;
+  overflow-x: auto;
+}
+
+.k2-slide-media .break img,
+.k2-slide-media figure img {
   max-height: min(42vh, 20rem);
   width: auto;
   margin-inline: auto;
+  display: block;
 }
 
 .k2-slide-lines {
@@ -2038,6 +2077,7 @@ button.lesson-toolbar-item {
 
   .k2-deck-stage {
     min-height: calc(100dvh - var(--header-height) - 13rem);
+    max-height: calc(100dvh - var(--header-height) - 13rem);
   }
 }
 
@@ -2956,6 +2996,14 @@ button.lesson-toolbar-item {
   display: grid;
   justify-items: center;
   gap: 0.2rem;
+}
+
+.teacher-knob-wrap.is-idle {
+  opacity: 0.38;
+}
+
+.teacher-knob-wrap.is-idle .teacher-knob {
+  cursor: default;
 }
 
 .teacher-knob-caption {

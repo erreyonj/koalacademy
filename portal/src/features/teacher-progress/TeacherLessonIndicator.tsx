@@ -9,6 +9,7 @@ import {
   BAND_SECTIONS,
   PHASE_LABEL,
   PHASE_MARK,
+  SCHOLARS_SECTION,
   SECTION_LABEL,
   TEACHER_PHASES,
   cellComplete,
@@ -29,6 +30,7 @@ type HousePick = "g" | "b";
 const HOUSES: readonly HousePick[] = ["g", "b"];
 
 function asSection(grade: TeacherGrade, house: HousePick): TeacherSection {
+  if (grade === SCHOLARS_SECTION) return SCHOLARS_SECTION;
   return `${grade}${house}` as TeacherSection;
 }
 
@@ -36,6 +38,9 @@ function parseSection(section: TeacherSection): {
   grade: TeacherGrade;
   house: HousePick;
 } {
+  if (section === SCHOLARS_SECTION) {
+    return { grade: SCHOLARS_SECTION, house: "g" };
+  }
   return {
     grade: section[0] as TeacherGrade,
     house: section[1] as HousePick,
@@ -47,21 +52,26 @@ function wrapIndex(index: number, length: number) {
 }
 
 function gradeLabel(grade: TeacherGrade) {
-  return grade === "k" ? "K" : grade;
+  if (grade === "k") return "K";
+  if (grade === SCHOLARS_SECTION) return "Scholars";
+  return grade;
 }
 
 function Knob({
   label,
   valueText,
   angle,
+  idle,
   onStep,
 }: {
   label: string;
   valueText: string;
   angle: number;
+  idle?: boolean;
   onStep: (dir: 1 | -1) => void;
 }) {
   function onKey(event: KeyboardEvent<HTMLButtonElement>) {
+    if (idle) return;
     if (event.key === "ArrowRight" || event.key === "ArrowUp") {
       event.preventDefault();
       onStep(1);
@@ -72,13 +82,21 @@ function Knob({
   }
 
   return (
-    <label className="teacher-knob-wrap">
+    <label className={idle ? "teacher-knob-wrap is-idle" : "teacher-knob-wrap"}>
       <span className="teacher-knob-caption">{label}</span>
       <button
         type="button"
         className="teacher-knob"
-        aria-label={`${label}: ${valueText}. Click or use arrows to change.`}
-        onClick={(event) => onStep(event.shiftKey ? -1 : 1)}
+        disabled={idle}
+        aria-label={
+          idle
+            ? `${label} ignored while Scholars is selected.`
+            : `${label}: ${valueText}. Click or use arrows to change.`
+        }
+        onClick={(event) => {
+          if (idle) return;
+          onStep(event.shiftKey ? -1 : 1);
+        }}
         onKeyDown={onKey}
       >
         <span className="teacher-knob-face" aria-hidden="true">
@@ -101,6 +119,7 @@ export function TeacherLessonIndicator({
   const { unlocked, ready, error, cell, lock, setPhase, setAllPhases, rows } =
     useTeacherMode();
   const [picked, setPicked] = useState<TeacherSection | null>(null);
+  const [houseHold, setHouseHold] = useState<HousePick>("g");
   const grades = BAND_GRADES[band] as readonly TeacherGrade[];
   const sections = BAND_SECTIONS[band];
 
@@ -119,6 +138,8 @@ export function TeacherLessonIndicator({
       ? picked
       : suggested;
   const { grade, house } = parseSection(section);
+  const scholarsOn = section === SCHOLARS_SECTION;
+  const resumeHouse = scholarsOn ? houseHold : house;
   const flags = cell(section, slug);
   const done = cellComplete(flags);
   const noneMarked = !flags.lesson && !flags.review && !flags.lab;
@@ -133,15 +154,22 @@ export function TeacherLessonIndicator({
   else if (!isHere) status = "CLEAR";
 
   function setGrade(next: TeacherGrade) {
-    setPicked(asSection(next, house));
+    if (next === SCHOLARS_SECTION) {
+      if (!scholarsOn) setHouseHold(house);
+      setPicked(SCHOLARS_SECTION);
+      return;
+    }
+    setPicked(asSection(next, resumeHouse));
   }
 
   function setHouse(next: HousePick) {
-    setPicked(asSection(grade, next));
+    setHouseHold(next);
+    if (!scholarsOn) setPicked(asSection(grade, next));
   }
 
-  const gradeAngle = (grades.indexOf(grade) - 1) * 48;
-  const houseAngle = house === "g" ? -36 : 36;
+  const gradeCenter = (grades.length - 1) / 2;
+  const gradeAngle = (grades.indexOf(grade) - gradeCenter) * 36;
+  const houseAngle = resumeHouse === "g" ? -36 : 36;
 
   return (
     <div className="teacher-device-anchor">
@@ -181,11 +209,14 @@ export function TeacherLessonIndicator({
           />
           <Knob
             label="House"
-            valueText={house === "g" ? "Gold" : "Blue"}
+            valueText={resumeHouse === "g" ? "Gold" : "Blue"}
             angle={houseAngle}
+            idle={scholarsOn}
             onStep={(dir) =>
               setHouse(
-                HOUSES[wrapIndex(HOUSES.indexOf(house) + dir, HOUSES.length)],
+                HOUSES[
+                  wrapIndex(HOUSES.indexOf(resumeHouse) + dir, HOUSES.length)
+                ],
               )
             }
           />

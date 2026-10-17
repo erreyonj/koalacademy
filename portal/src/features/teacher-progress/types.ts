@@ -1,5 +1,7 @@
 import type { BandId } from "@/lib/types";
 
+export const SCHOLARS_SECTION = "scholars" as const;
+
 export const TEACHER_SECTIONS = [
   "kg",
   "kb",
@@ -21,9 +23,12 @@ export const TEACHER_SECTIONS = [
   "8b",
 ] as const;
 
-export type TeacherSection = (typeof TEACHER_SECTIONS)[number];
+export type TeacherSection =
+  | (typeof TEACHER_SECTIONS)[number]
+  | typeof SCHOLARS_SECTION;
 
 export const SECTION_LABEL: Record<TeacherSection, string> = {
+  scholars: "Scholars",
   kg: "K Gold",
   kb: "K Blue",
   "1g": "1 Gold",
@@ -45,7 +50,7 @@ export const SECTION_LABEL: Record<TeacherSection, string> = {
 };
 
 export const BAND_GRADES = {
-  "k-2": ["k", "1", "2"],
+  "k-2": ["k", "1", "2", "scholars"],
   "3-5": ["3", "4", "5"],
   "6-8": ["6", "7", "8"],
 } as const;
@@ -53,7 +58,7 @@ export const BAND_GRADES = {
 export type TeacherGrade = (typeof BAND_GRADES)[BandId][number];
 
 export const BAND_SECTIONS: Record<BandId, readonly TeacherSection[]> = {
-  "k-2": ["kg", "kb", "1g", "1b", "2g", "2b"],
+  "k-2": ["kg", "kb", "1g", "1b", "2g", "2b", "scholars"],
   "3-5": ["3g", "3b", "4g", "4b", "5g", "5b"],
   "6-8": ["6g", "6b", "7g", "7b", "8g", "8b"],
 };
@@ -104,6 +109,7 @@ export const PHASE_LABEL: Record<TeacherPhase, string> = {
 };
 
 export function sectionBand(section: string): BandId {
+  if (section === SCHOLARS_SECTION) return "k-2";
   const grade = section[0];
   if (grade === "k" || grade === "1" || grade === "2") return "k-2";
   if (grade === "3" || grade === "4" || grade === "5") return "3-5";

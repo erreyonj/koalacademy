@@ -7,12 +7,16 @@ sequence: 6
 created: "2026-08-27"
 unit: 1
 component: "Koala Sampler Navigation"
+presentation: "deck"
 skills:
   - file management
   - export
 ---
 
-<DoNow title="Make the title" materials={[["look"], ["partner"], ["journal", "write"]]}>
+<Deck>
+  <Section name="Do Now">
+    <Slide copy kicker="Do Now">
+      <DoNow title="Make the title" materials={[["look"], ["partner"], ["journal", "write"]]}>
 
 Write **your name** at the top of the page.
 
@@ -30,71 +34,111 @@ Example shape only: instead of *Where the Wild Things Are*, a table might get *W
 Pens down when you have a title.
 
 </DoNow>
+    </Slide>
+  </Section>
 
-## Why the hamburger exists
+  <Section name="Hamburger">
+    <Slide copy kicker="Why the hamburger exists">
 
 The rest of this course — Unit 2 samples, drum kits, the final project — assumes you can **save**, **name**, and **put a file where the class can see it**.
 
+</Slide>
+    <Slide copy kicker="Why the hamburger exists">
+
 The hamburger (top right, any tab) is Koala's file and settings menu.
 
-<figure>
-  <img src="/assets/ksn-5/koala-main-menu.PNG" alt="Koala Sample tab with the hamburger menu open. The list shows NEW, LOAD, SAVE, SAVE AS, RECORD SONG, RESAMPLE LOOP, EXPORT, IMPORT AUDIO, IMPORT VIDEO, SETTINGS, HELP, and GET LIVE LITE." />
-  <figcaption>Hamburger. Save, export, import, and settings all live here.</figcaption>
-</figure>
+</Slide>
+    <Slide kicker="Hamburger" sub="Hamburger. Save, export, import, and settings all live here.">
+      <figure>
+        <img src="/assets/ksn-5/koala-main-menu.PNG" alt="Koala Sample tab with the hamburger menu open. The list shows NEW, LOAD, SAVE, SAVE AS, RECORD SONG, RESAMPLE LOOP, EXPORT, IMPORT AUDIO, IMPORT VIDEO, SETTINGS, HELP, and GET LIVE LITE." />
+      </figure>
+    </Slide>
+    <Slide copy kicker="Why the hamburger exists">
 
 This is a **production day**. Devices out as a routine after the Do Now. We stay on SAMPLE or SEQUENCE only long enough to have something worth saving.
 
-## Settings and auxiliary screens
+</Slide>
+  </Section>
+
+  <Section name="Settings">
+    <Slide copy kicker="Settings">
 
 Hamburger → **SETTINGS** → **EXTRAS** is where Koala hides the switches that change what you see on the pads.
 
-<figure>
-  <img src="/assets/ksn-5/koala-settings-extras-top.PNG" alt="Koala SETTINGS window on the EXTRAS tab. Toggles include Show EQ, Save as template, Show Mute/Solo, Show status bar, and Show file names on pads." />
-  <figcaption>SETTINGS → EXTRAS. Top half.</figcaption>
-</figure>
-
-<figure>
-  <img src="/assets/ksn-5/koala-settings-extras-bottom.PNG" alt="Koala SETTINGS EXTRAS tab continued. Toggles include Show Debug Info, Hide Apple Audio Units, Advanced Quantization Options, and Background." />
-  <figcaption>EXTRAS continued.</figcaption>
-</figure>
+</Slide>
+    <Slide kicker="EXTRAS" sub="SETTINGS → EXTRAS. Top half.">
+      <figure>
+        <img src="/assets/ksn-5/koala-settings-extras-top.PNG" alt="Koala SETTINGS window on the EXTRAS tab. Toggles include Show EQ, Save as template, Show Mute/Solo, Show status bar, and Show file names on pads." />
+      </figure>
+    </Slide>
+    <Slide kicker="EXTRAS" sub="EXTRAS continued.">
+      <figure>
+        <img src="/assets/ksn-5/koala-settings-extras-bottom.PNG" alt="Koala SETTINGS EXTRAS tab continued. Toggles include Show Debug Info, Hide Apple Audio Units, Advanced Quantization Options, and Background." />
+      </figure>
+    </Slide>
+    <Slide copy kicker="Settings">
 
 The toggle that matters today: **Show file names on pads**. Turn it on if your pads still say nothing after you label them.
 
-## User folders and the Samples drawer
+</Slide>
+  </Section>
+
+  <Section name="User folders">
+    <Slide copy kicker="User folders">
 
 You already opened **^ SAMPLES** in `KSN.1`. Class files live there. Today you add **your** place inside that system.
+
+</Slide>
+    <Slide copy kicker="User folders">
 
 1. Open **^ SAMPLES**.
 2. Find **ADD LOCATION** / a new folder (teacher shows the exact tap on the projected iPad — iPadOS file picker wording moves).
 3. Name it with **your name** or your Koalacademy handle — not `Folder`, not `aaaa`.
 4. That folder is where **your** samples and exports go. **BASICS** stays BASICS. Do not dump class packs into your folder and call them yours.
 
+</Slide>
+    <Slide copy kicker="User folders">
+
 A named folder is how Mr. Erreyon can tell whose work is whose when thirty iPads hit the same share.
 
-## Getting a clip onto the iPad
+</Slide>
+  </Section>
+
+  <Section name="Getting a clip onto the iPad">
+    <Slide copy kicker="Getting a clip onto the iPad">
 
 Before you can **IMPORT VIDEO**, the clip has to live on the iPad. Mr. Erreyon demos this on the projected iPad.
 
-<figure>
-  <img src="/assets/ksn-5/ipad-home-screen.PNG" alt="iPad home screen with Koala and Files in the dock." />
-  <figcaption>Home screen. Koala and Files stay in the dock for this course.</figcaption>
-</figure>
+</Slide>
+    <Slide kicker="Home screen" sub="Home screen. Koala and Files stay in the dock for this course.">
+      <figure>
+        <img src="/assets/ksn-5/ipad-home-screen.PNG" alt="iPad home screen with Koala and Files in the dock." />
+      </figure>
+    </Slide>
+    <Slide copy kicker="Getting a clip onto the iPad">
 
 Swipe down from the top-right corner for **Control Center**. Tap the **screen record** button (circle inside a circle). A three-second countdown starts; then the iPad records whatever is on screen.
 
-<figure>
-  <img src="/assets/ksn-5/ipad-control-panel.PNG" alt="iPad Control Center with connectivity, brightness, volume, and the screen record button in the lower-left of the grid." />
-  <figcaption>Control Center. Screen record is the circle-in-a-circle icon.</figcaption>
-</figure>
-
-<figure>
-  <img src="/assets/ksn-5/ipad-control-panel-recording.PNG" alt="iPad Control Center while screen recording is active. The screen record button shows a red dot, and a red pill appears in the status bar." />
-  <figcaption>Recording. Red pill in the status bar means it is on. Tap the pill or the button again to stop.</figcaption>
-</figure>
+</Slide>
+    <Slide kicker="Control Center" sub="Control Center. Screen record is the circle-in-a-circle icon.">
+      <figure>
+        <img src="/assets/ksn-5/ipad-control-panel.PNG" alt="iPad Control Center with connectivity, brightness, volume, and the screen record button in the lower-left of the grid." />
+      </figure>
+    </Slide>
+    <Slide kicker="Recording" sub="Recording. Red pill in the status bar means it is on. Tap the pill or the button again to stop.">
+      <figure>
+        <img src="/assets/ksn-5/ipad-control-panel-recording.PNG" alt="iPad Control Center while screen recording is active. The screen record button shows a red dot, and a red pill appears in the status bar." />
+      </figure>
+    </Slide>
+    <Slide copy kicker="Getting a clip onto the iPad">
 
 The finished clip lands in **Photos**. From there you can pull it into Koala.
 
-## Importing audio
+</Slide>
+  </Section>
+
+  <Section name="Importing audio">
+    <Slide copy kicker="Importing audio">
 
 Koala can take audio from:
 
@@ -104,33 +148,46 @@ Koala can take audio from:
 - Hamburger → **IMPORT AUDIO** or **IMPORT VIDEO** — sound lands on a pad either way
 - Packs under **GET MORE SAMPLES**
 
+</Slide>
+    <Slide copy kicker="Importing audio">
+
 **Splice** is still a conversation about how producers find sounds in the world. It is **not** a login for this room. If a lesson needs a file, it is already on the iPad or in the class folder.
+
+</Slide>
+    <Slide copy kicker="Importing audio">
 
 **IMPORT VIDEO** pulls the audio off a clip and puts it on a pad. Same job as importing a sound file — you are not editing video inside Koala.
 
-<figure>
-  <img src="/assets/ksn-5/koala-import-video-select.PNG" alt="Koala IMPORT VIDEO picker over the Sample tab. A grid of video thumbnails from the iPad Photos library is shown." />
-  <figcaption>IMPORT VIDEO. Pick a short clip from Photos.</figcaption>
-</figure>
-
-<figure>
-  <img src="/assets/ksn-5/koala-import-video-selected.PNG" alt="Koala IMPORT VIDEO picker with one video thumbnail highlighted as selected." />
-  <figcaption>Selected. Tap to confirm.</figcaption>
-</figure>
-
-<figure>
-  <img src="/assets/ksn-5/koala-sample-tab-video-imported.PNG" alt="Koala Sample tab after import. Pad 1 is blue and labeled video-import with a waveform." />
-  <figcaption>Imported. The pad gets a default name — relabel it.</figcaption>
-</figure>
-
-<figure>
-  <img src="/assets/ksn-5/koala-sample-tab-label-sample.PNG" alt="Koala Sample tab with the LABEL tool open on an imported pad. The name field shows video-import." />
-  <figcaption>LABEL. Same tool as KSN.1 — give the pad a real name.</figcaption>
-</figure>
+</Slide>
+    <Slide kicker="IMPORT VIDEO" sub="IMPORT VIDEO. Pick a short clip from Photos.">
+      <figure>
+        <img src="/assets/ksn-5/koala-import-video-select.PNG" alt="Koala IMPORT VIDEO picker over the Sample tab. A grid of video thumbnails from the iPad Photos library is shown." />
+      </figure>
+    </Slide>
+    <Slide kicker="IMPORT VIDEO" sub="Selected. Tap to confirm.">
+      <figure>
+        <img src="/assets/ksn-5/koala-import-video-selected.PNG" alt="Koala IMPORT VIDEO picker with one video thumbnail highlighted as selected." />
+      </figure>
+    </Slide>
+    <Slide kicker="Imported" sub="Imported. The pad gets a default name — relabel it.">
+      <figure>
+        <img src="/assets/ksn-5/koala-sample-tab-video-imported.PNG" alt="Koala Sample tab after import. Pad 1 is blue and labeled video-import with a waveform." />
+      </figure>
+    </Slide>
+    <Slide kicker="LABEL" sub="LABEL. Same tool as KSN.1 — give the pad a real name.">
+      <figure>
+        <img src="/assets/ksn-5/koala-sample-tab-label-sample.PNG" alt="Koala Sample tab with the LABEL tool open on an imported pad. The name field shows video-import." />
+      </figure>
+    </Slide>
+    <Slide copy kicker="Importing audio">
 
 Import one short file only if we put one in the class folder for today. Label the pad. Long files clog the machine.
 
-## Save, export, and what the words mean
+</Slide>
+  </Section>
+
+  <Section name="Save and export">
+    <Slide copy kicker="Save and export">
 
 Koala uses a few different jobs.
 
@@ -140,64 +197,112 @@ Koala uses a few different jobs.
 | **Export / bounce audio** | Makes a sound file (wav / similar) other apps and the class folder can play |
 | **Export settings** | The small file from `KSN.2` (queue at **SEQ END**). Not your beat. |
 
+</Slide>
+    <Slide copy kicker="Save and export">
+
 Saving the project is not the same as putting a file on the class share. The class folder only sees what you **export** (or copy) into it.
+
+</Slide>
+    <Slide copy kicker="Save and export">
 
 Name the file like a title, not a timestamp dump: `lastname-ksn5` or the movie title from the Do Now if it is short. No `Recording 3`.
 
+</Slide>
+    <Slide copy kicker="Save and export">
+
 The **Files** app is how you browse what Koala saved and move it to the class share. Open **Files** from the dock → **Browse** → **On My iPad** → the **koala** folder (or **Drive** if that is where the class folder lives).
 
-<figure>
-  <img src="/assets/ksn-5/ipad-files-sidebar.PNG" alt="iPad Files app sidebar with Browse selected. Locations include On My iPad, iCloud Drive, and Drive. The koala folder is visible in the main pane." />
-  <figcaption>Files → Browse. On My iPad holds Koala's local folder.</figcaption>
-</figure>
-
-<figure>
-  <img src="/assets/ksn-5/ipad-main-files-screen.PNG" alt="iPad Files app showing the contents of a koala songs folder with several .koala project files." />
-  <figcaption>Inside the koala folder. Your saved projects show up here.</figcaption>
-</figure>
+</Slide>
+    <Slide kicker="Files" sub="Files → Browse. On My iPad holds Koala's local folder.">
+      <figure>
+        <img src="/assets/ksn-5/ipad-files-sidebar.PNG" alt="iPad Files app sidebar with Browse selected. Locations include On My iPad, iCloud Drive, and Drive. The koala folder is visible in the main pane." />
+      </figure>
+    </Slide>
+    <Slide kicker="Files" sub="Inside the koala folder. Your saved projects show up here.">
+      <figure>
+        <img src="/assets/ksn-5/ipad-main-files-screen.PNG" alt="iPad Files app showing the contents of a koala songs folder with several .koala project files." />
+      </figure>
+    </Slide>
+    <Slide copy kicker="Save and export">
 
 Long-press a file → **Share** or **Move** to put it in the **shared class folder**.
 
-<figure>
-  <img src="/assets/ksn-5/ipad-files-share-file.PNG" alt="iPad Files app with a .koala file selected. The context menu shows Copy, Move, Share, Quick Look, Rename, and Delete." />
-  <figcaption>Long-press → Share or Move. That is how a file leaves your iPad and hits the class folder.</figcaption>
-</figure>
+</Slide>
+    <Slide kicker="Share" sub="Long-press → Share or Move. That is how a file leaves your iPad and hits the class folder.">
+      <figure>
+        <img src="/assets/ksn-5/ipad-files-share-file.PNG" alt="iPad Files app with a .koala file selected. The context menu shows Copy, Move, Share, Quick Look, Rename, and Delete." />
+      </figure>
+    </Slide>
+  </Section>
 
-## Backups, rename, delete
+  <Section name="Backups">
+    <Slide copy kicker="Backups">
 
 The class folder **is** the backup we use in this room. Your iPad can be wiped. A file that only lives in Koala on one iPad is not turned in.
+
+</Slide>
+    <Slide copy kicker="Backups">
 
 - **Rename** before you export if the name is still `Song` or `Recording`.
 - **Delete** only what you made and know you do not need. Do not delete **BASICS**, class packs, or someone else's folder.
 - If you overwrite a file on the share, the old one is gone. New version → new name (`-v2`) unless Mr. Erreyon says replace it.
 
-<Break
-  src="/assets/ka-main-smile-decal-no-bg.png"
-  alt="The koala is holding a folder like it might lose the whole year."
-  caption="If it is not in the class folder, it is not turned in."
-/>
+</Slide>
+    <Slide kicker="Backups">
+      <Break
+        src="/assets/ka-main-smile-decal-no-bg.png"
+        alt="The koala is holding a folder like it might lose the whole year."
+        caption="If it is not in the class folder, it is not turned in."
+      />
+    </Slide>
+  </Section>
 
-## What you should be able to do after this
+  <Section name="After this">
+    <Slide copy kicker="What you should be able to do after this">
 
 1. Open the hamburger and say what it is for.
 2. Show or create **your** named folder in **^ SAMPLES**.
 3. Say the difference between **saving in Koala** and **exporting a file**.
 4. **Exit ticket:** save (export) a file into **our shared class folder** for Koala-related assignments.
 
-<Activate title="Into the class folder">
+</Slide>
+  </Section>
+
+  <Section name="Into the class folder">
+    <Slide copy kicker="Into the class folder">
 
 This is a production-day You-do. Devices out as a routine, then work.
 
+</Slide>
+    <Slide copy kicker="Into the class folder">
+
 1. *I do:* On the projected iPad — hamburger, name a song, export one short audio (or the settings file if we have no beat yet), put it in the **shared class folder**. Say the name out loud.
+
+</Slide>
+    <Slide copy kicker="Into the class folder">
+
 2. *We do:* Class names Save vs Export vs the class folder before anyone taps.
+
+</Slide>
+    <Slide copy kicker="Into the class folder">
+
 3. *You do:*
-   - Have **one** thing to save: a labeled pad from `KSN.1`, a sequence from `KSN.2`, or a one-shot you record now.
-   - **Save** the project in Koala.
-   - **Export** a file with a real name.
-   - Put that file in the **shared class folder** — same Files path as above. If it is not there, the ticket is not done.
+
+- Have **one** thing to save: a labeled pad from `KSN.1`, a sequence from `KSN.2`, or a one-shot you record now.
+- **Save** the project in Koala.
+- **Export** a file with a real name.
+- Put that file in the **shared class folder** — same Files path as above. If it is not there, the ticket is not done.
+
+</Slide>
+    <Slide copy kicker="Into the class folder">
 
 Share: two names on the board whose files Mr. Erreyon can see in the folder. Then devices away.
 
+</Slide>
+    <Slide copy kicker="Into the class folder">
+
 If the folder is empty, you saved inside Koala only. If the name is `Recording`, rename and export again. If you cannot see the class folder, you are in the wrong location — come back to the projected path.
 
-</Activate>
+</Slide>
+  </Section>
+</Deck>

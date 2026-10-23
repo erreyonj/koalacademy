@@ -120,8 +120,9 @@ export function keyImpliesAccidental(
   return implied === accidental;
 }
 
-export function scalePitches(key: string, startOctave = 4): string[] {
-  const pcs = keyPitchClasses(key);
+/** One octave of a named scale, e.g. "G dorian" or "Bb minor". */
+export function scalePitchesFor(scaleName: string, startOctave = 4): string[] {
+  const pcs = Scale.get(scaleName).notes;
   if (pcs.length === 0) return [];
   let octave = startOctave;
   let prevMidi = -1;
@@ -143,6 +144,12 @@ export function scalePitches(key: string, startOctave = 4): string[] {
   }
   pitches.push(top);
   return pitches;
+}
+
+export function scalePitches(key: string, startOctave = 4): string[] {
+  const { tonic, mode } = parseKeyName(key);
+  const scaleName = mode === "major" ? `${tonic} major` : `${tonic} minor`;
+  return scalePitchesFor(scaleName, startOctave);
 }
 
 export const COMMON_MAJOR_KEYS = [

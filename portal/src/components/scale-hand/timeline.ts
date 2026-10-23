@@ -90,10 +90,48 @@ const CURL: Record<Finger, number> = {
   5: 6,
 };
 
-const UP_FINGERS_RH: Finger[] = [1, 2, 3, 1, 2, 3, 4, 5];
-const UP_FINGERS_LH: Finger[] = [5, 4, 3, 2, 1, 3, 2, 1];
-const DOWN_FINGERS_RH: Finger[] = [5, 4, 3, 2, 1, 3, 2, 1];
-const DOWN_FINGERS_LH: Finger[] = [1, 2, 3, 1, 2, 3, 4, 5];
+const CAGED_RH: Finger[] = [1, 2, 3, 1, 2, 3, 4, 5];
+const CAGED_LH: Finger[] = [5, 4, 3, 2, 1, 3, 2, 1];
+
+/** Odd majors that leave CAGED so the thumb stays off black keys. */
+const ODD_UP: Record<string, Partial<Record<HandSide, Finger[]>>> = {
+  F: { right: [1, 2, 3, 4, 1, 2, 3, 4] },
+  B: { left: [4, 3, 2, 1, 4, 3, 2, 1] },
+  "F#": {
+    right: [2, 3, 4, 1, 2, 3, 1, 2],
+    left: [4, 3, 2, 1, 3, 2, 1, 4],
+  },
+  Bb: {
+    right: [4, 1, 2, 3, 1, 2, 3, 4],
+    left: [3, 2, 1, 4, 3, 2, 1, 3],
+  },
+  Eb: {
+    right: [3, 1, 2, 3, 4, 1, 2, 3],
+    left: [3, 2, 1, 4, 3, 2, 1, 3],
+  },
+  Ab: {
+    right: [3, 4, 1, 2, 3, 1, 2, 3],
+    left: [3, 2, 1, 4, 3, 2, 1, 3],
+  },
+};
+
+export type FingeringOpts = { tonic?: string; mode?: string };
+
+/** One-octave ascent. Minors and church modes stay on CAGED. */
+export function upFingers(
+  side: HandSide,
+  tonic = "C",
+  mode = "major",
+): Finger[] {
+  const caged = side === "right" ? CAGED_RH : CAGED_LH;
+  if (mode !== "major") return caged;
+  return ODD_UP[tonic]?.[side] ?? caged;
+}
+
+function downFingersFromUp(up: Finger[], repeatPeak: boolean): Finger[] {
+  const down = [...up].reverse();
+  return repeatPeak ? [down[0], ...down] : down;
+}
 
 const DEFAULT_PITCHES = ["C4", "D4", "E4", "F4", "G4", "A4", "B4", "C5"];
 
@@ -108,24 +146,53 @@ function downPitches(up: string[], repeatPeak: boolean): string[] {
   return repeatPeak ? [top, top, ...rest] : [top, ...rest];
 }
 
-function downFingers(side: HandSide, repeatPeak: boolean): Finger[] {
-  const fingers = side === "right" ? DOWN_FINGERS_RH : DOWN_FINGERS_LH;
-  return repeatPeak ? [fingers[0], ...fingers] : fingers;
+type CrossKind = "under" | "over";
+
+function crossKind(side: HandSide, dir: "up" | "down"): CrossKind {
+  const thumbUnder =
+    (side === "right" && dir === "up") || (side === "left" && dir === "down");
+  return thumbUnder ? "under" : "over";
 }
 
-/** First tone after the 3–1 / 1–3 turn. Up/down prepends a second peak, so +1 then. */
-const CROSS_AT = {
-  up: { right: 3, left: 5 },
-  down: { right: 5, left: 3 },
-} as const;
-
-export function crossingFinger(side: HandSide, dir: "up" | "down"): Finger {
-  if (side === "right") return dir === "up" ? 1 : 3;
-  return dir === "up" ? 3 : 1;
+/** First index of the second group: thumb under, or 3/4 over. */
+function findCrossAt(fingers: Finger[], kind: CrossKind): number {
+  if (kind === "under") {
+    for (let i = 2; i < fingers.length; i++) {
+      if (fingers[i] < fingers[i - 1]) return i;
+    }
+  } else {
+    for (let i = 1; i < fingers.length; i++) {
+      if (fingers[i] > fingers[i - 1]) return i;
+    }
+  }
+  return 3;
 }
 
-export function crossingLabel(side: HandSide, dir: "up" | "down"): string {
-  return crossingFinger(side, dir) === 1 ? "thumb under" : "third over";
+export function crossingFinger(
+  side: HandSide,
+  dir: "up" | "down",
+  opts: FingeringOpts = {},
+): Finger {
+  const up = upFingers(side, opts.tonic, opts.mode);
+  const fingers = dir === "up" ? up : downFingersFromUp(up, false);
+  const at = findCrossAt(fingers, crossKind(side, dir));
+  return fingers[at] ?? 1;
+}
+
+export function crossingLabel(
+  side: HandSide,
+  dir: "up" | "down",
+  opts: FingeringOpts = {},
+): string {
+  return labelForCross(crossingFinger(side, dir, opts));
+}
+
+function labelForCross(finger: Finger): string {
+  if (finger === 1) return "thumb under";
+  if (finger === 3) return "third over";
+  if (finger === 4) return "fourth over";
+  if (finger === 2) return "second over";
+  return "fifth over";
 }
 
 function groupTips(indices: Record<Finger, number>): Record<Finger, Point> {
@@ -275,16 +342,21 @@ export function motionFor(
   dir: ScaleDir,
   timing: Timing = { mode: "lesson", bpm: 80 },
   pitches: string[] = DEFAULT_PITCHES,
+  tonic = "C",
+  mode = "major",
 ): MotionPlan {
   const upNotes = pitches.length === 8 ? pitches : DEFAULT_PITCHES;
   const repeatPeak = dir === "updown";
   const downNotes = downPitches(upNotes, repeatPeak);
-  const upCross = crossingFinger(side, "up");
-  const downCross = crossingFinger(side, "down");
-  const upTones = zipTones(upNotes, side === "right" ? UP_FINGERS_RH : UP_FINGERS_LH);
-  const downTones = zipTones(downNotes, downFingers(side, repeatPeak));
-  const downCrossAt = CROSS_AT.down[side] + (repeatPeak ? 1 : 0);
-  const up = buildWaypoints(upTones, CROSS_AT.up[side], 0, upCross, timing);
+  const upRow = upFingers(side, tonic, mode);
+  const downRow = downFingersFromUp(upRow, repeatPeak);
+  const upCrossAt = findCrossAt(upRow, crossKind(side, "up"));
+  const downCrossAt = findCrossAt(downRow, crossKind(side, "down"));
+  const upCross = upRow[upCrossAt] ?? 1;
+  const downCross = downRow[downCrossAt] ?? 1;
+  const upTones = zipTones(upNotes, upRow);
+  const downTones = zipTones(downNotes, downRow);
+  const up = buildWaypoints(upTones, upCrossAt, 0, upCross, timing);
   const down = buildWaypoints(downTones, downCrossAt, 1, downCross, timing);
   const gap = timing.mode === "smooth" ? beatMs(timing.bpm) : LESSON_STEP_MS;
   const peak = upNotes[upNotes.length - 1] ?? "C5";
@@ -296,7 +368,12 @@ export function motionFor(
   };
 }
 
-export function idleSample(side: HandSide, dir: ScaleDir): MotionSample {
+export function idleSample(
+  side: HandSide,
+  dir: ScaleDir,
+  tonic = "C",
+  mode = "major",
+): MotionSample {
   const down = dir === "down";
   const phase: "up" | "down" = down ? "down" : "up";
   return {
@@ -304,7 +381,7 @@ export function idleSample(side: HandSide, dir: ScaleDir): MotionSample {
     thumbT: down ? 1 : 0,
     pressedFinger: null,
     note: null,
-    crossFinger: crossingFinger(side, phase),
+    crossFinger: crossingFinger(side, phase, { tonic, mode }),
     attack: 0,
   };
 }
@@ -470,8 +547,7 @@ export function lcdLine(
     return `${scaleName} · ${hand}${pace}`;
   }
   if (!opts.smooth && isTucking(sample)) {
-    const label = sample.crossFinger === 1 ? "thumb under" : "third over";
-    return `${sample.note} · ${label}`;
+    return `${sample.note} · ${labelForCross(sample.crossFinger)}`;
   }
   if (sample.pressedFinger) {
     return `${sample.note} · finger ${sample.pressedFinger}`;

@@ -55,29 +55,15 @@ const FRAME_FILES = [
   "keys-lite-rh-frame-8.png",
 ] as const;
 
-/** Right-hand frames by scale degree 1–8. Shared poses cover repeated fingers. */
-const RH_DEGREE_FRAMES = [
-  FRAME_IDLE,
-  "keys-lite-rh-frame-2+5.png",
-  "keys-lite-rh-frame-3+6.png",
-  "keys-lite-rh-frame-4.png",
-  "keys-lite-rh-frame-2+5.png",
-  "keys-lite-rh-frame-3+6.png",
-  "keys-lite-rh-frame-7.png",
-  "keys-lite-rh-frame-8.png",
-] as const;
-
-/** Same RH files, chosen by left-hand finger on each degree, then CSS-flipped. */
-const LH_DEGREE_FRAMES = [
-  "keys-lite-rh-frame-8.png",
-  "keys-lite-rh-frame-7.png",
-  "keys-lite-rh-frame-3+6.png",
-  "keys-lite-rh-frame-2+5.png",
-  "keys-lite-rh-frame-4.png",
-  "keys-lite-rh-frame-3+6.png",
-  "keys-lite-rh-frame-2+5.png",
-  "keys-lite-rh-frame-4.png",
-] as const;
+/** Finger pose files. Thumb uses a pre-turn vs post-turn frame. */
+const FINGER_FRAMES: Record<Finger, string> = {
+  1: FRAME_IDLE,
+  2: "keys-lite-rh-frame-2+5.png",
+  3: "keys-lite-rh-frame-3+6.png",
+  4: "keys-lite-rh-frame-7.png",
+  5: "keys-lite-rh-frame-8.png",
+};
+const FRAME_THUMB_AFTER = "keys-lite-rh-frame-4.png";
 
 function samePitch(a: string, b: string): boolean {
   const left = Note.midi(a);
@@ -133,15 +119,10 @@ function scaleLabel(tonic: string, mode: ScaleHandMode): string {
   return `${tonic} ${modeButtonLabel(mode)}`;
 }
 
-function degreeIndex(note: string | null, pitches: string[]): number {
-  if (!note) return -1;
-  return pitches.findIndex((pitch) => samePitch(pitch, note));
-}
-
-function frameSrc(side: HandSide, note: string | null, pitches: string[]): string {
-  const index = degreeIndex(note, pitches);
-  const table = side === "right" ? RH_DEGREE_FRAMES : LH_DEGREE_FRAMES;
-  const file = index >= 0 ? (table[index] ?? FRAME_IDLE) : FRAME_IDLE;
+function frameSrc(finger: Finger | null, afterTurn: boolean): string {
+  if (!finger) return `${FRAME_DIR}/${FRAME_IDLE}`;
+  const file =
+    finger === 1 && afterTurn ? FRAME_THUMB_AFTER : FINGER_FRAMES[finger];
   return `${FRAME_DIR}/${file}`;
 }
 
@@ -222,12 +203,12 @@ export function ScaleHand() {
     [timingMode, bpm],
   );
   const leftMotion = useMemo(
-    () => motionFor("left", dir, timing, pitches),
-    [dir, timing, pitches],
+    () => motionFor("left", dir, timing, pitches, tonic, mode),
+    [dir, timing, pitches, tonic, mode],
   );
   const rightMotion = useMemo(
-    () => motionFor("right", dir, timing, pitches),
-    [dir, timing, pitches],
+    () => motionFor("right", dir, timing, pitches, tonic, mode),
+    [dir, timing, pitches, tonic, mode],
   );
   const name = scaleLabel(tonic, mode);
   const sample = showBoth ? bySide.right : bySide[side];
@@ -319,24 +300,28 @@ export function ScaleHand() {
     playNote(sample.note);
   }, [sample.note, sample.attack, soundOn]);
 
-  function resetHands(nextDir: ScaleDir = dir) {
+  function resetHands(
+    nextDir: ScaleDir = dir,
+    nextTonic = tonic,
+    nextMode: ScaleHandMode = mode,
+  ) {
     setBySide({
-      left: idleSample("left", nextDir),
-      right: idleSample("right", nextDir),
+      left: idleSample("left", nextDir, nextTonic, nextMode),
+      right: idleSample("right", nextDir, nextTonic, nextMode),
     });
   }
 
   function chooseTonic(next: string) {
     setTonic(next);
     setStatus("idle");
-    resetHands();
+    resetHands(dir, next, mode);
   }
 
   function chooseMode(next: string) {
     if (!MODE_IDS.has(next)) return;
     setMode(next as ScaleHandMode);
     setStatus("idle");
-    resetHands();
+    resetHands(dir, tonic, next as ScaleHandMode);
   }
 
   function start(nextDir: ScaleDir) {
@@ -393,6 +378,7 @@ export function ScaleHand() {
     <div
       className="scale-hand"
       data-note={sample.note ?? "rest"}
+      data-finger={sample.pressedFinger ? String(sample.pressedFinger) : ""}
       data-attack={String(sample.attack)}
       data-tuck={isTucking(sample) ? "true" : "false"}
       data-hand={showBoth ? "both" : side}
@@ -420,6 +406,7 @@ export function ScaleHand() {
               side={moduleSide}
               note={live.note}
               pressedFinger={live.pressedFinger}
+              afterTurn={live.shift >= 0.5}
               whites={whites}
               blacks={blacks}
               pitches={pitches}
@@ -577,6 +564,7 @@ function HandModule({
   side,
   note,
   pressedFinger,
+  afterTurn,
   whites,
   blacks,
   pitches,
@@ -586,6 +574,7 @@ function HandModule({
   side: HandSide;
   note: string | null;
   pressedFinger: Finger | null;
+  afterTurn: boolean;
   whites: WhiteKey[];
   blacks: BlackKey[];
   pitches: string[];
@@ -595,9 +584,8 @@ function HandModule({
   const hand = (
     <GutterHand
       side={side}
-      note={note}
       pressedFinger={pressedFinger}
-      pitches={pitches}
+      afterTurn={afterTurn}
     />
   );
   const keys = (
@@ -767,21 +755,19 @@ function Keyboard({
 
 function GutterHand({
   side,
-  note,
   pressedFinger,
-  pitches,
+  afterTurn,
 }: {
   side: HandSide;
-  note: string | null;
   pressedFinger: Finger | null;
-  pitches: string[];
+  afterTurn: boolean;
 }) {
   const tips = side === "right" ? TIPS_RIGHT : TIPS_LEFT;
   return (
     <div className="scale-hand-gutter" data-side={side}>
       <div className="scale-hand-gutter-inner">
         <img
-          src={frameSrc(side, note, pitches)}
+          src={frameSrc(pressedFinger, afterTurn)}
           alt=""
           className="scale-hand-gutter-img"
         />

@@ -54,6 +54,7 @@ const TOOLKIT_LINKS = [
   { title: "Notation Sandbox", href: "/tools/notation/" },
   { title: "Rhythm Randomizer", href: "/tools/rhythm/" },
   { title: "Circle of Fifths", href: "/tools/circle-of-fifths/" },
+  { title: "Keys.lite", href: "/tools/scale-hand/" },
 ] as const;
 
 export function NavMain() {

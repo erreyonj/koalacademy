@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -139,6 +139,44 @@ export function NavMain() {
   );
 }
 
+function useDeferredRailCollapsed(targetCollapsed: boolean) {
+  const [shown, setShown] = useState(targetCollapsed);
+
+  useEffect(() => {
+    if (targetCollapsed === shown) return;
+
+    const rail = document.querySelector<HTMLElement>('[data-slot="sidebar-container"]');
+    if (!rail) {
+      setShown(targetCollapsed);
+      return;
+    }
+
+    let cancelled = false;
+    const settle = () => {
+      if (cancelled) return;
+      cancelled = true;
+      setShown(targetCollapsed);
+    };
+
+    const widthAnimation = rail.getAnimations().find((animation) => {
+      return animation instanceof CSSTransition && animation.transitionProperty === "width";
+    });
+    if (!widthAnimation) {
+      settle();
+      return;
+    }
+
+    widthAnimation.finished.then(settle).catch(() => {
+      if (!cancelled) settle();
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [targetCollapsed, shown]);
+
+  return shown;
+}
+
 function NavSection({
   title,
   icon: Icon,
@@ -155,7 +193,7 @@ function NavSection({
   const pathname = usePathname();
   const { state, isMobile } = useSidebar();
   const [sectionOpen, setSectionOpen] = useState(defaultOpen);
-  const collapsed = state === "collapsed" && !isMobile;
+  const collapsed = useDeferredRailCollapsed(state === "collapsed" && !isMobile);
 
   if (collapsed) {
     return (

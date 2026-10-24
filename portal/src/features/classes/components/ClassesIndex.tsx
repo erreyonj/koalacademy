@@ -23,9 +23,9 @@ export function ClassesIndex() {
               {classes.map((entry) => (
                 <li key={entry.id}>
                   <Link href={`/classes/${entry.id}/`} className="block h-full no-underline">
-                    <Card className="h-full border-[3px] border-[color:var(--ka-edge)] shadow-[0_5px_0_var(--ka-edge)]">
+                    <Card className="h-full btn-backlit">
                       <CardHeader>
-                        <CardTitle className="font-heading text-xl">
+                        <CardTitle className="text-xl">
                           <span className="classes-card-label">{entry.label}</span>
                           <span className="classes-card-name">{entry.name}</span>
                         </CardTitle>

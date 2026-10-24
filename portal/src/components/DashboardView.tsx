@@ -6,18 +6,19 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { LedText } from "@/components/LedText";
 import { BucketsLauncher } from "@/features/behavior/components/BucketsLauncher";
 
 const SHORTCUTS = [
   {
     href: "/classes/",
     title: "Classes",
-    description: "Homeroom screens — seats, marbles, and the lesson to pick back up.",
+    description: "Homeroom screens — seats, marbles, lessons, and more.",
   },
   {
     href: "/lessons/",
     title: "Lessons",
-    description: "Pick a grade band and open today's slide.",
+      description: "Pick a grade band and open today's slide.",
   },
   {
     href: "/toolkit/",
@@ -41,12 +42,13 @@ export function DashboardView() {
     <>
       <header className="page-hero">
         <div className="page-hero-inner">
-          <p className="eyebrow">K–8 Music Pilot</p>
-          <h1 className="page-title">Today&apos;s lesson, in two taps.</h1>
-          <p className="page-lede">
-            Every lesson as a page you can read on a phone or throw on a
-            projector — the concept, the listening, and the game.
-          </p>
+          <LedText as="p" className="eyebrow" text="K–8 Music Pilot" />
+          <LedText as="h1" className="page-title" text="Today's lesson, in two taps." />
+          <LedText
+            as="p"
+            className="page-lede"
+            text="Every lesson as a page you can read on a phone or throw on a projector — the concept, the listening, and the game."
+          />
         </div>
       </header>
 
@@ -57,11 +59,9 @@ export function DashboardView() {
             {SHORTCUTS.map((item) => (
               <li key={item.href}>
                 <Link href={item.href} className="block no-underline">
-                  <Card className="h-full border-[3px] border-[color:var(--ka-edge)] shadow-[0_5px_0_var(--ka-edge)]">
+                  <Card className="h-full btn-backlit">
                     <CardHeader>
-                      <CardTitle className="font-heading text-xl">
-                        {item.title}
-                      </CardTitle>
+                      <CardTitle className="text-xl">{item.title}</CardTitle>
                       <CardDescription>{item.description}</CardDescription>
                     </CardHeader>
                   </Card>

@@ -5,6 +5,7 @@ import {
   SidebarContent,
   SidebarFooter,
 } from "@/components/ui/sidebar";
+import { BacklightPicker } from "@/components/BacklightPicker";
 import { NavMain } from "@/components/nav-main";
 import { NavUser } from "@/components/nav-user";
 
@@ -16,6 +17,7 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter>
         <NavUser />
+        <BacklightPicker />
       </SidebarFooter>
     </Sidebar>
   );

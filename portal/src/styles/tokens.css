@@ -52,6 +52,13 @@
   --slide-wrap: 46rem;
   --tap-min: 44px;
   --header-height: 4.5rem;
+
+  /* Default wheel color is brand pop. The color wheel overwrites these. */
+  --ka-backlight: #f56e8f;
+  --ka-backlight-deep: #b04f67;
+  --ka-backlight-face: #f56e8f;
+  --ka-backlight-ink: #000000;
+  --ka-backlight-mark: #b04f67;
 }
 
 .dark {
@@ -64,4 +71,11 @@
   --ka-bamboo: #6b5b43;
   --ka-edge: #07080b;
   --line: color-mix(in srgb, var(--ka-charcoal) 30%, transparent);
+
+  /* Same brand wheel in dark. The color wheel overwrites these. */
+  --ka-backlight: #f56e8f;
+  --ka-backlight-deep: #b04f67;
+  --ka-backlight-face: #f56e8f;
+  --ka-backlight-ink: #000000;
+  --ka-backlight-mark: #b04f67;
 }

@@ -1,16 +1,27 @@
 "use client";
 
-import { type ReactNode, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  Backpack,
+  BookA,
   ChevronRight,
+  Dices,
+  Gamepad2,
+  House,
   Inbox,
   LayoutDashboard,
-  School,
+  LayoutGrid,
   ListMusic,
+  Music,
   NotebookPen,
+  Orbit,
+  Piano,
+  School,
   Search,
+  Sprout,
+  Tablet,
   Wrench,
   type LucideIcon,
 } from "lucide-react";
@@ -19,6 +30,12 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -32,30 +49,96 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { BANDS } from "@/lib/types";
+import { BANDS, type BandId } from "@/lib/types";
 import {
   isActivePath,
   isClassesSection,
   isDashboardPath,
+  isKeysLitePath,
   isLessonsSection,
   isSkillsPath,
   isToolkitSection,
 } from "@/lib/nav";
+
+type NavChild = {
+  title: string;
+  href: string;
+  icon: LucideIcon;
+  isActive: (pathname: string) => boolean;
+};
 
 const ITEMS = [
   { title: "Playlists", href: "/playlists/", icon: ListMusic },
   { title: "Submissions", href: "/submissions/", icon: Inbox },
 ] as const;
 
-const TOOLKIT_LINKS = [
-  { title: "Toolkit Home", href: "/toolkit/" },
-  { title: "Glossary", href: "/tools/glossary/" },
-  { title: "Games", href: "/toolkit/games/" },
-  { title: "Notation Sandbox", href: "/tools/notation/" },
-  { title: "Rhythm Randomizer", href: "/tools/rhythm/" },
-  { title: "Circle of Fifths", href: "/tools/circle-of-fifths/" },
-  { title: "Keys.lite", href: "/tools/scale-hand/" },
-] as const;
+const BAND_ICONS: Record<BandId, LucideIcon> = {
+  "k-2": Sprout,
+  "3-5": Backpack,
+  "6-8": Tablet,
+};
+
+const LESSON_LINKS: NavChild[] = [
+  {
+    title: "Lessons Home",
+    href: "/lessons/",
+    icon: House,
+    isActive: (pathname) => isActivePath(pathname, "/lessons"),
+  },
+  ...BANDS.map(
+    (band): NavChild => ({
+      title: band.short,
+      href: `/grades/${band.id}/`,
+      icon: BAND_ICONS[band.id],
+      isActive: (pathname) => isActivePath(pathname, `/grades/${band.id}`),
+    }),
+  ),
+];
+
+const TOOLKIT_LINKS: NavChild[] = [
+  {
+    title: "Toolkit Home",
+    href: "/toolkit/",
+    icon: LayoutGrid,
+    isActive: (pathname) => isActivePath(pathname, "/toolkit"),
+  },
+  {
+    title: "Glossary",
+    href: "/tools/glossary/",
+    icon: BookA,
+    isActive: (pathname) => isActivePath(pathname, "/tools/glossary"),
+  },
+  {
+    title: "Games",
+    href: "/toolkit/games/",
+    icon: Gamepad2,
+    isActive: (pathname) => isActivePath(pathname, "/toolkit/games"),
+  },
+  {
+    title: "Notation Sandbox",
+    href: "/tools/notation/",
+    icon: Music,
+    isActive: (pathname) => isActivePath(pathname, "/tools/notation"),
+  },
+  {
+    title: "Rhythm Randomizer",
+    href: "/tools/rhythm/",
+    icon: Dices,
+    isActive: (pathname) => isActivePath(pathname, "/tools/rhythm"),
+  },
+  {
+    title: "Circle of Fifths",
+    href: "/tools/circle-of-fifths/",
+    icon: Orbit,
+    isActive: (pathname) => isActivePath(pathname, "/tools/circle-of-fifths"),
+  },
+  {
+    title: "Keys.lite",
+    href: "/tools/keys-lite/",
+    icon: Piano,
+    isActive: isKeysLitePath,
+  },
+];
 
 export function NavMain() {
   const pathname = usePathname();
@@ -99,44 +182,16 @@ export function NavMain() {
             icon={NotebookPen}
             defaultOpen={isLessonsSection(pathname)}
             isActive={isLessonsSection(pathname)}
-          >
-            <SidebarMenuSubItem>
-              <SidebarMenuSubButton
-                asChild
-                isActive={isActivePath(pathname, "/lessons")}
-              >
-                <Link href="/lessons/">Lessons Home</Link>
-              </SidebarMenuSubButton>
-            </SidebarMenuSubItem>
-            {BANDS.map((band) => (
-              <SidebarMenuSubItem key={band.id}>
-                <SidebarMenuSubButton
-                  asChild
-                  isActive={isActivePath(pathname, `/grades/${band.id}`)}
-                >
-                  <Link href={`/grades/${band.id}/`}>{band.short}</Link>
-                </SidebarMenuSubButton>
-              </SidebarMenuSubItem>
-            ))}
-          </NavSection>
+            items={LESSON_LINKS}
+          />
 
           <NavSection
             title="Toolkit"
             icon={Wrench}
             defaultOpen={isToolkitSection(pathname)}
             isActive={isToolkitSection(pathname)}
-          >
-            {TOOLKIT_LINKS.map((item) => (
-              <SidebarMenuSubItem key={item.href}>
-                <SidebarMenuSubButton
-                  asChild
-                  isActive={isActivePath(pathname, item.href)}
-                >
-                  <Link href={item.href}>{item.title}</Link>
-                </SidebarMenuSubButton>
-              </SidebarMenuSubItem>
-            ))}
-          </NavSection>
+            items={TOOLKIT_LINKS}
+          />
 
           <SidebarMenuItem>
             <SidebarMenuButton
@@ -176,28 +231,53 @@ function NavSection({
   icon: Icon,
   defaultOpen,
   isActive,
-  children,
+  items,
 }: {
   title: string;
   icon: LucideIcon;
   defaultOpen: boolean;
   isActive: boolean;
-  children: ReactNode;
+  items: readonly NavChild[];
 }) {
-  const { state, setOpen, isMobile } = useSidebar();
+  const pathname = usePathname();
+  const { state, isMobile } = useSidebar();
   const [sectionOpen, setSectionOpen] = useState(defaultOpen);
+  const collapsed = state === "collapsed" && !isMobile;
+
+  if (collapsed) {
+    return (
+      <SidebarMenuItem>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <SidebarMenuButton isActive={isActive}>
+              <Icon />
+              <span>{title}</span>
+            </SidebarMenuButton>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent side="right" align="start" className="w-auto min-w-48">
+            {items.map((item) => (
+              <DropdownMenuItem
+                key={item.href}
+                asChild
+                data-active={item.isActive(pathname) || undefined}
+                className="data-active:bg-accent data-active:font-medium data-active:text-accent-foreground"
+              >
+                <Link href={item.href}>
+                  <item.icon />
+                  <span>{item.title}</span>
+                </Link>
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </SidebarMenuItem>
+    );
+  }
 
   return (
     <Collapsible
       open={sectionOpen}
-      onOpenChange={(next) => {
-        if (state === "collapsed" && !isMobile) {
-          setOpen(true);
-          setSectionOpen(true);
-          return;
-        }
-        setSectionOpen(next);
-      }}
+      onOpenChange={setSectionOpen}
       className="group/collapsible"
     >
       <SidebarMenuItem>
@@ -209,7 +289,18 @@ function NavSection({
           </SidebarMenuButton>
         </CollapsibleTrigger>
         <CollapsibleContent>
-          <SidebarMenuSub>{children}</SidebarMenuSub>
+          <SidebarMenuSub>
+            {items.map((item) => (
+              <SidebarMenuSubItem key={item.href}>
+                <SidebarMenuSubButton asChild isActive={item.isActive(pathname)}>
+                  <Link href={item.href}>
+                    <item.icon />
+                    <span>{item.title}</span>
+                  </Link>
+                </SidebarMenuSubButton>
+              </SidebarMenuSubItem>
+            ))}
+          </SidebarMenuSub>
         </CollapsibleContent>
       </SidebarMenuItem>
     </Collapsible>

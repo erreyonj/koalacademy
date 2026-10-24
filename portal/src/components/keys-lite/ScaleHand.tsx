@@ -44,7 +44,7 @@ import {
 
 type PlayStatus = "idle" | "playing" | "done";
 
-const FRAME_DIR = "/scale-hand";
+const FRAME_DIR = "/keys-lite";
 const FRAME_IDLE = "keys-lite-rh-frame-1.png";
 const FRAME_FILES = [
   FRAME_IDLE,

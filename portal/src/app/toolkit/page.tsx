@@ -37,9 +37,8 @@ export default function ToolkitPage() {
             spin a key and read its triads, relative, and IV / V neighbors.
           </p>
           <p>
-            <Link href="/tools/scale-hand/">Keys.lite</Link> — finger frames
-            for one octave of a chosen major or minor scale, including the
-            thumb-under turn.
+            <Link href="/tools/keys-lite/">Keys.lite</Link> — keyboard lab
+            for one-octave scales, two-octave scales, and warmups.
           </p>
           <p>
             <Link href="/resources/">Lesson resources</Link> still holds

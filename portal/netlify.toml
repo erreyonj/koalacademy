@@ -22,3 +22,13 @@
     # www.youtube.com in script-src + frame-src is the IFrame Player API that
     # drives the homeroom "Now playing" screen (/classes/*).
     Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://www.youtube.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https://fyurkhqtujqrbqlsiuyu.supabase.co wss://fyurkhqtujqrbqlsiuyu.supabase.co https://challenges.cloudflare.com; frame-src https://www.youtube-nocookie.com https://www.youtube.com https://challenges.cloudflare.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"
+
+[[redirects]]
+  from = "/tools/scale-hand"
+  to = "/tools/keys-lite/one-octave/"
+  status = 301
+
+[[redirects]]
+  from = "/tools/scale-hand/*"
+  to = "/tools/keys-lite/one-octave/:splat"
+  status = 301

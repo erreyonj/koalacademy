@@ -24,6 +24,11 @@ export function isToolkitSection(pathname: string) {
   return path === "/toolkit" || path.startsWith("/toolkit/") || path.startsWith("/tools/");
 }
 
+export function isKeysLitePath(pathname: string) {
+  const path = normalizePath(pathname);
+  return path === "/tools/keys-lite" || path.startsWith("/tools/keys-lite/");
+}
+
 export function isClassesSection(pathname: string) {
   const path = normalizePath(pathname);
   return path === "/classes" || path.startsWith("/classes/");

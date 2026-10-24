@@ -6,7 +6,7 @@ export type ScaleDir = "up" | "down" | "updown";
 export type TimingMode = "lesson" | "smooth";
 export type Timing = { mode: TimingMode; bpm: number };
 
-export const TEMPO_PRESETS = [60, 80, 100, 120] as const;
+export const TEMPO_PRESETS = [60, 80, 100, 120, 140, 160, 180, 200] as const;
 
 export function beatMs(bpm: number): number {
   return 60_000 / bpm;

@@ -8,6 +8,7 @@ portal/content/newsletter/exports/
 # Copied from @vexflow-fonts by scripts/copy-vexflow-fonts.mjs (predev/prebuild).
 portal/public/fonts/vexflow/
 .DS_Store
+.cursor
 
 # Environment files stay out of git; portal/.env.example documents the shape.
 portal/.env

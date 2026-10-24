@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import { LedText } from "@/components/LedText";
 import {
   BandLessonList,
   BandLessonListFallback,
@@ -34,11 +35,13 @@ export default async function BandPage({ params }: PageProps) {
     <>
       <header className="page-hero">
         <div className="page-hero-inner">
-          <p className="eyebrow">
-            {band.track === "unplugged" ? "Unplugged" : "Koalacademy production"}
-          </p>
-          <h1 className="page-title">{band.label}</h1>
-          <p className="page-lede">{band.blurb}</p>
+          <LedText
+            as="p"
+            className="eyebrow"
+            text={band.track === "unplugged" ? "Unplugged" : "Koalacademy production"}
+          />
+          <LedText as="h1" className="page-title" text={band.label} />
+          <LedText as="p" className="page-lede" text={band.blurb} />
         </div>
       </header>
 

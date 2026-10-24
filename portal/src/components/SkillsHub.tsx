@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useId, useMemo, useState } from "react";
 import { ListPlus, Search, Star, X } from "lucide-react";
+import { LedText } from "@/components/LedText";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -87,8 +88,8 @@ export function SkillsHub({ lessons }: SkillsHubProps) {
     <div className="skills-page">
       <header className="skills-hero">
         <div className="skills-hero-inner">
-          <p className="eyebrow">Skills</p>
-          <h1 className="page-title">Find a topic</h1>
+          <LedText as="p" className="eyebrow" text="Skills" />
+          <LedText as="h1" className="page-title" text="Find a topic" />
           <form
             className="skills-search"
             role="search"
@@ -236,9 +237,9 @@ export function SkillsHubFallback() {
     <div className="skills-page">
       <header className="skills-hero">
         <div className="skills-hero-inner">
-          <p className="eyebrow">Skills</p>
-          <h1 className="page-title">Find a topic</h1>
-          <p className="page-lede">Loading the catalog…</p>
+          <LedText as="p" className="eyebrow" text="Skills" />
+          <LedText as="h1" className="page-title" text="Find a topic" />
+          <LedText as="p" className="page-lede" text="Loading the catalog…" />
         </div>
       </header>
     </div>

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useId, useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { Search, Trash2, X } from "lucide-react";
+import { LedText } from "@/components/LedText";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useTeacherMode } from "@/features/teacher-progress/TeacherModeProvider";
@@ -156,8 +157,8 @@ export function GlossaryHub({ catalog }: GlossaryHubProps) {
     <div className="skills-page">
       <header className="skills-hero">
         <div className="skills-hero-inner">
-          <p className="eyebrow">Toolkit</p>
-          <h1 className="page-title">Glossary</h1>
+          <LedText as="p" className="eyebrow" text="Toolkit" />
+          <LedText as="h1" className="page-title" text="Glossary" />
           <form
             className="skills-search"
             role="search"
@@ -585,9 +586,9 @@ export function GlossaryHubFallback() {
     <div className="skills-page">
       <header className="skills-hero">
         <div className="skills-hero-inner">
-          <p className="eyebrow">Toolkit</p>
-          <h1 className="page-title">Glossary</h1>
-          <p className="page-lede">Loading terms…</p>
+          <LedText as="p" className="eyebrow" text="Toolkit" />
+          <LedText as="h1" className="page-title" text="Glossary" />
+          <LedText as="p" className="page-lede" text="Loading terms…" />
         </div>
       </header>
     </div>

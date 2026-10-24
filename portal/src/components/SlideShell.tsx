@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { LedText } from "@/components/LedText";
 import { GlossaryModal } from "./GlossaryModal";
 import { LessonNav } from "./LessonNav";
 import { LessonNotesProvider } from "./LessonNotesProvider";
@@ -36,11 +37,13 @@ export function SlideShell({ lesson, band, prev, next, children }: SlideShellPro
 
       <header className={isDeck ? "page-hero page-hero-deck" : "page-hero"}>
         <div className="page-hero-inner">
-          <p className="eyebrow">
-            {lesson.code} · {bandsLabel(lesson.bands)}
-          </p>
-          <h1 className="page-title">{lesson.title}</h1>
-          <p className="page-lede">{lesson.focus}</p>
+          <LedText
+            as="p"
+            className="eyebrow"
+            text={`${lesson.code} · ${bandsLabel(lesson.bands)}`}
+          />
+          <LedText as="h1" className="page-title" text={lesson.title} />
+          <LedText as="p" className="page-lede" text={lesson.focus} />
           {glossaryCode ? <GlossaryModal lessonCode={glossaryCode} /> : null}
         </div>
       </header>

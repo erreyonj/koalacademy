@@ -1,31 +1,32 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ScaleHand } from "@/components/scale-hand/ScaleHand";
+import { LedText } from "@/components/LedText";
+import { KeysLiteIndex } from "@/components/keys-lite/KeysLiteIndex";
 
 export const metadata: Metadata = {
   title: "Keys.lite",
   description:
-    "Watch a hand walk one octave of a chosen major or minor scale, including the thumb-under turn.",
+    "Keyboard lab programs — one-octave scales, two-octave scales, and warmups.",
 };
 
-export default function ScaleHandPage() {
+export default function KeysLitePage() {
   return (
-    <div className="scale-hand-page">
+    <>
       <header className="page-hero">
         <div className="page-hero-inner">
-          <p className="eyebrow">Toolkit · Keyboard</p>
-          <h1 className="page-title">Keys.lite</h1>
-          <p className="page-lede">
-            One octave of the selected scale, same tonic for major or minor.
-            Fingers 1 2 3, then the thumb tucks under to 1 2 3 4 5. The same
-            turn <code>BMT.1</code> asks students to find on a real keyboard.
-          </p>
+          <LedText as="p" className="eyebrow" text="Toolkit · Keyboard" />
+          <LedText as="h1" className="page-title" text="Keys.lite" />
+          <LedText
+            as="p"
+            className="page-lede"
+            text="Pick a keyboard lab. One-octave scales are ready; two-octave scales and warmups come next."
+          />
         </div>
       </header>
 
       <div className="section">
-        <div className="wrap">
-          <ScaleHand />
+        <div className="wrap wrap-wide">
+          <KeysLiteIndex />
           <p>
             <Link className="back-link" href="/toolkit/">
               ← Toolkit
@@ -33,6 +34,6 @@ export default function ScaleHandPage() {
           </p>
         </div>
       </div>
-    </div>
+    </>
   );
 }

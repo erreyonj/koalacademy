@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { LedText } from "@/components/LedText";
 import { BehaviorPage } from "@/features/behavior/components/BehaviorPage";
 
 export const metadata: Metadata = {
@@ -11,10 +12,12 @@ export default function BucketsRoute() {
     <>
       <header className="page-hero">
         <div className="page-hero-inner">
-          <h1 className="page-title">Class Buckets</h1>
-          <p className="page-lede">
-            Let&apos;s be Bucket Fillers and not Bucket Dippers.
-          </p>
+          <LedText as="h1" className="page-title" text="Class Buckets" />
+          <LedText
+            as="p"
+            className="page-lede"
+            text="Let's be Bucket Fillers and not Bucket Dippers."
+          />
         </div>
       </header>
 

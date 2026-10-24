@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { LedText } from "@/components/LedText";
 import {
   formatNewsletterDate,
   getAllNewsletterPosts,
@@ -16,12 +17,13 @@ export default function NewsletterPage() {
     <>
       <header className="page-hero">
         <div className="page-hero-inner">
-          <p className="eyebrow">K–8 Music Pilot</p>
-          <h1 className="page-title">Class updates</h1>
-          <p className="page-lede">
-            Short notes from music class — for families, students, and anyone
-            checking in.
-          </p>
+          <LedText as="p" className="eyebrow" text="K–8 Music Pilot" />
+          <LedText as="h1" className="page-title" text="Class updates" />
+          <LedText
+            as="p"
+            className="page-lede"
+            text="Short notes from music class — for families, students, and anyone checking in."
+          />
         </div>
       </header>
 

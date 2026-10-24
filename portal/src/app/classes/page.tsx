@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { LedText } from "@/components/LedText";
 import { ClassesIndex } from "@/features/classes/components/ClassesIndex";
 
 export const metadata: Metadata = {
@@ -11,12 +12,13 @@ export default function ClassesPage() {
     <>
       <header className="page-hero">
         <div className="page-hero-inner">
-          <p className="eyebrow">Homerooms</p>
-          <h1 className="page-title">Classes</h1>
-          <p className="page-lede">
-            Pick a class to put its homeroom screen up — seats, marbles, and
-            the lesson to pick back up.
-          </p>
+          <LedText as="p" className="eyebrow" text="Homerooms" />
+          <LedText as="h1" className="page-title" text="Classes" />
+          <LedText
+            as="p"
+            className="page-lede"
+            text="Pick a class to put its homeroom screen up — seats, marbles, and the lesson to pick back up."
+          />
         </div>
       </header>
 

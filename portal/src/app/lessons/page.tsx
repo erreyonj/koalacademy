@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { LedText } from "@/components/LedText";
 import { getLessonsForBand } from "@/lib/lessons";
 import { BANDS } from "@/lib/types";
 
@@ -17,12 +18,13 @@ export default function LessonsHomePage() {
     <>
       <header className="page-hero">
         <div className="page-hero-inner">
-          <p className="eyebrow">Lessons</p>
-          <h1 className="page-title">Pick a grade.</h1>
-          <p className="page-lede">
-            Every lesson as a page you can read on a phone or throw on a projector —
-            the concept, the listening, and the game.
-          </p>
+          <LedText as="p" className="eyebrow" text="Lessons" />
+          <LedText as="h1" className="page-title" text="Pick a grade." />
+          <LedText
+            as="p"
+            className="page-lede"
+            text="Every lesson as a page you can read on a phone or throw on a projector — the concept, the listening, and the game."
+          />
         </div>
       </header>
 

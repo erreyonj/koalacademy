@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { LedText } from "@/components/LedText";
 
 export const metadata: Metadata = {
   title: "Lesson resources",
@@ -12,13 +13,13 @@ export default function ResourcesPage() {
     <>
       <header className="page-hero">
         <div className="page-hero-inner">
-          <p className="eyebrow">Lesson Toolbar</p>
-          <h1 className="page-title">Lesson resources</h1>
-          <p className="page-lede">
-            A holding page. Each toolbar item will eventually link to the right
-            out-of-lesson material — extra videos, playlists of the songs from
-            class, skills practice. Nothing lives here yet.
-          </p>
+          <LedText as="p" className="eyebrow" text="Lesson Toolbar" />
+          <LedText as="h1" className="page-title" text="Lesson resources" />
+          <LedText
+            as="p"
+            className="page-lede"
+            text="A holding page. Each toolbar item will eventually link to the right out-of-lesson material — extra videos, playlists of the songs from class, skills practice. Nothing lives here yet."
+          />
         </div>
       </header>
 

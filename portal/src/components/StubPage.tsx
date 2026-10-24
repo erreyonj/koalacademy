@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { LedText } from "@/components/LedText";
 
 interface StubPageProps {
   eyebrow: string;
@@ -13,9 +14,9 @@ export function StubPage({ eyebrow, title, lede, lcd, children }: StubPageProps)
     <>
       <header className="page-hero">
         <div className="page-hero-inner">
-          <p className="eyebrow">{eyebrow}</p>
-          <h1 className="page-title">{title}</h1>
-          <p className="page-lede">{lede}</p>
+          <LedText as="p" className="eyebrow" text={eyebrow} />
+          <LedText as="h1" className="page-title" text={title} />
+          <LedText as="p" className="page-lede" text={lede} />
         </div>
       </header>
 

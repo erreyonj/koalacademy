@@ -3,8 +3,8 @@ import type { Theme } from "./ThemeProvider";
 export type BacklightSwatch = {
   id: string;
   label: string;
-  group: "brand" | "statement";
-  /** Button face. Brand or statement hex. */
+  group: "brand" | "statement" | "custom";
+  /** Button face. Brand or statement hex. Custom skins paint their own face. */
   face: string;
   /** Raised lip. A darker step of the face. */
   deep: string;
@@ -14,6 +14,8 @@ export type BacklightSwatch = {
   glow: string;
   /** Highlight text on slate and pith. Darker than a light face, or the face itself when that face is already dark. */
   mark: string;
+  /** When set, `documentElement.dataset.skin` swaps the metal ground and raised keys. */
+  skin?: string;
 };
 
 /**
@@ -36,6 +38,7 @@ export const BRAND_BACKLIGHT: BacklightSwatch[] = [
   { id: "sky", label: "Sky", group: "statement", face: "#a9c6e8", deep: "#7a8fa7", ink: "#000000", glow: "#a9c6e8", mark: "#7a8fa7" },
   { id: "yellow", label: "Yellow", group: "statement", face: "#e3b23c", deep: "#a3802b", ink: "#000000", glow: "#e3b23c", mark: "#a3802b" },
   { id: "red", label: "Red", group: "statement", face: "#d96459", deep: "#9c4840", ink: "#000000", glow: "#e08077", mark: "#9c4840" },
+  { id: "custom-001", label: "001", group: "custom", skin: "custom-001", face: "#1c332c", deep: "#0a0c0b", ink: "#f3f3f3", glow: "#ff6b81", mark: "#ff6b81" },
 ];
 
 /** Earlier wheels stored these ids. Map them onto the closest brand or statement swatch. */
@@ -79,6 +82,8 @@ export function applyBacklight(swatch: BacklightSwatch) {
   root.style.setProperty("--ka-backlight-face", swatch.face);
   root.style.setProperty("--ka-backlight-ink", swatch.ink);
   root.style.setProperty("--ka-backlight-mark", swatch.mark);
+  if (swatch.skin) root.dataset.skin = swatch.skin;
+  else delete root.dataset.skin;
 }
 
 export function storeBacklight(theme: Theme, swatch: BacklightSwatch) {

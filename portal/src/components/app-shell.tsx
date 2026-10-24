@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, type ReactNode } from "react";
 import { AppSidebar } from "@/components/app-sidebar";
+import { ScrollTop } from "@/components/ScrollTop";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
@@ -26,7 +27,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <TooltipProvider>
       <TeacherModeProvider>
-        <SidebarProvider defaultOpen>
+        <SidebarProvider defaultOpen={false}>
           <div className="flex h-svh w-full flex-col overflow-hidden">
             <SiteHeader />
             <div className="relative flex min-h-0 flex-1 bg-sidebar">
@@ -35,6 +36,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <div id="main" className="min-h-0 flex-1 overflow-y-auto">
                   {children}
                 </div>
+                <ScrollTop />
               </SidebarInset>
             </div>
             <div ref={footerRef}>

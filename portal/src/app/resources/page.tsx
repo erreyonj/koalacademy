@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { GlassScreen } from "@/components/GlassScreen";
 import { LedText } from "@/components/LedText";
 
 export const metadata: Metadata = {
@@ -11,8 +12,7 @@ export const metadata: Metadata = {
 export default function ResourcesPage() {
   return (
     <>
-      <header className="page-hero">
-        <div className="page-hero-inner">
+      <GlassScreen>
           <LedText as="p" className="eyebrow" text="Lesson Toolbar" />
           <LedText as="h1" className="page-title" text="Lesson resources" />
           <LedText
@@ -20,13 +20,12 @@ export default function ResourcesPage() {
             className="page-lede"
             text="A holding page. Each toolbar item will eventually link to the right out-of-lesson material — extra videos, playlists of the songs from class, skills practice. Nothing lives here yet."
           />
-        </div>
-      </header>
+      </GlassScreen>
 
       <div className="section">
         <div className="wrap">
-          <div className="deck-screen">
-            <span className="lcd">Resources — Standby</span>
+          <div className="stub-plate">
+            <p className="stub-readout">Resources — Standby</p>
           </div>
 
           <article className="slide-body">
@@ -36,7 +35,7 @@ export default function ResourcesPage() {
                 Extra YouTube explainers, deep dives, and related watching that
                 sits beside the lesson without belonging in the slide itself.
               </p>
-              <div className="empty-note">
+              <div className="stub-plate">
                 <p>No investigation links for this lesson yet.</p>
               </div>
             </section>
@@ -47,7 +46,7 @@ export default function ResourcesPage() {
                 Spotify and YouTube playlists of the songs from the lesson —
                 listening copies a student can open after class.
               </p>
-              <div className="empty-note">
+              <div className="stub-plate">
                 <p>No playlists for this lesson yet.</p>
               </div>
             </section>
@@ -58,7 +57,7 @@ export default function ResourcesPage() {
                 Topic search across the course. Open a lesson from Options to
                 see the tags for that slide, or browse the full hub.
               </p>
-              <div className="empty-note">
+              <div className="stub-plate">
                 <p>
                   <Link href="/skills/">Skills hub</Link> — search tags and
                   lesson titles.

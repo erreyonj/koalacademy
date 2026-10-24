@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { GlassScreen } from "@/components/GlassScreen";
 import { LedText } from "@/components/LedText";
 import { getLessonsForBand } from "@/lib/lessons";
 import { BANDS, BAND_IDS } from "@/lib/types";
@@ -24,8 +25,7 @@ export default function TeacherPage() {
 
   return (
     <>
-      <header className="page-hero">
-        <div className="page-hero-inner">
+      <GlassScreen>
           <LedText as="p" className="eyebrow" text="Teacher mode" />
           <LedText as="h1" className="page-title" text="K–8 progress" />
           <LedText
@@ -33,8 +33,7 @@ export default function TeacherPage() {
             className="page-lede"
             text="Check L, R, and Λ when a section finishes that meeting. The first open cell in a column is the lesson to pick up."
           />
-        </div>
-      </header>
+      </GlassScreen>
 
       <div className="section">
         <div className="wrap wrap-wide">

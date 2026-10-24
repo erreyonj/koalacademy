@@ -6,6 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { GlassScreen } from "@/components/GlassScreen";
 import { LedText } from "@/components/LedText";
 import { BucketsLauncher } from "@/features/behavior/components/BucketsLauncher";
 
@@ -40,8 +41,7 @@ const SHORTCUTS = [
 export function DashboardView() {
   return (
     <>
-      <header className="page-hero">
-        <div className="page-hero-inner">
+      <GlassScreen>
           <LedText as="p" className="eyebrow" text="K–8 Music Pilot" />
           <LedText as="h1" className="page-title" text="Today's lesson, in two taps." />
           <LedText
@@ -49,8 +49,7 @@ export function DashboardView() {
             className="page-lede"
             text="Every lesson as a page you can read on a phone or throw on a projector — the concept, the listening, and the game."
           />
-        </div>
-      </header>
+      </GlassScreen>
 
       <div className="section section-dashboard">
         <div className="wrap">

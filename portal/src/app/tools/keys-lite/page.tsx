@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { GlassScreen } from "@/components/GlassScreen";
 import { LedText } from "@/components/LedText";
 import { KeysLiteIndex } from "@/components/keys-lite/KeysLiteIndex";
 
@@ -12,8 +13,7 @@ export const metadata: Metadata = {
 export default function KeysLitePage() {
   return (
     <>
-      <header className="page-hero">
-        <div className="page-hero-inner">
+      <GlassScreen>
           <LedText as="p" className="eyebrow" text="Toolkit · Keyboard" />
           <LedText as="h1" className="page-title" text="Keys.lite" />
           <LedText
@@ -21,8 +21,7 @@ export default function KeysLitePage() {
             className="page-lede"
             text="Pick a keyboard lab. One-octave scales are ready; two-octave scales and warmups come next."
           />
-        </div>
-      </header>
+      </GlassScreen>
 
       <div className="section">
         <div className="wrap wrap-wide">

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { GlassScreen } from "@/components/GlassScreen";
 import { LedText } from "@/components/LedText";
 import { CircleOfFifths } from "@/components/circle-of-fifths/CircleOfFifths";
 
@@ -12,8 +13,7 @@ export const metadata: Metadata = {
 export default function CircleOfFifthsPage() {
   return (
     <div className="cof-page">
-      <header className="page-hero">
-        <div className="page-hero-inner">
+      <GlassScreen>
           <LedText as="p" className="eyebrow" text="Toolkit · Theory" />
           <LedText as="h1" className="page-title" text="Circle of Fifths" />
           <LedText
@@ -21,8 +21,7 @@ export default function CircleOfFifthsPage() {
             className="page-lede"
             text="Pick a tonic. The wheel names the key, its diatonic triads, and the neighbors that sit a fourth and a fifth away — the same map BMT.1 and BMT.3 teach from the board."
           />
-        </div>
-      </header>
+      </GlassScreen>
 
       <div className="section">
         <div className="wrap">

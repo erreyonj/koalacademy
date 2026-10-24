@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useId, useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { Search, Trash2, X } from "lucide-react";
+import { GlassScreen } from "@/components/GlassScreen";
 import { LedText } from "@/components/LedText";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,7 +36,7 @@ function glossaryHref(q: string, lesson: string, view: string) {
   if (code) params.set("lesson", code);
   if (view === "az") params.set("view", "az");
   const qs = params.toString();
-  return qs ? `/tools/glossary/?${qs}` : "/tools/glossary/";
+  return qs ? `/toolkit/glossary/?${qs}` : "/toolkit/glossary/";
 }
 
 export function GlossaryHub({ catalog }: GlossaryHubProps) {
@@ -138,7 +139,7 @@ export function GlossaryHub({ catalog }: GlossaryHubProps) {
     setDraft("");
     setMenuOpen(false);
     setAdding(false);
-    router.replace("/tools/glossary/", { scroll: false });
+    router.replace("/toolkit/glossary/", { scroll: false });
   }
 
   function replaceEntry(next: GlossaryEntry) {
@@ -155,8 +156,7 @@ export function GlossaryHub({ catalog }: GlossaryHubProps) {
 
   return (
     <div className="skills-page">
-      <header className="skills-hero">
-        <div className="skills-hero-inner">
+      <GlassScreen variant="skills">
           <LedText as="p" className="eyebrow" text="Toolkit" />
           <LedText as="h1" className="page-title" text="Glossary" />
           <form
@@ -220,8 +220,7 @@ export function GlossaryHub({ catalog }: GlossaryHubProps) {
               {azCount} {azCount === 1 ? "term" : "terms"}
             </p>
           ) : null}
-        </div>
-      </header>
+      </GlassScreen>
 
       <div className="section skills-catalog">
         <div className="skills-wrap">
@@ -584,13 +583,11 @@ function DictionaryRow({
 export function GlossaryHubFallback() {
   return (
     <div className="skills-page">
-      <header className="skills-hero">
-        <div className="skills-hero-inner">
+      <GlassScreen variant="skills">
           <LedText as="p" className="eyebrow" text="Toolkit" />
           <LedText as="h1" className="page-title" text="Glossary" />
           <LedText as="p" className="page-lede" text="Loading terms…" />
-        </div>
-      </header>
+      </GlassScreen>
     </div>
   );
 }

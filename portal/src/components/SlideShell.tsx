@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { GlassScreen } from "@/components/GlassScreen";
 import { LedText } from "@/components/LedText";
 import { GlossaryModal } from "./GlossaryModal";
 import { LessonNav } from "./LessonNav";
@@ -35,8 +36,7 @@ export function SlideShell({ lesson, band, prev, next, children }: SlideShellPro
     <LessonNotesProvider>
       <LessonToolbar slug={lesson.slug} skills={lesson.skills} />
 
-      <header className={isDeck ? "page-hero page-hero-deck" : "page-hero"}>
-        <div className="page-hero-inner">
+      <GlassScreen variant={isDeck ? "deck" : "page"} lessonBand={band.id}>
           <LedText
             as="p"
             className="eyebrow"
@@ -45,8 +45,7 @@ export function SlideShell({ lesson, band, prev, next, children }: SlideShellPro
           <LedText as="h1" className="page-title" text={lesson.title} />
           <LedText as="p" className="page-lede" text={lesson.focus} />
           {glossaryCode ? <GlossaryModal lessonCode={glossaryCode} /> : null}
-        </div>
-      </header>
+      </GlassScreen>
 
       <div className={isDeck ? "section section-lesson section-lesson-deck" : "section section-lesson"}>
         <div className="wrap">

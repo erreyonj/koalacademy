@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import { GlassScreen } from "@/components/GlassScreen";
 import { LedText } from "@/components/LedText";
 import {
   BandLessonList,
@@ -33,8 +34,7 @@ export default async function BandPage({ params }: PageProps) {
 
   return (
     <>
-      <header className="page-hero">
-        <div className="page-hero-inner">
+      <GlassScreen lessonBand={band.id}>
           <LedText
             as="p"
             className="eyebrow"
@@ -42,8 +42,7 @@ export default async function BandPage({ params }: PageProps) {
           />
           <LedText as="h1" className="page-title" text={band.label} />
           <LedText as="p" className="page-lede" text={band.blurb} />
-        </div>
-      </header>
+      </GlassScreen>
 
       <div className="section section-lesson">
         <div className="wrap">

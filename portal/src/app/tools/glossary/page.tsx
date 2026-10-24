@@ -1,23 +1,24 @@
-import { Suspense } from "react";
-import type { Metadata } from "next";
-import { GlossaryHub, GlossaryHubFallback } from "@/components/GlossaryHub";
-import { getLessonsForBand } from "@/lib/lessons";
+"use client";
 
-export const metadata: Metadata = {
-  title: "Glossary",
-  description: "Course terms by lesson, and an A–Z list.",
-};
+import { Suspense, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 
-export default function GlossaryPage() {
-  const catalog = getLessonsForBand("6-8").map((lesson) => ({
-    code: lesson.code,
-    title: lesson.title,
-    slug: lesson.slug,
-  }));
+function GlossaryRedirect() {
+  const router = useRouter();
+  const search = useSearchParams();
 
+  useEffect(() => {
+    const qs = search.toString();
+    router.replace(qs ? `/toolkit/glossary/?${qs}` : "/toolkit/glossary/");
+  }, [router, search]);
+
+  return null;
+}
+
+export default function LegacyGlossaryPage() {
   return (
-    <Suspense fallback={<GlossaryHubFallback />}>
-      <GlossaryHub catalog={catalog} />
+    <Suspense fallback={null}>
+      <GlossaryRedirect />
     </Suspense>
   );
 }

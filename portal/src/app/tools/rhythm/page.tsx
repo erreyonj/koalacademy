@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { GlassScreen } from "@/components/GlassScreen";
 import { LedText } from "@/components/LedText";
 import { RhythmRandomizer } from "@/components/notation/RhythmRandomizer";
 
@@ -12,8 +13,7 @@ export const metadata: Metadata = {
 export default function RhythmToolPage() {
   return (
     <div className="notation-page">
-      <header className="page-hero">
-        <div className="page-hero-inner">
+      <GlassScreen>
           <LedText as="p" className="eyebrow" text="Skills · Rhythm" />
           <LedText as="h1" className="page-title" text="Rhythm randomizer" />
           <LedText
@@ -21,8 +21,7 @@ export default function RhythmToolPage() {
             className="page-lede"
             text="Choose a meter and how many bars, then generate. Each beat rolls a quarter, two eighths, or a rest — the same cells NOTATE and BMT.4 drill on paper."
           />
-        </div>
-      </header>
+      </GlassScreen>
 
       <div className="section">
         <div className="wrap">

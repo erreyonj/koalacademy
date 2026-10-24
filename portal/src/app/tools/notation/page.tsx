@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { GlassScreen } from "@/components/GlassScreen";
 import { LedText } from "@/components/LedText";
 import { NotationSandbox } from "@/components/notation/NotationSandbox";
 
@@ -12,8 +13,7 @@ export const metadata: Metadata = {
 export default function NotationToolPage() {
   return (
     <div className="notation-page">
-      <header className="page-hero">
-        <div className="page-hero-inner">
+      <GlassScreen>
           <LedText as="p" className="eyebrow" text="Skills · Notation" />
           <LedText as="h1" className="page-title" text="Notation sandbox" />
           <LedText
@@ -21,8 +21,7 @@ export default function NotationToolPage() {
             className="page-lede"
             text="A blank staff for 6–8 (and anyone who wants extra reps). Set the clef and key, click to place notes or rests, and download an excerpt for a slide or worksheet."
           />
-        </div>
-      </header>
+      </GlassScreen>
 
       <div className="section">
         <div className="wrap">

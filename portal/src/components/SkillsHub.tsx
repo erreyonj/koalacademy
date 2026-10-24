@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useId, useMemo, useState } from "react";
 import { ListPlus, Search, Star, X } from "lucide-react";
+import { GlassScreen } from "@/components/GlassScreen";
 import { LedText } from "@/components/LedText";
 import { Button } from "@/components/ui/button";
 import {
@@ -86,8 +87,7 @@ export function SkillsHub({ lessons }: SkillsHubProps) {
 
   return (
     <div className="skills-page">
-      <header className="skills-hero">
-        <div className="skills-hero-inner">
+      <GlassScreen variant="skills">
           <LedText as="p" className="eyebrow" text="Skills" />
           <LedText as="h1" className="page-title" text="Find a topic" />
           <form
@@ -142,8 +142,7 @@ export function SkillsHub({ lessons }: SkillsHubProps) {
             })}
           </ul>
           <p className="skills-count">{summary}</p>
-        </div>
-      </header>
+      </GlassScreen>
 
       <div className="section skills-catalog">
         <div className="skills-wrap">
@@ -235,13 +234,11 @@ function LessonCard({ lesson }: { lesson: Lesson }) {
 export function SkillsHubFallback() {
   return (
     <div className="skills-page">
-      <header className="skills-hero">
-        <div className="skills-hero-inner">
+      <GlassScreen variant="skills">
           <LedText as="p" className="eyebrow" text="Skills" />
           <LedText as="h1" className="page-title" text="Find a topic" />
           <LedText as="p" className="page-lede" text="Loading the catalog…" />
-        </div>
-      </header>
+      </GlassScreen>
     </div>
   );
 }

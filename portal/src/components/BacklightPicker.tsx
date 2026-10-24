@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
+import { Plus } from "lucide-react";
 import { useSidebar } from "@/components/ui/sidebar";
 import {
   applyBacklight,
@@ -61,6 +62,7 @@ export function BacklightPicker() {
   const groups = [
     { id: "brand", label: "Brand" },
     { id: "statement", label: "Statement" },
+    { id: "custom", label: "Custom" },
   ] as const;
 
   return (
@@ -82,7 +84,25 @@ export function BacklightPicker() {
         <div id={labelId} className="backlight-menu">
           {groups.map((group) => (
             <div key={group.id} className="backlight-group" role="listbox" aria-label={group.label}>
-              <p className="backlight-group-label">{group.label}</p>
+              <div
+                className={
+                  group.id === "custom"
+                    ? "backlight-group-label is-custom"
+                    : "backlight-group-label"
+                }
+              >
+                {group.label}
+                {group.id === "custom" ? (
+                  <button
+                    type="button"
+                    className="backlight-add"
+                    aria-label="Add a custom skin"
+                    disabled
+                  >
+                    <Plus aria-hidden="true" />
+                  </button>
+                ) : null}
+              </div>
               {palette
                 .filter((swatch) => swatch.group === group.id)
                 .map((swatch) => (

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { GlassScreen } from "@/components/GlassScreen";
 import { LedText } from "@/components/LedText";
 import { ScaleHand } from "@/components/keys-lite/ScaleHand";
 
@@ -12,8 +13,7 @@ export const metadata: Metadata = {
 export default function OneOctavePage() {
   return (
     <div className="scale-hand-page">
-      <header className="page-hero">
-        <div className="page-hero-inner">
+      <GlassScreen>
           <LedText as="p" className="eyebrow" text="Toolkit · Keyboard" />
           <LedText as="h1" className="page-title" text="1 Octave Scales" />
           <LedText
@@ -21,8 +21,7 @@ export default function OneOctavePage() {
             className="page-lede"
             text="One octave of the selected scale, same tonic for major or minor. Fingers 1 2 3, then the thumb tucks under to 1 2 3 4 5. The same turn BMT.1 asks students to find on a real keyboard."
           />
-        </div>
-      </header>
+      </GlassScreen>
 
       <div className="section">
         <div className="wrap">

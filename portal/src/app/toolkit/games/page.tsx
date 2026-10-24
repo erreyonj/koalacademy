@@ -16,19 +16,15 @@ export default function GamesPage() {
       lede="Jackbox-style games for the room: the teacher hosts from one device, everyone else joins with the code on the board. More games land here as they're built."
       lcd="Games — Ready"
     >
-      <article className="slide-body">
-        <div className="empty-note">
-          <p>
-            <Link href="/toolkit/games/salad-bowl/">Salad Bowl</Link> — the
-            bowl game in three rounds: Describe, Charades, then One Word.
-            Free-for-all cards from the class, or a Koala/Music deck from the
-            teacher.
-          </p>
-          <p>
-            <Link href="/toolkit/">← Toolkit</Link>
-          </p>
-        </div>
-      </article>
+      <p>
+        <Link href="/toolkit/games/salad-bowl/">Salad Bowl</Link> — the
+        bowl game in three rounds: Describe, Charades, then One Word.
+        Free-for-all cards from the class, or a Koala/Music deck from the
+        teacher.
+      </p>
+      <p>
+        <Link href="/toolkit/">← Toolkit</Link>
+      </p>
     </StubPage>
   );
 }

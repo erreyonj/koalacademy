@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { GlassScreen } from "@/components/GlassScreen";
 import { LedText } from "@/components/LedText";
 import { BehaviorPage } from "@/features/behavior/components/BehaviorPage";
 
@@ -10,16 +11,14 @@ export const metadata: Metadata = {
 export default function BucketsRoute() {
   return (
     <>
-      <header className="page-hero">
-        <div className="page-hero-inner">
+      <GlassScreen>
           <LedText as="h1" className="page-title" text="Class Buckets" />
           <LedText
             as="p"
             className="page-lede"
             text="Let's be Bucket Fillers and not Bucket Dippers."
           />
-        </div>
-      </header>
+      </GlassScreen>
 
       <div className="section">
         <div className="wrap wrap-wide">

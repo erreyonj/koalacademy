@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { GlassScreen } from "@/components/GlassScreen";
 import { LedText } from "@/components/LedText";
 import { ClassesIndex } from "@/features/classes/components/ClassesIndex";
 
@@ -10,8 +11,7 @@ export const metadata: Metadata = {
 export default function ClassesPage() {
   return (
     <>
-      <header className="page-hero">
-        <div className="page-hero-inner">
+      <GlassScreen>
           <LedText as="p" className="eyebrow" text="Homerooms" />
           <LedText as="h1" className="page-title" text="Classes" />
           <LedText
@@ -19,8 +19,7 @@ export default function ClassesPage() {
             className="page-lede"
             text="Pick a class to put its homeroom screen up — seats, marbles, and the lesson to pick back up."
           />
-        </div>
-      </header>
+      </GlassScreen>
 
       <div className="section section-dashboard">
         <div className="wrap wrap-wide">

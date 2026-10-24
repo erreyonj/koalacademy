@@ -86,7 +86,7 @@ export function GlossaryModal({ lessonCode }: GlossaryModalProps) {
             <div>
               <p className="skills-card-code">{lessonCode}</p>
               <DialogPrimitive.Title id={titleId} className="text-base font-semibold">
-                <Link href={`/tools/glossary/?lesson=${encodeURIComponent(lessonCode)}`}>
+                <Link href={`/toolkit/glossary/?lesson=${encodeURIComponent(lessonCode)}`}>
                   Glossary
                 </Link>
               </DialogPrimitive.Title>

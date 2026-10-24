@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { GlassScreen } from "@/components/GlassScreen";
 import { LedText } from "@/components/LedText";
 import {
   formatNewsletterDate,
@@ -15,8 +16,7 @@ export default function NewsletterPage() {
 
   return (
     <>
-      <header className="page-hero">
-        <div className="page-hero-inner">
+      <GlassScreen>
           <LedText as="p" className="eyebrow" text="K–8 Music Pilot" />
           <LedText as="h1" className="page-title" text="Class updates" />
           <LedText
@@ -24,8 +24,7 @@ export default function NewsletterPage() {
             className="page-lede"
             text="Short notes from music class — for families, students, and anyone checking in."
           />
-        </div>
-      </header>
+      </GlassScreen>
 
       <div className="section">
         <div className="wrap">

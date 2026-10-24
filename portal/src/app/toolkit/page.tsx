@@ -14,38 +14,34 @@ export default function ToolkitPage() {
       lede="Out-of-lesson tools live here. The notation sandbox, rhythm randomizer, circle of fifths, and Keys.lite are ready; the rest of the kit fills in as we write it."
       lcd="Toolkit — Standby"
     >
-      <article className="slide-body">
-        <div className="empty-note">
-          <p>
-            <Link href="/tools/glossary/">Glossary</Link> — course terms by
-            lesson, and an A–Z list.
-          </p>
-          <p>
-            <Link href="/toolkit/games/">Games</Link> — classroom games played
-            on the iPads. Salad Bowl is first up.
-          </p>
-          <p>
-            <Link href="/tools/notation/">Notation sandbox</Link> — clef, key,
-            time, notes, and rests on a 1–2 bar staff.
-          </p>
-          <p>
-            <Link href="/tools/rhythm/">Rhythm randomizer</Link> — pick a meter
-            and bar count, then generate a 1–4 bar drill.
-          </p>
-          <p>
-            <Link href="/tools/circle-of-fifths/">Circle of Fifths</Link> —
-            spin a key and read its triads, relative, and IV / V neighbors.
-          </p>
-          <p>
-            <Link href="/tools/keys-lite/">Keys.lite</Link> — keyboard lab
-            for one-octave scales, two-octave scales, and warmups.
-          </p>
-          <p>
-            <Link href="/resources/">Lesson resources</Link> still holds
-            Investigate / Playlist / Skills slots the toolbar points at.
-          </p>
-        </div>
-      </article>
+      <p>
+        <Link href="/toolkit/glossary/">Glossary</Link> — course terms by
+        lesson, and an A–Z list.
+      </p>
+      <p>
+        <Link href="/toolkit/games/">Games</Link> — classroom games played
+        on the iPads. Salad Bowl is first up.
+      </p>
+      <p>
+        <Link href="/tools/notation/">Notation sandbox</Link> — clef, key,
+        time, notes, and rests on a 1–2 bar staff.
+      </p>
+      <p>
+        <Link href="/tools/rhythm/">Rhythm randomizer</Link> — pick a meter
+        and bar count, then generate a 1–4 bar drill.
+      </p>
+      <p>
+        <Link href="/tools/circle-of-fifths/">Circle of Fifths</Link> —
+        spin a key and read its triads, relative, and IV / V neighbors.
+      </p>
+      <p>
+        <Link href="/tools/keys-lite/">Keys.lite</Link> — keyboard lab
+        for one-octave scales, two-octave scales, and warmups.
+      </p>
+      <p>
+        <Link href="/resources/">Lesson resources</Link> still holds
+        Investigate / Playlist / Skills slots the toolbar points at.
+      </p>
     </StubPage>
   );
 }

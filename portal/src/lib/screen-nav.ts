@@ -1,7 +1,7 @@
 import {
   Backpack,
   BookA,
-  Dices,
+  Drum,
   Gamepad2,
   House,
   LayoutGrid,
@@ -85,7 +85,7 @@ export const TOOLKIT_LINKS: ScreenLink[] = [
   {
     title: "Rhythm Randomizer",
     href: "/tools/rhythm/",
-    icon: Dices,
+    icon: Drum,
     match: "prefix",
     led: "bamboo",
   },

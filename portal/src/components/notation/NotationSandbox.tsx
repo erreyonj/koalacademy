@@ -99,12 +99,12 @@ export function NotationSandbox({ initial }: { initial?: ScoreExcerpt }) {
 
         <fieldset className="notation-fieldset">
           <legend>Clef</legend>
-          <div className="notation-pills">
+          <div className="notation-pills tools-buttons">
             {(["treble", "bass"] as Clef[]).map((clef) => (
               <button
                 key={clef}
                 type="button"
-                className="notation-btn"
+                className="tools-button"
                 aria-pressed={score.clef === clef}
                 onClick={() => setScore((current) => setClef(current, clef))}
               >
@@ -138,10 +138,10 @@ export function NotationSandbox({ initial }: { initial?: ScoreExcerpt }) {
               </optgroup>
             </select>
           </label>
-          <div className="notation-pills">
+          <div className="notation-pills tools-buttons">
             <button
               type="button"
-              className="notation-btn"
+              className="tools-button"
               aria-pressed={parsed.mode === "major"}
               onClick={() => applyKey(setKeyMode(score.key, "major"))}
             >
@@ -149,17 +149,17 @@ export function NotationSandbox({ initial }: { initial?: ScoreExcerpt }) {
             </button>
             <button
               type="button"
-              className="notation-btn"
+              className="tools-button"
               aria-pressed={parsed.mode === "minor"}
               onClick={() => applyKey(setKeyMode(score.key, "minor"))}
             >
               Minor
             </button>
           </div>
-          <div className="notation-pills">
+          <div className="notation-pills tools-buttons">
             <button
               type="button"
-              className="notation-btn"
+              className="tools-button"
               aria-pressed={family === "sharp"}
               onClick={() => setFamily("sharp")}
             >
@@ -167,7 +167,7 @@ export function NotationSandbox({ initial }: { initial?: ScoreExcerpt }) {
             </button>
             <button
               type="button"
-              className="notation-btn"
+              className="tools-button"
               aria-pressed={family === "flat"}
               onClick={() => setFamily("flat")}
             >
@@ -182,12 +182,12 @@ export function NotationSandbox({ initial }: { initial?: ScoreExcerpt }) {
 
         <fieldset className="notation-fieldset">
           <legend>Time</legend>
-          <div className="notation-pills">
+          <div className="notation-pills tools-buttons">
             {TIMES.map((time) => (
               <button
                 key={time}
                 type="button"
-                className="notation-btn"
+                className="tools-button"
                 aria-pressed={score.time === time}
                 onClick={() => setScore((current) => setTime(current, time))}
               >
@@ -199,12 +199,12 @@ export function NotationSandbox({ initial }: { initial?: ScoreExcerpt }) {
 
         <fieldset className="notation-fieldset">
           <legend>Cursor</legend>
-          <div className="notation-pills">
+          <div className="notation-pills tools-buttons">
             {CURSORS.map((item) => (
               <button
                 key={item.id}
                 type="button"
-                className="notation-btn"
+                className="tools-button"
                 aria-pressed={cursor === item.id}
                 onClick={() => setCursor(item.id)}
               >
@@ -216,12 +216,12 @@ export function NotationSandbox({ initial }: { initial?: ScoreExcerpt }) {
 
         <fieldset className="notation-fieldset">
           <legend>Duration</legend>
-          <div className="notation-pills">
+          <div className="notation-pills tools-buttons">
             {DURATIONS.map((item) => (
               <button
                 key={item.id}
                 type="button"
-                className="notation-btn"
+                className="tools-button"
                 aria-pressed={duration === item.id}
                 disabled={cursor === "erase" || cursor === "key"}
                 onClick={() => setDuration(item.id)}
@@ -253,17 +253,17 @@ export function NotationSandbox({ initial }: { initial?: ScoreExcerpt }) {
           </select>
         </label>
 
-        <div className="notation-sidebar-actions">
+        <div className="notation-sidebar-actions tools-buttons">
           <button
             type="button"
-            className="notation-btn"
+            className="tools-button"
             onClick={() => setScore((current) => emptyScore(current))}
           >
             Clear notes
           </button>
           <button
             type="button"
-            className="notation-btn"
+            className="tools-button"
             onClick={() => {
               const staff = hostRef.current?.querySelector<HTMLElement>(".notation-staff");
               if (staff) downloadSvg(staff, fileName);
@@ -273,7 +273,7 @@ export function NotationSandbox({ initial }: { initial?: ScoreExcerpt }) {
           </button>
           <button
             type="button"
-            className="notation-btn"
+            className="tools-button"
             onClick={() => {
               const staff = hostRef.current?.querySelector<HTMLElement>(".notation-staff");
               if (staff) void downloadPng(staff, fileName);

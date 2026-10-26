@@ -417,10 +417,10 @@ export function ScaleHand() {
         })}
       </div>
 
-      <div className="scale-hand-controls">
+      <div className="scale-hand-controls tools-buttons">
         <button
           type="button"
-          className="notation-btn"
+          className="tools-button"
           disabled={playing && !(loop && dir === "up")}
           onClick={() => start("up")}
         >
@@ -432,7 +432,7 @@ export function ScaleHand() {
         </button>
         <button
           type="button"
-          className="notation-btn"
+          className="tools-button"
           disabled={playing && !(loop && dir === "down")}
           onClick={() => start("down")}
         >
@@ -440,7 +440,7 @@ export function ScaleHand() {
         </button>
         <button
           type="button"
-          className="notation-btn"
+          className="tools-button"
           disabled={playing && !(loop && dir === "updown")}
           onClick={() => start("updown")}
         >
@@ -448,7 +448,7 @@ export function ScaleHand() {
         </button>
         <button
           type="button"
-          className="notation-btn"
+          className="tools-button"
           disabled={playing || showBoth}
           aria-pressed={side === "left"}
           onClick={toggleHand}
@@ -457,7 +457,7 @@ export function ScaleHand() {
         </button>
         <button
           type="button"
-          className="notation-btn"
+          className="tools-button"
           disabled={playing}
           aria-pressed={showBoth}
           onClick={toggleBoth}
@@ -465,7 +465,7 @@ export function ScaleHand() {
           Both
         </button>
         <DropdownMenu>
-          <DropdownMenuTrigger className="notation-btn" disabled={playing}>
+          <DropdownMenuTrigger className="tools-button" disabled={playing}>
             Key · {tonic}
           </DropdownMenuTrigger>
           <DropdownMenuContent side="bottom" className="scale-hand-menu">
@@ -479,7 +479,7 @@ export function ScaleHand() {
           </DropdownMenuContent>
         </DropdownMenu>
         <DropdownMenu>
-          <DropdownMenuTrigger className="notation-btn" disabled={playing}>
+          <DropdownMenuTrigger className="tools-button" disabled={playing}>
             Mode · {modeButtonLabel(mode)}
           </DropdownMenuTrigger>
           <DropdownMenuContent side="bottom" className="scale-hand-menu scale-hand-mode-panel">
@@ -525,7 +525,7 @@ export function ScaleHand() {
         </DropdownMenu>
         <button
           type="button"
-          className="notation-btn"
+          className="tools-button"
           aria-pressed={loop}
           onClick={() => setLoop((on) => !on)}
         >
@@ -533,7 +533,7 @@ export function ScaleHand() {
         </button>
         <button
           type="button"
-          className="notation-btn"
+          className="tools-button"
           aria-pressed={timingMode === "smooth"}
           onClick={toggleSmooth}
         >
@@ -541,7 +541,7 @@ export function ScaleHand() {
         </button>
         <button
           type="button"
-          className="notation-btn"
+          className="tools-button"
           disabled={timingMode !== "smooth"}
           onClick={() => setBpm((value) => nextTempo(value))}
         >
@@ -549,7 +549,7 @@ export function ScaleHand() {
         </button>
         <button
           type="button"
-          className="notation-btn"
+          className="tools-button"
           aria-pressed={!soundOn}
           onClick={toggleSound}
         >

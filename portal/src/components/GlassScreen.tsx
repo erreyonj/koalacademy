@@ -54,12 +54,21 @@ function GlassRail({
   lessonBand?: BandId;
 }) {
   const pathname = usePathname();
+  const [home, ...icons] = links;
+  if (!home) return null;
+  const homeCurrent = screenLinkActive(pathname, home, lessonBand);
 
   return (
     <nav className="glass-rail" data-side={side} aria-label={label}>
-      <LedText as="p" className="glass-rail-label" text={label} />
+      <Link
+        href={home.href}
+        className="glass-rail-label-link"
+        aria-current={homeCurrent ? "page" : undefined}
+      >
+        <LedText as="span" className="glass-rail-label" text={label} />
+      </Link>
       <ul className="glass-rail-icons">
-        {links.map((link) => {
+        {icons.map((link) => {
           const lit = screenLinkActive(pathname, link, lessonBand);
           const Icon = link.icon;
           return (

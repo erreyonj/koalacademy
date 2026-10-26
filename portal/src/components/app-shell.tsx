@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, type ReactNode } from "react";
 import { AppSidebar } from "@/components/app-sidebar";
+import { MobileToolpad } from "@/components/MobileToolpad";
 import { ScrollTop } from "@/components/ScrollTop";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
@@ -16,12 +17,19 @@ export function AppShell({ children }: { children: ReactNode }) {
     const footer = footerRef.current?.querySelector(".footer");
     if (!footer) return;
     const apply = () => {
-      document.documentElement.style.setProperty("--device-footer-h", `${footer.getBoundingClientRect().height}px`);
+      const hidden = getComputedStyle(footer).display === "none";
+      const height = hidden ? 0 : footer.getBoundingClientRect().height;
+      document.documentElement.style.setProperty("--device-footer-h", `${height}px`);
     };
     apply();
     const observer = new ResizeObserver(apply);
     observer.observe(footer);
-    return () => observer.disconnect();
+    const media = window.matchMedia("(max-width: 767px)");
+    media.addEventListener("change", apply);
+    return () => {
+      observer.disconnect();
+      media.removeEventListener("change", apply);
+    };
   }, []);
 
   return (
@@ -38,6 +46,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 </div>
                 <ScrollTop />
               </SidebarInset>
+              <MobileToolpad />
             </div>
             <div ref={footerRef}>
               <SiteFooter />

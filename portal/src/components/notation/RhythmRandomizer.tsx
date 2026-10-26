@@ -84,10 +84,10 @@ export function RhythmRandomizer() {
           </select>
         </label>
 
-        <div className="notation-sidebar-actions">
+        <div className="notation-sidebar-actions tools-buttons">
           <button
             type="button"
-            className="notation-btn"
+            className="tools-button"
             aria-pressed={extrasOn}
             aria-expanded={extrasOpen}
             onClick={() => setExtrasOpen((open) => !open)}
@@ -95,7 +95,7 @@ export function RhythmRandomizer() {
             Extras
           </button>
           
-          <button type="button" className="notation-btn" onClick={() => generate()}>
+          <button type="button" className="tools-button" onClick={() => generate()}>
             Generate
           </button>
         </div>

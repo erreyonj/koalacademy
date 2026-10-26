@@ -28,23 +28,25 @@ export function CofControls({
 }: CofControlsProps) {
   return (
     <div className="cof-controls" role="toolbar" aria-label="Circle of fifths controls">
-      <button type="button" className="notation-btn" onClick={onFourth}>
-        ← Fourth ({prettyPitch(fourthLabel)})
-      </button>
-      <button type="button" className="notation-btn" onClick={onFifth}>
-        Fifth ({prettyPitch(fifthLabel)}) →
-      </button>
-      <button
-        type="button"
-        className="notation-btn"
-        aria-pressed={mode === "minor"}
-        onClick={onRelative}
-      >
-        Relative
-      </button>
-      <button type="button" className="notation-btn" onClick={onReset}>
-        Reset
-      </button>
+      <div className="tools-buttons">
+        <button type="button" className="tools-button" onClick={onFourth}>
+          ← Fourth ({prettyPitch(fourthLabel)})
+        </button>
+        <button type="button" className="tools-button" onClick={onFifth}>
+          Fifth ({prettyPitch(fifthLabel)}) →
+        </button>
+        <button
+          type="button"
+          className="tools-button"
+          aria-pressed={mode === "minor"}
+          onClick={onRelative}
+        >
+          Relative
+        </button>
+        <button type="button" className="tools-button" onClick={onReset}>
+          Reset
+        </button>
+      </div>
       <label className="notation-label cof-jump">
         Key jump
         <select

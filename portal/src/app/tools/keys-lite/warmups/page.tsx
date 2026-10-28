@@ -1,28 +1,38 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { StubPage } from "@/components/StubPage";
+import { GlassScreen } from "@/components/GlassScreen";
+import { LedText } from "@/components/LedText";
+import { WarmupsIndex } from "@/components/keys-lite/WarmupsIndex";
 
 export const metadata: Metadata = {
   title: "Warmups",
-  description: "Short keyboard drills before a scale or a song — coming next in Keys.lite.",
+  description:
+    "Short keyboard drills to get fingers ready before a scale or a song.",
 };
 
 export default function WarmupsPage() {
   return (
-    <StubPage
-      eyebrow="Toolkit · Keyboard"
-      title="Warmups"
-      lede="Short keyboard drills to get fingers ready before a scale or a song."
-      lcd="Keys.lite — Warmups · Coming next"
-    >
-      <div className="empty-note">
-        <p>This lab is a hold for the next pass.</p>
+    <>
+      <GlassScreen>
+        <LedText as="p" className="eyebrow" text="Toolkit · Keyboard" />
+        <LedText as="h1" className="page-title" text="Warmups" />
+        <LedText
+          as="p"
+          className="page-lede"
+          text="Short keyboard drills to get fingers ready before a scale or a song."
+        />
+      </GlassScreen>
+
+      <div className="section">
+        <div className="wrap wrap-wide">
+          <WarmupsIndex />
+          <p>
+            <Link className="back-link" href="/tools/keys-lite/">
+              ← Keys.lite
+            </Link>
+          </p>
+        </div>
       </div>
-      <p>
-        <Link className="back-link" href="/tools/keys-lite/">
-          ← Keys.lite
-        </Link>
-      </p>
-    </StubPage>
+    </>
   );
 }

@@ -3352,6 +3352,12 @@ button.lesson-toolbar-item {
   padding-bottom: var(--device-footer-h, 0px);
 }
 
+/* Homeroom fills the scrollport above the fixed-footer padding — no vh math. */
+#main:has(> .homeroom) {
+  display: flex;
+  flex-direction: column;
+}
+
 [data-sidebar="footer"] {
   position: relative;
   z-index: 31;
@@ -5552,7 +5558,10 @@ button.marble-bucket-number.is-editable:focus-visible {
   display: grid;
   grid-template-rows: auto 1fr auto;
   gap: var(--homeroom-pad);
-  min-height: calc(100dvh - var(--header-height));
+  /* Exact fill of #main's content box (footer padding already reserved). */
+  flex: 1 1 0%;
+  width: 100%;
+  min-height: 0;
   padding: var(--homeroom-pad);
   background:
     radial-gradient(120% 80% at 50% 0%, color-mix(in srgb, var(--ka-eucalyptus) 35%, transparent) 0%, transparent 60%),
@@ -5828,11 +5837,13 @@ a.homeroom-marbles:active,
 
 /* Floor: tables as seen from the TV */
 .homeroom-floor {
+  container-type: size;
   display: grid;
   align-content: center;
   justify-items: center;
   gap: 1rem;
   min-height: 0;
+  overflow: auto;
 }
 
 .homeroom-floor.is-editing {
@@ -5930,9 +5941,13 @@ a.homeroom-marbles:active,
 /* Furniture is sized in table units (one table = 1 x 2 units), so tables
    stay rigid and names fit the seat instead of stretching the table. */
 .seating-room {
-  /* The room is ~5 units tall and ~8.5 wide; fit whichever runs out first
-     after the top bar, bottom row, and sidebar. */
-  --unit: clamp(2rem, min(calc((100dvh - 25rem) / 5), calc((100vw - 22rem) / 8.5)), 6rem);
+  /* Fit the floor container (homeroom already reserved header/footer/chrome).
+     Room is ~5 units tall and ~8.5 wide; leave a little for the hint line. */
+  --unit: clamp(
+    1.75rem,
+    min(calc((100cqh - 2rem) / 5), calc((100cqw - 2rem) / 8.5)),
+    6rem
+  );
   --seat-depth: calc(var(--unit) * 0.34);
   display: grid;
   grid-template-areas:
@@ -6287,8 +6302,9 @@ a.homeroom-marbles,
 
 /* ==========================================================================
    Custom plate skin (custom-001).
-   The field is the starfield photo. Button lips, the device edge, and the
-   footer seam keep the turned hardware grain.
+   Chrome (header + sidebar) keeps the starfield. Desktop content is matte
+   black; mobile keeps the field texture. Plate lips reuse the face gradient.
+   Undeclared slate pads keep Pop black ink; main plates stay white.
    ========================================================================== */
 
 html[data-skin="custom-001"] {
@@ -6303,13 +6319,15 @@ html[data-skin="custom-001"] {
   --sidebar-accent: #12141a;
   --sidebar-accent-foreground: #f3f3f3;
   --plate-lip: 8px;
+  --plate-lip-fill: rgb(39 39 39 / 65%);
   --plate-field: #07080d;
+  --plate-content: #ede4d4;
+  --plate-face: linear-gradient(180deg, #24382f 0%, #1c332c 34%, #101614 70%, #0a0c0b 100%);
 }
 
-html[data-skin="custom-001"] body,
+/* Header + sidebar always carry the space texture. */
 html[data-skin="custom-001"] .site-header,
-html[data-skin="custom-001"] [data-slot="sidebar-inner"],
-html[data-skin="custom-001"] [data-slot="sidebar-inset"] {
+html[data-skin="custom-001"] [data-slot="sidebar-inner"] {
   background-color: var(--plate-field);
   background-image: url("/assets/Texturelabs_Sky_142L.jpg");
   background-repeat: no-repeat;
@@ -6322,14 +6340,42 @@ html[data-skin="custom-001"] [data-slot="sidebar-inner"] {
   background-attachment: scroll;
 }
 
+/* Desktop: bone content pane; body flat so nothing peeks behind. */
+@media (min-width: 768px) {
+  html[data-skin="custom-001"] body {
+    background-color: var(--plate-content);
+    background-image: none;
+  }
+
+  html[data-skin="custom-001"] [data-slot="sidebar-inset"] {
+    background-color: var(--plate-content);
+    background-image: none;
+    /* Bone field needs Pop ink; plates still set their own white. */
+    --ka-ink: #000000;
+    --foreground: #000000;
+    color: #000;
+  }
+}
+
+/* Mobile: no persistent sidebar — content keeps the cosmic field. */
+@media (max-width: 767px) {
+  html[data-skin="custom-001"] body,
+  html[data-skin="custom-001"] [data-slot="sidebar-inset"] {
+    background-color: var(--plate-field);
+    background-image: url("/assets/Texturelabs_Sky_142L.jpg");
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+  }
+}
+
 html[data-skin="custom-001"] .site-header {
   border-bottom-color: rgb(255 255 255 / 16%);
 }
 
-html[data-skin="custom-001"] [data-sidebar="sidebar"] :is(
-  [data-sidebar="menu-button"],
-  [data-sidebar="menu-sub-button"]
-):not([data-active="true"]) {
+/* Undeclared slate pads (menu, grade-band submenu, etc.) use Pop ink. */
+html[data-skin="custom-001"] .btn-squishy {
   color: #000;
 }
 
@@ -6342,11 +6388,36 @@ html[data-skin="custom-001"] .backlight-add {
   color: #535863;
 }
 
-html[data-skin="custom-001"] a {
+/* Soft mint links in content — skip raised pads (Pop black / plate white). */
+html[data-skin="custom-001"] #main a:not(
+  .btn-backlit,
+  .tools-button,
+  .band-card,
+  .lesson-row,
+  .skills-card,
+  .glossary-pad,
+  .homeroom-menu-button,
+  .homeroom-class-pad,
+  .homeroom-today,
+  .stub-plate,
+  .btn-squishy
+) {
   color: #d7ece4;
 }
 
-html[data-skin="custom-001"] a:hover {
+html[data-skin="custom-001"] #main a:not(
+  .btn-backlit,
+  .tools-button,
+  .band-card,
+  .lesson-row,
+  .skills-card,
+  .glossary-pad,
+  .homeroom-menu-button,
+  .homeroom-class-pad,
+  .homeroom-today,
+  .stub-plate,
+  .btn-squishy
+):hover {
   color: #fff;
 }
 
@@ -6418,18 +6489,11 @@ html[data-skin="custom-001"] :is(
   --plate-lip: 8px;
   color: var(--ka-backlight-ink, #f3f3f3);
   background-color: #0a0c0b;
+  /* Face gradient; lips are #272727 @ 65%. */
   background-image:
-    linear-gradient(180deg, #24382f 0%, #1c332c 34%, #101614 70%, #0a0c0b 100%),
-    repeating-linear-gradient(
-      270deg,
-      rgb(255 255 255 / 34%) 0 1px,
-      #6e767f 1px 3px
-    ),
-    repeating-linear-gradient(
-      90deg,
-      rgb(255 255 255 / 34%) 0 1px,
-      #6e767f 1px 3px
-    );
+    var(--plate-face),
+    linear-gradient(var(--plate-lip-fill), var(--plate-lip-fill)),
+    linear-gradient(var(--plate-lip-fill), var(--plate-lip-fill));
   background-repeat: no-repeat;
   background-origin: padding-box, border-box, border-box;
   background-clip: padding-box, border-box, border-box;

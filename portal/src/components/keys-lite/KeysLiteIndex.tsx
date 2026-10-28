@@ -1,6 +1,6 @@
-import Link from "next/link";
+import { KeysLiteCardGrid, type KeysLiteCard } from "./KeysLiteCardGrid";
 
-const PROGRAMS = [
+const PROGRAMS: KeysLiteCard[] = [
   {
     id: "one-octave",
     code: "KL-01",
@@ -8,7 +8,7 @@ const PROGRAMS = [
     description:
       "Walk one octave of a chosen key, including the thumb-under turn.",
     href: "/tools/keys-lite/one-octave/",
-    status: "Live" as const,
+    status: "Live",
   },
   {
     id: "two-octave",
@@ -16,7 +16,7 @@ const PROGRAMS = [
     title: "2 Octave Scales",
     description: "The same walk, stretched across two octaves.",
     href: "/tools/keys-lite/two-octave/",
-    status: "Coming" as const,
+    status: "Coming",
   },
   {
     id: "warmups",
@@ -24,23 +24,10 @@ const PROGRAMS = [
     title: "Warmups",
     description: "Short keyboard drills before a scale or a song.",
     href: "/tools/keys-lite/warmups/",
-    status: "Coming" as const,
+    status: "Live",
   },
-] as const;
+];
 
 export function KeysLiteIndex() {
-  return (
-    <ul className="keys-lite-grid" role="list">
-      {PROGRAMS.map((program) => (
-        <li key={program.id}>
-          <Link href={program.href} className="keys-lite-card btn-backlit">
-            <span className="keys-lite-card-code">{program.code}</span>
-            <span className="keys-lite-status">{program.status}</span>
-            <span className="keys-lite-card-title">{program.title}</span>
-            <span className="keys-lite-card-focus">{program.description}</span>
-          </Link>
-        </li>
-      ))}
-    </ul>
-  );
+  return <KeysLiteCardGrid cards={PROGRAMS} />;
 }

@@ -101,6 +101,51 @@ the extremes so the contrast stays huge.
 
 ---
 
+## Bright Steps
+
+| Strand | Grade band | Group size | Space | Materials |
+| --- | --- | --- | --- | --- |
+| `PITCH` | K-2 | Whole class | Standing spots, no walking the room | Keyboard with the white keys visible; voice or guitar for the tune |
+
+**Setup:** Students stand in their own spots. Park the keyboard where the class can see the
+white keys. Be ready to play C up to the next C, one note at a time, then a three-note tune
+from those notes with a chord under it.
+
+**How to play:** Three short rounds on the same scale. Round one: step in place once for each
+white key while the teacher plays C, D, E, F, G, A, B, C. Round two: open both arms when that
+walk is a major scale — the bright idea. A short scramble that is not the scale is the check.
+Round three: the teacher sings a three-note tune (melody), then plays a chord under it
+(harmony). On cue, students point to the mouth for the tune or open their hands for the notes
+that go with it.
+
+**Win condition:** Cooperative — the class wins when the steps land with the notes, and the
+bright arms happen on the major scale.
+
+**I do / We do / You do**
+
+1. *I do:* Teacher plays and names C up to the next C, opens both arms, and says this is a
+   major scale, a bright idea. Then sings a three-note tune and plays a chord under it.
+2. *We do:* Class sings the letters, steps once per note, and matches the open arms. Then they
+   sing the tune while the chord plays.
+3. *You do:* Teacher plays and stops modeling. Class steps the white keys, shows bright only
+   on the scale, and on cue shows tune or together.
+
+**Concept targets:** A major scale is a bright musical idea. The seven natural notes are the
+white keys, walked C up to C. Melody (the tune) and harmony (the notes under the tune) both
+come from that scale. Who opens their arms on the scramble is following the motion, not the
+sound.
+
+**Variations and ramps**
+
+- K: sing "up" and step; teacher names each white key
+- Grade 1: sing the letter names with the teacher for the whole walk
+- Grade 2: say the letter names while stepping, teacher silent on the names
+
+**Prep TODOs:** A keyboard the class can see. One three-note tune on the white keys, and one
+chord that sits under it.
+
+---
+
 ## Timbre Scavenger
 
 | Strand | Grade band | Group size | Space | Materials |

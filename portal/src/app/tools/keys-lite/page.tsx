@@ -19,7 +19,7 @@ export default function KeysLitePage() {
           <LedText
             as="p"
             className="page-lede"
-            text="Pick a keyboard lab. One-octave scales are ready; two-octave scales and warmups come next."
+            text="Pick a keyboard lab. One-octave scales and warmups are ready; two-octave scales come next."
           />
       </GlassScreen>
 

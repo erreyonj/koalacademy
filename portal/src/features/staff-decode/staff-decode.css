@@ -839,6 +839,10 @@
   cursor: pointer;
 }
 
+.sd-workbench.is-touch .sd-dial-stop-group {
+  cursor: inherit;
+}
+
 /* Right Arrow Controls */
 .sd-arrow-column {
   display: flex;

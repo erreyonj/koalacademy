@@ -91,6 +91,20 @@ test("Staff DeCode full game loop: start, cipher, wrong pitch, wrong value, clea
   await expect(page.getByTestId("dial-hand")).toHaveCount(0);
   await page.getByTestId("touch-screen-toggle").click();
 
+  // Touch mode: tapping a note on the dial does not jump to it
+  await page.getByTestId("dial-stop-A4").click({ force: true });
+  await expect(page.getByTestId("safe-dial-wheel")).toHaveAttribute(
+    "data-selected-pitch",
+    "E4",
+  );
+
+  // The rest of the flow taps stops directly, which is button mode only
+  await page.getByTestId("touch-screen-toggle").click();
+  await expect(page.getByTestId("touch-screen-toggle")).toHaveAttribute(
+    "aria-pressed",
+    "false",
+  );
+
   // Without a dial move the smart timer never fires, even on a stethoscope change
   await page.getByTestId("steth-option-8").click();
   await page.getByTestId("steth-option-q").click();
@@ -216,6 +230,21 @@ test("Staff DeCode full game loop: start, cipher, wrong pitch, wrong value, clea
   await expect(page.getByTestId("steth-option-16")).toBeVisible();
   await expect(page.getByTestId("steth-option-w")).toBeVisible();
   await expect(page.getByTestId("game-clock")).toContainText("LOCK IN");
+
+  // Touch mode on Hard: a stop tap is ignored, an upward swipe steps one detent
+  await page.getByTestId("touch-screen-toggle").click();
+  const wheel = page.getByTestId("safe-dial-wheel");
+  await page.getByTestId("dial-stop-C6").click({ force: true });
+  await expect(wheel).toHaveAttribute("data-selected-pitch", "E4");
+  const box = (await wheel.boundingBox())!;
+  const cx = box.x + box.width / 2;
+  const cy = box.y + box.height / 2;
+  await page.mouse.move(cx, cy + 30);
+  await page.mouse.down();
+  await page.mouse.move(cx, cy + 10, { steps: 4 });
+  await page.mouse.move(cx, cy - 20, { steps: 6 });
+  await page.mouse.up();
+  await expect(wheel).toHaveAttribute("data-selected-pitch", "F4");
   await page.screenshot({
     path: path.join(SCREENSHOT_DIR, "07-hard-mode-dial.png"),
   });

@@ -368,7 +368,8 @@ export function StaffDecodeApp() {
     if (gesture.mode === null && Math.hypot(dx, dy) > 8) {
       gesture.mode = Math.abs(dy) > Math.abs(dx) * 1.15 ? "swipe" : "angle";
     }
-    if (controlMode === "touch" && gesture.mode === "swipe") {
+    if (controlMode === "touch") {
+      if (gesture.mode !== "swipe") return;
       gesture.accum += e.clientY - gesture.y;
       gesture.y = e.clientY;
       gesture.x = e.clientX;
@@ -952,6 +953,9 @@ export function StaffDecodeApp() {
                           className="sd-dial-stop-group"
                           data-testid={`dial-stop-${stop.id}`}
                           onPointerDown={(ev) => {
+                            // Touch mode only turns by swipe; let the press
+                            // fall through to the wheel's swipe handler.
+                            if (controlMode !== "buttons") return;
                             // Prefer an explicit stop tap over the SVG angle
                             // snap — stop here so parent capture does not
                             // remap the click to a neighboring detent.

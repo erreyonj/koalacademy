@@ -17,6 +17,11 @@ export default function GamesPage() {
       lcd="Games — Ready"
     >
       <p>
+        <Link href="/toolkit/games/staff-decode/">Staff DeCode</Link> — crack a
+        five-room run of safes by turning the dial to each code letter&apos;s
+        treble pitch and matching the note value with the stethoscope.
+      </p>
+      <p>
         <Link href="/toolkit/games/salad-bowl/">Salad Bowl</Link> — the
         bowl game in three rounds: Describe, Charades, then One Word.
         Free-for-all cards from the class, or a Koala/Music deck from the

@@ -20,7 +20,7 @@ export default function ToolkitPage() {
       </p>
       <p>
         <Link href="/toolkit/games/">Games</Link> — classroom games played
-        on the iPads. Salad Bowl is first up.
+        on the iPads. Salad Bowl and Staff DeCode are live.
       </p>
       <p>
         <Link href="/tools/notation/">Notation sandbox</Link> — clef, key,

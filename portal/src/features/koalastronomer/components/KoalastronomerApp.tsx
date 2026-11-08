@@ -5,14 +5,15 @@ import { useCallback, useEffect, useState } from "react";
 import { DESTINATIONS } from "../data/destinations";
 import { WORD_CHALLENGES } from "../data/word-challenges";
 import { getAvailableDestinations } from "../engine/atlas-engine";
-import type { ControlMode, Screen } from "../engine/game-state";
-import type { DialDirection, DialName } from "../engine/telescope-engine";
+import { isGameOver } from "../engine/telescope-engine";
+import type { ControlMode, DialName, Screen } from "../engine/game-state";
 import { useGameState } from "../hooks/useGameState";
 import "../koalastronomer.css";
 import { ArchiveScreen } from "./Archive/ArchiveScreen";
 import { AtlasScreen } from "./Atlas/AtlasScreen";
 import { CalibrationPill } from "./CalibrationPill";
 import { DevPanel } from "./DevPanel";
+import { GameOverScreen } from "./GameOverScreen";
 import { IntroScreen } from "./IntroScreen";
 import { Navigation } from "./Navigation";
 import {
@@ -30,6 +31,7 @@ export function KoalastronomerApp() {
   const [showTelescopeRules, setShowTelescopeRules] = useState(false);
   const [ducked, setDucked] = useState(false);
   const [unlimitedCalibration, setUnlimitedCalibration] = useState(false);
+  const [alwaysShowStartDots, setAlwaysShowStartDots] = useState(false);
   const music = useThemeMusic(ducked);
   const { start: startMusic } = music;
 
@@ -37,6 +39,9 @@ export function KoalastronomerApp() {
     (d) => d.id === state.currentDestinationId,
   );
   const availableDestinations = getAvailableDestinations(DESTINATIONS, state);
+  const gameOver =
+    !unlimitedCalibration &&
+    isGameOver(state, DESTINATIONS, WORD_CHALLENGES.length);
 
   useEffect(() => {
     if (!ducked) return;
@@ -48,6 +53,19 @@ export function KoalastronomerApp() {
     if (state.currentScreen !== "telescope") {
       setShowTelescopeRules(false);
     }
+  }, [state.currentScreen]);
+
+  // Hide the mobile site header once the game has started (non-intro screens)
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    if (state.currentScreen !== "intro") {
+      document.documentElement.dataset.gameActive = "true";
+    } else {
+      delete document.documentElement.dataset.gameActive;
+    }
+    return () => {
+      delete document.documentElement.dataset.gameActive;
+    };
   }, [state.currentScreen]);
 
   const handleEnterObservatory = useCallback(() => {
@@ -88,14 +106,21 @@ export function KoalastronomerApp() {
     [actions, startMusic],
   );
 
-  const handleDialMove = useCallback(
-    (dial: DialName, direction: DialDirection) => {
+  const handleSolveComponent = useCallback(
+    (ring: DialName) => {
       startMusic();
-      actions.dialMove(dial, direction, {
+      actions.solveComponent(ring, {
         free: unlimitedCalibration,
       });
     },
     [actions, startMusic, unlimitedCalibration],
+  );
+
+  const handleRecordStuck = useCallback(
+    (ring: DialName) => {
+      actions.recordStuck(ring, { free: unlimitedCalibration });
+    },
+    [actions, unlimitedCalibration],
   );
 
   const isIntro = state.currentScreen === "intro";
@@ -112,7 +137,10 @@ export function KoalastronomerApp() {
             {state.difficulty}
           </span>
           {!isIntro && (
-            <span className="obs-outer-badge" data-testid="sector-progress-badge">
+            <span
+              className="obs-outer-badge"
+              data-testid="sector-progress-badge"
+            >
               Sectors {state.completedDestinationIds.length} /{" "}
               {DESTINATIONS.length} · Records{" "}
               {state.completedChallengeIds.length} / {WORD_CHALLENGES.length}
@@ -179,7 +207,7 @@ export function KoalastronomerApp() {
             <Navigation
               currentScreen={state.currentScreen}
               hasActiveObservation={Boolean(
-                currentDestination && state.telescopeDialState,
+                currentDestination && state.telescopeProgress,
               )}
               onNavigate={handleNavigate}
             />
@@ -207,7 +235,6 @@ export function KoalastronomerApp() {
               controlMode={controlMode}
               challenges={WORD_CHALLENGES}
               onChallengeComplete={handleChallengeComplete}
-              onBack={() => handleNavigate("atlas")}
             />
           )}
 
@@ -224,7 +251,6 @@ export function KoalastronomerApp() {
             currentDestination && (
               <TelescopeBriefing
                 destination={currentDestination}
-                calibrationPoints={state.calibrationPoints}
                 difficulty={state.difficulty}
                 onBeginCalibration={() =>
                   handleBeginCalibration(currentDestination.id)
@@ -237,12 +263,13 @@ export function KoalastronomerApp() {
           {state.currentScreen === "telescope" && currentDestination && (
             <TelescopeScreen
               state={state}
-              controlMode={controlMode}
               destination={currentDestination}
               availableDestinations={availableDestinations}
-              onSwitchDestination={(destId) => handleBeginCalibration(destId)}
-              onDialMove={handleDialMove}
-              onReset={actions.resetDials}
+              unlimitedCalibration={unlimitedCalibration}
+              alwaysShowStartDots={alwaysShowStartDots}
+              onSwitchDestination={handleSelectObservation}
+              onSolveComponent={handleSolveComponent}
+              onRecordStuck={handleRecordStuck}
               onComplete={actions.observationComplete}
               onBack={() => handleNavigate("atlas")}
               onNavigateArchive={() => handleNavigate("archive")}
@@ -250,10 +277,17 @@ export function KoalastronomerApp() {
           )}
         </main>
 
-        {showTelescopeRules && state.currentScreen === "telescope" && (
+        {state.currentScreen === "telescope" && showTelescopeRules && (
           <TelescopeRulesModal
             difficulty={state.difficulty}
             onClose={() => setShowTelescopeRules(false)}
+          />
+        )}
+
+        {gameOver && (
+          <GameOverScreen
+            calibrationPoints={state.calibrationPoints}
+            onRestart={actions.resetGame}
           />
         )}
 
@@ -285,13 +319,16 @@ export function KoalastronomerApp() {
 
       <DevPanel
         calibrationPoints={state.calibrationPoints}
-        dialState={state.telescopeDialState}
+        difficulty={state.difficulty}
+        progress={state.telescopeProgress}
         destination={currentDestination ?? null}
         unlimited={unlimitedCalibration}
+        alwaysShowStartDots={alwaysShowStartDots}
         onUnlimitedChange={setUnlimitedCalibration}
+        onAlwaysShowStartDotsChange={setAlwaysShowStartDots}
         onGrantCalibration={actions.grantCalibration}
         onSetCalibration={actions.setCalibration}
-        onDialMove={handleDialMove}
+        onSolveComponent={handleSolveComponent}
       />
     </div>
   );

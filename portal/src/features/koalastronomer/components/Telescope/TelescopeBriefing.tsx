@@ -4,24 +4,39 @@ import type {
   Difficulty,
   TelescopeDestination,
 } from "../../engine/game-state";
-import { RESET_REFUND_RATE } from "../../engine/telescope-engine";
+import {
+  getDestinationTotalCost,
+  getFailedTracePenalty,
+} from "../../engine/telescope-engine";
 import { RulesCarousel } from "../IntroScreen";
 
-export const TELESCOPE_BRIEFING_RULES: readonly string[] = [
-  "1. Adjust the Range, Focus, and Alignment dials until all three numbers match the sector's Target Configuration.",
-  "2. Every notch you turn a dial costs 1 Calibration point from your observatory reserve.",
-  "3. The brass gears are mechanically linked — turning one dial will also shift its neighbors around the 0–6 ring.",
-  "4. If you want a fresh attempt, Reset Dials returns the gears to their starting numbers and refunds Calibration based on difficulty.",
-];
+export function getTelescopeBriefingRules(
+  difficulty: Difficulty,
+): readonly string[] {
+  const penalty = getFailedTracePenalty(difficulty);
+  return [
+    "1. Tap each collar label on the telescope tube (Range, Focus, and Alignment) to open its internal optic trace.",
+    "2. Trace every line in the figure exactly once in a single continuous path without lifting.",
+    "3. Count the lines at each dot. If some dots have an odd number, start on one of them.",
+    penalty > 0
+      ? `4. Solving a collar deducts its Calibration cost. Getting stuck or abandoning a started trace costs ${penalty} Calibration.`
+      : "4. Solving a collar deducts its Calibration cost. Getting stuck or clearing a trace costs 0 Calibration.",
+  ];
+}
 
-export function formatRefundLabel(difficulty: Difficulty): string {
-  const pct = Math.round((RESET_REFUND_RATE[difficulty] ?? 0) * 100);
-  return pct > 0 ? `${pct}% refund` : "no refund";
+export function formatHintPolicyLabel(difficulty: Difficulty): string {
+  switch (difficulty) {
+    case "easy":
+      return "1st dial line hint only";
+    case "medium":
+      return "6–9 line lattices · Capped cost";
+    case "hard":
+      return "8–11 line meshes · 1 Cal/line";
+  }
 }
 
 interface TelescopeBriefingProps {
   destination: TelescopeDestination;
-  calibrationPoints: number;
   difficulty: Difficulty;
   onBeginCalibration: () => void;
   onBackToAtlas: () => void;
@@ -30,14 +45,13 @@ interface TelescopeBriefingProps {
 
 export function TelescopeBriefing({
   destination,
-  calibrationPoints,
   difficulty,
   onBeginCalibration,
   onBackToAtlas,
   onVisitArchive,
 }: TelescopeBriefingProps) {
-  const { range, focus, alignment } = destination.targetConfiguration;
-  const refundLabel = formatRefundLabel(difficulty);
+  const totalCost = getDestinationTotalCost(destination, difficulty);
+  const hintLabel = formatHintPolicyLabel(difficulty);
 
   return (
     <section
@@ -53,29 +67,17 @@ export function TelescopeBriefing({
         <p className="obs-briefing-desc">{destination.description}</p>
       </div>
 
-      <RulesCarousel lines={TELESCOPE_BRIEFING_RULES} />
+      <RulesCarousel lines={getTelescopeBriefingRules(difficulty)} />
 
       <div className="obs-briefing-metrics">
         <div className="obs-briefing-metric">
-          <span className="obs-metric-label">Target Configuration</span>
-          <span className="obs-metric-value">
-            R {range} · F {focus} · A {alignment}
-          </span>
+          <span className="obs-metric-label">Total Sector Cost</span>
+          <span className="obs-metric-value">Cost {totalCost} Calibration</span>
         </div>
         <div className="obs-briefing-metric">
-          <span className="obs-metric-label">Est. Moves</span>
+          <span className="obs-metric-label">Difficulty Profile</span>
           <span className="obs-metric-value">
-            ⚙ {destination.movementBudget}
-          </span>
-        </div>
-        <div className="obs-briefing-metric">
-          <span className="obs-metric-label">Available Calibration</span>
-          <span className="obs-metric-value">{calibrationPoints}</span>
-        </div>
-        <div className="obs-briefing-metric">
-          <span className="obs-metric-label">Dial Reset Policy</span>
-          <span className="obs-metric-value">
-            {difficulty.toUpperCase()} ({refundLabel})
+            {difficulty.toUpperCase()} ({hintLabel})
           </span>
         </div>
       </div>
@@ -131,12 +133,12 @@ export function TelescopeRulesModal({
     >
       <div className="obs-rules-modal-card">
         <span className="obs-intro-eyebrow">Telescope Calibration Rules</span>
-        <h3 className="obs-rules-modal-title">Align the Brass Optics</h3>
-        <RulesCarousel lines={TELESCOPE_BRIEFING_RULES} />
+        <h3 className="obs-rules-modal-title">Align the Three Collar Dials</h3>
+        <RulesCarousel lines={getTelescopeBriefingRules(difficulty)} />
         <p className="obs-rules-modal-note">
-          Current difficulty: <strong>{difficulty.toUpperCase()}</strong> —
-          Reset Dials gives <strong>{formatRefundLabel(difficulty)}</strong> of
-          points spent on this turn.
+          Current difficulty: <strong>{difficulty.toUpperCase()}</strong> —{" "}
+          <strong>{formatHintPolicyLabel(difficulty)}</strong>. Count the lines
+          at each dot: if some dots have an odd number, start on one of them.
         </p>
         <button
           type="button"

@@ -6,6 +6,7 @@ import { DESTINATIONS } from "../data/destinations";
 import { completeChallenge } from "../engine/archive-engine";
 import {
   createInitialState,
+  type DialName,
   type Difficulty,
   type GameState,
   type NoteLetter,
@@ -16,12 +17,10 @@ import {
 } from "../engine/game-state";
 import { ascendingIntervalPitches } from "../engine/intervals";
 import {
-  applyDialMovement,
   completeObservation,
-  type DialDirection,
-  type DialName,
   openTelescopeBriefing,
-  resetCurrentObservation,
+  recordComponentStuck,
+  solveComponent,
   startObservation,
 } from "../engine/telescope-engine";
 
@@ -142,50 +141,28 @@ export function useGameState() {
     [updateState],
   );
 
-  const handleDialMove = useCallback(
-    (
-      dial: DialName,
-      direction: DialDirection,
-      options?: { free?: boolean },
-    ) => {
+  const handleSolveComponent = useCallback(
+    (ring: DialName, options?: { free?: boolean }) => {
       resumePiano();
       updateState((prev) => {
-        const funded =
-          options?.free && prev.calibrationPoints < 1
-            ? { ...prev, calibrationPoints: 999 }
-            : prev;
-        const moved = applyDialMovement(funded, dial, direction);
-        const restored =
-          options?.free && moved !== funded
-            ? {
-                ...moved,
-                // Keep economy display topped up; spent still tracks for budget UI.
-                calibrationPoints: Math.max(moved.calibrationPoints, 999),
-              }
-            : moved;
         const destination = DESTINATIONS.find(
-          (d) => d.id === restored.currentDestinationId,
+          (d) => d.id === prev.currentDestinationId,
         );
-        if (
-          destination &&
-          restored.telescopeDialState &&
-          restored.telescopeDialState.range ===
-            destination.targetConfiguration.range &&
-          restored.telescopeDialState.focus ===
-            destination.targetConfiguration.focus &&
-          restored.telescopeDialState.alignment ===
-            destination.targetConfiguration.alignment &&
-          !restored.completedDestinationIds.includes(destination.id)
-        ) {
-          return {
-            ...restored,
-            completedDestinationIds: [
-              ...restored.completedDestinationIds,
-              destination.id,
-            ],
-          };
-        }
-        return restored;
+        if (!destination) return prev;
+        return solveComponent(prev, destination, ring, options);
+      });
+    },
+    [updateState],
+  );
+
+  const handleRecordStuck = useCallback(
+    (ring: DialName, options?: { free?: boolean }) => {
+      updateState((prev) => {
+        const destination = DESTINATIONS.find(
+          (d) => d.id === prev.currentDestinationId,
+        );
+        if (!destination) return prev;
+        return recordComponentStuck(prev, destination, ring, options);
       });
     },
     [updateState],
@@ -216,16 +193,6 @@ export function useGameState() {
     [updateState],
   );
 
-  const handleResetDials = useCallback(() => {
-    updateState((prev) => {
-      const destination = DESTINATIONS.find(
-        (d) => d.id === prev.currentDestinationId,
-      );
-      if (!destination) return prev;
-      return resetCurrentObservation(prev, destination, prev.difficulty);
-    });
-  }, [updateState]);
-
   const handleObservationComplete = useCallback(() => {
     updateState((prev) =>
       prev.currentDestinationId
@@ -239,7 +206,7 @@ export function useGameState() {
       updateState((prev) => {
         if (
           (screen === "telescope" || screen === "telescope-briefing") &&
-          (!prev.currentDestinationId || !prev.telescopeDialState)
+          (!prev.currentDestinationId || !prev.telescopeProgress)
         ) {
           return prev;
         }
@@ -265,10 +232,10 @@ export function useGameState() {
       challengeComplete: handleChallengeComplete,
       selectObservation: handleSelectObservation,
       beginCalibration: handleBeginCalibration,
-      dialMove: handleDialMove,
+      solveComponent: handleSolveComponent,
+      recordStuck: handleRecordStuck,
       grantCalibration: handleGrantCalibration,
       setCalibration: handleSetCalibration,
-      resetDials: handleResetDials,
       observationComplete: handleObservationComplete,
       navigate: handleNavigate,
       resetGame: handleResetGame,

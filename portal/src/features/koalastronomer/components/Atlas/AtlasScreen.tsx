@@ -49,7 +49,7 @@ export function AtlasScreen({
   );
   const isInProgress =
     state.currentDestinationId === selectedDest.id &&
-    state.telescopeDialState !== null;
+    state.telescopeProgress !== null;
 
   return (
     <section
@@ -68,6 +68,7 @@ export function AtlasScreen({
 
         <DestinationCard
           destination={selectedDest}
+          difficulty={state.difficulty}
           isCompleted={isCompleted}
           isUnlocked={isUnlocked}
           isInProgress={isInProgress}

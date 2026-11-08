@@ -1,4 +1,4 @@
-import type { GameState, WordChallenge } from "./game-state";
+import type { Difficulty, GameState, WordChallenge } from "./game-state";
 import {
   calculateInterval,
   isValidNoteLetter,
@@ -16,6 +16,18 @@ export interface WordValidationResult {
   secondNote: NoteLetter | null;
   intervalValue: number | null;
   error: WordValidationError;
+}
+
+/**
+ * Return the Calibration reward for a word challenge on the given difficulty:
+ * - Easy & Medium: 1x intervalValue (65 total across 16 records)
+ * - Hard: 2x intervalValue (130 total across 16 records to fund 8-11 line Hard figures)
+ */
+export function getChallengeReward(
+  intervalValue: number,
+  difficulty: Difficulty = "easy",
+): number {
+  return difficulty === "hard" ? intervalValue * 2 : intervalValue;
 }
 
 /**
@@ -68,7 +80,7 @@ export function validateWordChallenge(
 }
 
 /**
- * Complete a challenge and award calibration points once.
+ * Complete a challenge and award calibration points once (scaled by difficulty).
  */
 export function completeChallenge(
   state: GameState,
@@ -79,9 +91,11 @@ export function completeChallenge(
     return state;
   }
 
+  const reward = getChallengeReward(intervalValue, state.difficulty);
+
   return {
     ...state,
-    calibrationPoints: state.calibrationPoints + intervalValue,
+    calibrationPoints: state.calibrationPoints + reward,
     completedChallengeIds: [...state.completedChallengeIds, challengeId],
   };
 }

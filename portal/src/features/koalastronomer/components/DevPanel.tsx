@@ -4,33 +4,39 @@
  * CLEANUP before shipping to students:
  * 1. Delete this file.
  * 2. Remove the `<DevPanel />` import + mount from KoalastronomerApp.tsx.
- * 3. Optional: drop `grantCalibration` / free dialMove option from useGameState
- *    if nothing else uses them.
+ * 3. Optional: drop `grantCalibration` / `setCalibration` / free solve option
+ *    from useGameState if nothing else uses them.
  *
  * Dev-only: never mounts when NODE_ENV !== "development".
  */
 
 import { useCallback, useEffect, useState } from "react";
-import type { TelescopeDestination } from "../engine/game-state";
-import type { DialDirection, DialName } from "../engine/telescope-engine";
+import type {
+  DialName,
+  Difficulty,
+  TelescopeDestination,
+  TelescopeProgress,
+} from "../engine/game-state";
+import {
+  DIAL_NAMES,
+  getDestinationTotalCost,
+  RING_METADATA,
+} from "../engine/telescope-engine";
 
 const HIDE_KEY = "koalastronomer-dev-panel-hidden";
 
-type DialState = {
-  range: number;
-  focus: number;
-  alignment: number;
-};
-
 type DevPanelProps = {
   calibrationPoints: number;
-  dialState: DialState | null;
+  difficulty: Difficulty;
+  progress: TelescopeProgress | null;
   destination: TelescopeDestination | null;
   unlimited: boolean;
+  alwaysShowStartDots: boolean;
   onUnlimitedChange: (next: boolean) => void;
+  onAlwaysShowStartDotsChange: (next: boolean) => void;
   onGrantCalibration: (amount: number) => void;
   onSetCalibration: (points: number) => void;
-  onDialMove: (dial: DialName, direction: DialDirection) => void;
+  onSolveComponent: (ring: DialName) => void;
 };
 
 function readHidden(): boolean {
@@ -57,17 +63,19 @@ function writeHidden(hidden: boolean): void {
 
 export function DevPanel({
   calibrationPoints,
-  dialState,
+  difficulty,
+  progress,
   destination,
   unlimited,
+  alwaysShowStartDots,
   onUnlimitedChange,
+  onAlwaysShowStartDotsChange,
   onGrantCalibration,
   onSetCalibration,
-  onDialMove,
+  onSolveComponent,
 }: DevPanelProps) {
   const [ready, setReady] = useState(false);
   const [hidden, setHidden] = useState(false);
-  const [showTarget, setShowTarget] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
 
   useEffect(() => {
@@ -114,8 +122,6 @@ export function DevPanel({
     );
   }
 
-  const target = destination?.targetConfiguration;
-
   return (
     <aside
       className={`obs-dev-panel${collapsed ? " is-collapsed" : ""}`}
@@ -156,7 +162,17 @@ export function DevPanel({
                 if (next) onSetCalibration(999);
               }}
             />
-            Unlimited Calibration
+            Unlimited Calibration (free solves)
+          </label>
+
+          <label className="obs-dev-toggle">
+            <input
+              type="checkbox"
+              checked={alwaysShowStartDots}
+              data-testid="obs-dev-show-start-dots"
+              onChange={(e) => onAlwaysShowStartDotsChange(e.target.checked)}
+            />
+            Always show start dots
           </label>
 
           <div className="obs-dev-row">
@@ -177,89 +193,31 @@ export function DevPanel({
             </button>
           </div>
 
-          {dialState && (
-            <div className="obs-dev-dials" data-testid="obs-dev-dials">
-              <span>
-                R <b>{dialState.range}</b>
-              </span>
-              <span>
-                F <b>{dialState.focus}</b>
-              </span>
-              <span>
-                A <b>{dialState.alignment}</b>
-              </span>
-            </div>
-          )}
-
           {destination && (
             <p className="obs-dev-dest">
-              Sector: {destination.name}
-              <br />
-              Budget: {destination.movementBudget}
+              Sector: {destination.name} (Cost{" "}
+              {getDestinationTotalCost(destination, difficulty)} Cal)
             </p>
           )}
 
-          <label className="obs-dev-toggle">
-            <input
-              type="checkbox"
-              checked={showTarget}
-              onChange={(e) => setShowTarget(e.target.checked)}
-            />
-            Reveal target (spoiler)
-          </label>
-
-          {showTarget && target && (
-            <div className="obs-dev-target" data-testid="obs-dev-target">
-              Target R{target.range} · F{target.focus} · A{target.alignment}
-            </div>
-          )}
-
-          <details className="obs-dev-cheatsheet">
-            <summary>Gear linkage</summary>
-            <ul>
-              <li>
-                <b>Range CW</b>: R+1, F−1
-              </li>
-              <li>
-                <b>Focus CW</b>: F+1, R−1, A−1
-              </li>
-              <li>
-                <b>Align CW</b>: A+1, F−1
-              </li>
-              <li>CCW reverses those deltas. Mod 7.</li>
-            </ul>
-            <p className="obs-dev-hint">
-              Mercury (0,0,0 → 2,1,3): R CW×3, F CW×1, A CCW×3
-            </p>
-          </details>
-
-          {dialState && (
-            <div className="obs-dev-nudge">
-              <span>Nudge</span>
-              {(
-                [
-                  ["range", "R"],
-                  ["focus", "F"],
-                  ["alignment", "A"],
-                ] as const
-              ).map(([dial, label]) => (
-                <span key={dial} className="obs-dev-nudge-group">
+          {destination && progress && (
+            <div className="obs-dev-nudge" data-testid="obs-dev-solve-rings">
+              <span>Solve ring</span>
+              {DIAL_NAMES.map((ring) => {
+                const isSolved = progress.solved[ring];
+                return (
                   <button
+                    key={ring}
                     type="button"
                     className="obs-dev-btn"
-                    onClick={() => onDialMove(dial, "counterclockwise")}
+                    data-testid={`obs-dev-solve-${ring}`}
+                    disabled={isSolved}
+                    onClick={() => onSolveComponent(ring)}
                   >
-                    {label}−
+                    {RING_METADATA[ring].label} {isSolved ? "✓" : ""}
                   </button>
-                  <button
-                    type="button"
-                    className="obs-dev-btn"
-                    onClick={() => onDialMove(dial, "clockwise")}
-                  >
-                    {label}+
-                  </button>
-                </span>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

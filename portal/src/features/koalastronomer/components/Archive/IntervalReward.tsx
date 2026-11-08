@@ -6,12 +6,14 @@ interface IntervalRewardProps {
   firstNote: NoteLetter;
   secondNote: NoteLetter;
   intervalValue: number;
+  rewardPoints?: number;
 }
 
 export function IntervalReward({
   firstNote,
   secondNote,
   intervalValue,
+  rewardPoints = intervalValue,
 }: IntervalRewardProps) {
   const [firstPitch, secondPitch] = ascendingIntervalPitches(
     firstNote,
@@ -26,7 +28,7 @@ export function IntervalReward({
         <span>{secondPitch}</span>
       </div>
       <div className="obs-reward-points">
-        +{intervalValue} Calibration Earned (Ascending Interval {intervalValue})
+        +{rewardPoints} Calibration Earned (Ascending Interval {intervalValue})
       </div>
     </div>
   );

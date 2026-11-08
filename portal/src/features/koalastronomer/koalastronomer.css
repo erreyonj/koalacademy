@@ -1,7 +1,8 @@
 /* ==========================================================================
-   Koalastronomer — Cozy Observatory Puzzle-Adventure
-   Styled to the illustrated observatory mockups (cream plaques, sage green
-   headers, brass optics, pink tactile CTAs, and Calibration pill).
+   Koalastronomer — Observatory Instrument Puzzle-Adventure
+   Digital instrument styling shared with Staff DeCode: Space Grotesk display,
+   mono telemetry labels, thin hard edges, flat offset shadows, desaturated
+   status chips, and a copper/canopy instrument accent.
    ========================================================================== */
 
 .koalastronomer-page {
@@ -25,11 +26,11 @@
   flex-wrap: wrap;
   gap: 0.75rem;
   padding: 0.55rem 0.9rem;
-  background: #fdf5e6;
-  border: 2.5px solid #1f2436;
-  border-radius: 0.9rem;
-  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.35);
-  color: #1e2436;
+  background: #f7f8fa;
+  border: 2px solid #0d1117;
+  border-radius: 0.75rem;
+  box-shadow: 0 3px 0 #0d1117;
+  color: #0d1117;
 }
 
 .obs-outer-left,
@@ -41,75 +42,75 @@
 }
 
 .obs-outer-title {
-  font-family: var(--font-display, Georgia, serif);
+  font-family: var(--font-display);
   font-size: 1.15rem;
-  font-weight: 900;
-  color: #162643;
+  font-weight: 700;
+  color: #111a2c;
 }
 
 .obs-outer-badge {
   font-size: 0.76rem;
-  font-weight: 800;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   padding: 0.2rem 0.6rem;
   border-radius: 999px;
-  background: #efe1c6;
-  border: 1.5px solid #1f2436;
-  color: #1e2436;
+  background: #e8ebf0;
+  border: 1.5px solid #0d1117;
+  color: #0d1117;
 }
 
 .obs-outer-badge.is-hard {
-  background: #fde2e2;
-  color: #8f1d1d;
-  border-color: #d84b4b;
+  background: #fde8e6;
+  color: #8c231b;
+  border-color: #d96459;
 }
 
 .obs-outer-btn {
   appearance: none;
   background: #ffffff;
-  color: #1e2436;
-  border: 2px solid #1f2436;
+  color: #0d1117;
+  border: 2px solid #0d1117;
   border-radius: 999px;
   padding: 0.32rem 0.85rem;
   font-size: 0.82rem;
-  font-weight: 800;
+  font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 2px 0 rgba(31, 36, 54, 0.3);
+  box-shadow: 0 3px 0 #0d1117;
   transition: background 120ms ease, transform 100ms ease;
 }
 
 .obs-outer-btn:hover {
-  background: #efe1c6;
+  background: #e8ebf0;
 }
 
 .obs-outer-btn.is-on {
-  background: #3f6e5a;
+  background: #2f5648;
   color: #ffffff;
-  border-color: #1f2436;
+  border-color: #0d1117;
 }
 
 .obs-shell {
-  --obs-outline: #1f2436;
-  --obs-cream: #fdf5e6;
-  --obs-cream-deep: #efe1c6;
-  --obs-parchment: #f5e6c8;
-  --obs-sage: #3f6e5a;
-  --obs-sage-light: #bad5c5;
-  --obs-sage-pill: #66947f;
-  --obs-brass: #d59b42;
-  --obs-brass-dark: #936421;
-  --obs-wood: #77553b;
-  --obs-pink: #ec5b80;
-  --obs-pink-lip: #b43758;
-  --obs-navy: #162643;
-  --obs-ink: #1e2436;
-  --obs-ink-muted: #52586c;
-  --obs-range: #e6ac53;
-  --obs-focus: #86b39d;
-  --obs-alignment: #8ba3c7;
-  --obs-error: #d84b4b;
-  --obs-success: #3e8e63;
+  --obs-outline: #0d1117;
+  --obs-cream: #f7f8fa;
+  --obs-cream-deep: #e8ebf0;
+  --obs-parchment: #eef1f5;
+  --obs-sage: #2f5648;
+  --obs-sage-light: #d6e6dd;
+  --obs-sage-pill: #4b7564;
+  --obs-brass: #c28a45;
+  --obs-brass-dark: #8a5a22;
+  --obs-wood: #5b4636;
+  --obs-pink: #2f5648;
+  --obs-pink-lip: #0d1117;
+  --obs-navy: #111a2c;
+  --obs-ink: #0d1117;
+  --obs-ink-muted: #5a6273;
+  --obs-range: #c89a58;
+  --obs-focus: #6f9d86;
+  --obs-alignment: #7c93b5;
+  --obs-error: #c2453a;
+  --obs-success: #2f7a55;
 
   position: relative;
   min-height: 41rem;
@@ -121,8 +122,8 @@
   justify-content: space-between;
   gap: 1rem;
   color: var(--obs-ink);
-  font-family: var(--font-sans, "Plus Jakarta Sans", sans-serif);
-  background-color: #162643;
+  font-family: var(--font-body);
+  background-color: #111a2c;
   background-image:
     linear-gradient(
       180deg,
@@ -133,8 +134,8 @@
     url("/assets/koalastronomer/observatory-hub.jpg");
   background-size: cover;
   background-position: center;
-  border: 3px solid var(--obs-outline);
-  border-radius: 1.2rem;
+  border: 2px solid var(--obs-outline);
+  border-radius: 0.75rem;
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55);
 }
 
@@ -175,8 +176,8 @@
   background: rgba(253, 245, 230, 0.92);
   padding: 0.3rem;
   border-radius: 999px;
-  border: 2.5px solid var(--obs-outline);
-  box-shadow: 0 4px 0 rgba(31, 36, 54, 0.35);
+  border: 2px solid var(--obs-outline);
+  box-shadow: 0 3px 0 #0d1117;
 }
 
 .obs-tab-btn {
@@ -207,19 +208,18 @@
   justify-content: center;
   gap: 0.85rem;
   background: var(--obs-cream);
-  border: 3px solid var(--obs-outline);
-  border-radius: 1rem;
+  border: 2px solid var(--obs-outline);
+  border-radius: 0.75rem;
   padding: 0.45rem 1.75rem;
   box-shadow:
-    inset 0 0 0 3px #e4d2b0,
-    0 5px 0 rgba(31, 36, 54, 0.45);
+    0 3px 0 #0d1117;
 }
 
 .obs-plaque-heading {
   margin: 0;
-  font-family: var(--font-display, Georgia, serif);
+  font-family: var(--font-display);
   font-size: clamp(1.35rem, 2.4vw, 1.9rem);
-  font-weight: 800;
+  font-weight: 700;
   color: var(--obs-navy);
   letter-spacing: 0.01em;
 }
@@ -237,12 +237,11 @@
   gap: 0.55rem;
   background: var(--obs-sage);
   color: #ffffff;
-  border: 3px solid var(--obs-outline);
+  border: 2px solid var(--obs-outline);
   border-radius: 999px;
   padding: 0.3rem 0.35rem 0.3rem 0.75rem;
   box-shadow:
-    inset 0 0 0 2px #fdf5e6,
-    0 4px 0 rgba(31, 36, 54, 0.4);
+    0 3px 0 #0d1117;
 }
 
 .obs-calibration-gear {
@@ -263,7 +262,7 @@
   text-align: center;
   background: var(--obs-cream);
   color: var(--obs-ink);
-  font-weight: 800;
+  font-weight: 700;
   font-size: 1.1rem;
   padding: 0.2rem 0.6rem;
   border-radius: 999px;
@@ -284,14 +283,13 @@
   appearance: none;
   background: var(--obs-pink);
   color: #ffffff;
-  font-family: var(--font-display, Georgia, serif);
+  font-family: var(--font-display);
   font-size: 1.15rem;
-  font-weight: 800;
+  font-weight: 700;
   padding: 0.7rem 1.8rem;
   border-radius: 999px;
-  border: 3px solid var(--obs-outline);
+  border: 2px solid var(--obs-outline);
   box-shadow:
-    inset 0 2px 0 rgba(255, 255, 255, 0.35),
     0 5px 0 var(--obs-pink-lip);
   cursor: pointer;
   transition: transform 120ms ease, filter 120ms ease;
@@ -320,8 +318,8 @@
   font-size: 0.92rem;
   padding: 0.55rem 1.1rem;
   border-radius: 0.75rem;
-  border: 2.5px solid var(--obs-outline);
-  box-shadow: 0 3px 0 rgba(31, 36, 54, 0.35);
+  border: 2px solid var(--obs-outline);
+  box-shadow: 0 3px 0 #0d1117;
   cursor: pointer;
   transition: background 120ms ease, transform 120ms ease;
 }
@@ -348,19 +346,19 @@
 
 .obs-records-sidebar {
   background: var(--obs-cream);
-  border: 3px solid var(--obs-outline);
-  border-radius: 1.1rem;
+  border: 2px solid var(--obs-outline);
+  border-radius: 0.75rem;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 8px 0 rgba(31, 36, 54, 0.4);
+  box-shadow: 0 3px 0 #0d1117;
 }
 
 .obs-sidebar-header {
   background: var(--obs-sage);
   color: #ffffff;
   padding: 0.75rem 1rem;
-  border-bottom: 3px solid var(--obs-outline);
+  border-bottom: 2px solid var(--obs-outline);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -369,7 +367,7 @@
 .obs-sidebar-header h2 {
   margin: 0;
   font-size: 1.05rem;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .obs-sidebar-count {
@@ -397,8 +395,8 @@
   align-items: center;
   gap: 0.5rem;
   text-align: left;
-  background: #f5ebd6;
-  border: 2px solid #c9b896;
+  background: #eef1f5;
+  border: 2px solid #c5ccd6;
   border-radius: 0.65rem;
   padding: 0.5rem 0.7rem;
   color: var(--obs-ink);
@@ -412,8 +410,8 @@
 }
 
 .obs-record-card.is-selected {
-  background: #fde8ee;
-  border: 2.5px solid var(--obs-pink);
+  background: #e6f2ec;
+  border: 2px solid var(--obs-sage);
 }
 
 .obs-record-card.is-completed {
@@ -444,7 +442,7 @@
   border-radius: 999px;
   padding: 0.05rem 0.4rem;
   color: var(--obs-ink);
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .obs-record-status {
@@ -455,7 +453,7 @@
   align-items: center;
   justify-content: center;
   font-size: 0.78rem;
-  font-weight: 800;
+  font-weight: 700;
   background: #dfd2b8;
   color: var(--obs-ink);
 }
@@ -484,14 +482,13 @@
 .obs-parchment-card {
   position: relative;
   background:
-    radial-gradient(circle at 50% 35%, #fbf1dc 0%, #f1dfc0 75%, #e5cfa8 100%);
-  border: 3px solid var(--obs-outline);
-  border-radius: 1.25rem;
+    rgba(255, 255, 255, 0.94);
+  border: 2px solid var(--obs-outline);
+  border-radius: 0.75rem;
   padding: 1.5rem 1.75rem;
   text-align: center;
   box-shadow:
-    inset 0 0 28px rgba(139, 105, 20, 0.16),
-    0 10px 0 rgba(31, 36, 54, 0.42);
+    0 3px 0 #0d1117;
 }
 
 .obs-doodle {
@@ -516,7 +513,7 @@
 
 .obs-parchment-eyebrow {
   font-size: 0.85rem;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0.12em;
   color: #6a5a44;
   border-bottom: 2px solid rgba(106, 90, 68, 0.3);
@@ -529,11 +526,11 @@
   display: table;
   margin: 0 auto 0.65rem;
   background: var(--obs-sage-light);
-  color: #1f4435;
+  color: #1d3a30;
   border: 2px solid #598773;
   border-radius: 999px;
   padding: 0.25rem 1.1rem;
-  font-weight: 800;
+  font-weight: 700;
   font-size: 0.92rem;
 }
 
@@ -569,13 +566,13 @@
   align-items: center;
   justify-content: center;
   background: var(--obs-cream);
-  border: 3px solid var(--obs-outline);
-  border-radius: 0.9rem;
-  font-family: var(--font-display, Georgia, serif);
+  border: 2px solid var(--obs-outline);
+  border-radius: 0.75rem;
+  font-family: var(--font-display);
   font-size: 2rem;
-  font-weight: 900;
+  font-weight: 700;
   color: var(--obs-navy);
-  box-shadow: 0 5px 0 rgba(31, 36, 54, 0.32);
+  box-shadow: 0 3px 0 #0d1117;
 }
 
 .obs-tile-pedestal {
@@ -630,22 +627,22 @@
   height: 2.55rem;
   border-radius: 50%;
   background: var(--obs-cream);
-  border: 2.5px solid var(--obs-outline);
+  border: 2px solid var(--obs-outline);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: var(--font-display, Georgia, serif);
+  font-family: var(--font-display);
   font-size: 1.35rem;
-  font-weight: 900;
+  font-weight: 700;
   color: var(--obs-navy);
   box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.6);
 }
 
 .obs-bearing-hub.is-error,
 .obs-bearing-selector.is-error .obs-bearing-hub {
-  background: #fde2e2;
+  background: #fde8e6;
   border-color: var(--obs-error);
-  color: #8f1d1d;
+  color: #8c231b;
 }
 
 .obs-bearing-pedestal {
@@ -658,14 +655,14 @@
 .obs-pedestal-collar {
   width: 3.4rem;
   height: 0.5rem;
-  background: linear-gradient(90deg, #7d5318 0%, #d59b42 50%, #7d5318 100%);
+  background: linear-gradient(90deg, #6b4a22 0%, #d59b42 50%, #6b4a22 100%);
   border: 2px solid var(--obs-outline);
   border-radius: 0.35rem;
 }
 
 .obs-pedestal-label {
   font-size: 0.72rem;
-  font-weight: 800;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: #5b4b38;
@@ -673,7 +670,7 @@
 
 .obs-bearing-swipe-hint {
   font-size: 0.72rem;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--obs-sage);
   background: rgba(253, 245, 230, 0.85);
   border: 1.5px solid #9ab8a8;
@@ -701,10 +698,10 @@
   border: 2px solid var(--obs-outline);
   background: var(--obs-cream);
   color: var(--obs-navy);
-  font-weight: 900;
+  font-weight: 700;
   font-size: 1rem;
   cursor: pointer;
-  box-shadow: 0 2px 0 rgba(31, 36, 54, 0.3);
+  box-shadow: 0 3px 0 #0d1117;
 }
 
 .obs-bearing-stops {
@@ -723,7 +720,7 @@
   background: var(--obs-cream);
   color: var(--obs-navy);
   font-size: 0.76rem;
-  font-weight: 800;
+  font-weight: 700;
   cursor: pointer;
 }
 
@@ -744,8 +741,8 @@
   width: 100%;
   margin: 0 auto;
   background: var(--obs-cream);
-  border: 3.5px solid var(--obs-outline);
-  border-radius: 1.25rem;
+  border: 2px solid var(--obs-outline);
+  border-radius: 0.75rem;
   padding: 1.5rem 1.75rem;
   display: flex;
   flex-direction: column;
@@ -763,7 +760,7 @@
 
 .obs-intro-eyebrow {
   font-size: 0.78rem;
-  font-weight: 800;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: var(--obs-sage);
@@ -771,9 +768,9 @@
 
 .obs-intro-title {
   margin: 0;
-  font-family: var(--font-display, Georgia, serif);
+  font-family: var(--font-display);
   font-size: clamp(1.6rem, 2.8vw, 2.2rem);
-  font-weight: 900;
+  font-weight: 700;
   color: var(--obs-navy);
 }
 
@@ -786,9 +783,9 @@
 }
 
 .obs-rules-carousel {
-  background: #f3e5c8;
-  border: 2.5px solid #cbb692;
-  border-radius: 0.9rem;
+  background: #eef1f5;
+  border: 2px solid #cbb692;
+  border-radius: 0.75rem;
   padding: 0.85rem 1.1rem;
   display: flex;
   flex-direction: column;
@@ -830,7 +827,7 @@
 
 .obs-rules-count {
   font-size: 0.8rem;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--obs-ink-muted);
 }
 
@@ -843,9 +840,9 @@
 .obs-diff-card {
   appearance: none;
   text-align: left;
-  background: #f5ebd6;
-  border: 2.5px solid #c9b896;
-  border-radius: 0.9rem;
+  background: #eef1f5;
+  border: 2px solid #c5ccd6;
+  border-radius: 0.75rem;
   padding: 0.85rem 0.95rem;
   display: flex;
   flex-direction: column;
@@ -865,9 +862,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-family: var(--font-display, Georgia, serif);
+  font-family: var(--font-display);
   font-size: 1.1rem;
-  font-weight: 900;
+  font-weight: 700;
   color: var(--obs-navy);
 }
 
@@ -897,7 +894,7 @@
   border-radius: 999px;
   padding: 0.45rem 0.95rem;
   font-size: 0.82rem;
-  font-weight: 800;
+  font-weight: 700;
   cursor: not-allowed;
 }
 
@@ -908,8 +905,8 @@
 }
 
 .obs-briefing-metric {
-  background: #f5ebd6;
-  border: 2px solid #ccb995;
+  background: #eef1f5;
+  border: 2px solid #c5ccd6;
   border-radius: 0.75rem;
   padding: 0.55rem 0.8rem;
   display: flex;
@@ -926,7 +923,7 @@
 
 .obs-metric-value {
   font-size: 0.92rem;
-  font-weight: 900;
+  font-weight: 700;
   color: var(--obs-navy);
 }
 
@@ -945,8 +942,8 @@
   max-width: 34rem;
   width: 100%;
   background: var(--obs-cream);
-  border: 3.5px solid var(--obs-outline);
-  border-radius: 1.2rem;
+  border: 2px solid var(--obs-outline);
+  border-radius: 0.75rem;
   padding: 1.4rem 1.6rem;
   text-align: center;
   display: flex;
@@ -957,9 +954,9 @@
 
 .obs-rules-modal-title {
   margin: 0;
-  font-family: var(--font-display, Georgia, serif);
+  font-family: var(--font-display);
   font-size: 1.45rem;
-  font-weight: 900;
+  font-weight: 700;
   color: var(--obs-navy);
 }
 
@@ -973,20 +970,20 @@
 .obs-error-msg {
   margin: 0.5rem auto 0.85rem;
   display: inline-block;
-  background: #fde2e2;
-  color: #8f1d1d;
+  background: #fde8e6;
+  color: #8c231b;
   border: 2px solid var(--obs-error);
   border-radius: 0.65rem;
   padding: 0.4rem 0.9rem;
-  font-weight: 800;
+  font-weight: 700;
   font-size: 0.92rem;
 }
 
 .obs-interval-reward {
   margin: 0.5rem auto 0.9rem;
   background: #e3f4ea;
-  border: 2.5px solid var(--obs-sage);
-  border-radius: 0.8rem;
+  border: 2px solid var(--obs-sage);
+  border-radius: 0.65rem;
   padding: 0.55rem 1rem;
   display: inline-flex;
   flex-direction: column;
@@ -997,12 +994,12 @@
   display: inline-flex;
   justify-content: center;
   gap: 0.5rem;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--obs-navy);
 }
 
 .obs-reward-points {
-  font-weight: 800;
+  font-weight: 700;
   color: var(--obs-sage);
 }
 
@@ -1066,10 +1063,10 @@
   align-items: center;
   justify-content: center;
   font-size: 1.2rem;
-  font-weight: 900;
+  font-weight: 700;
   background: #24385b;
   color: var(--obs-cream);
-  border: 3px solid var(--obs-cream);
+  border: 2px solid var(--obs-cream);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.45);
   transition: transform 140ms ease, box-shadow 140ms ease;
 }
@@ -1097,27 +1094,27 @@
 .obs-node-label {
   background: var(--obs-cream);
   color: var(--obs-ink);
-  border: 2.5px solid var(--obs-outline);
+  border: 2px solid var(--obs-outline);
   border-radius: 999px;
   padding: 0.2rem 0.75rem;
   font-size: 0.82rem;
-  font-weight: 800;
+  font-weight: 700;
   white-space: nowrap;
-  box-shadow: 0 3px 0 rgba(31, 36, 54, 0.4);
+  box-shadow: 0 3px 0 #0d1117;
 }
 
 .obs-map-node.is-selected .obs-node-label {
-  background: #ffe7b3;
+  background: #fdf3da;
   border-color: var(--obs-brass-dark);
 }
 
 /* Right-hand Destination Card */
 .obs-dest-card {
   background: var(--obs-cream);
-  border: 3px solid var(--obs-outline);
-  border-radius: 1.25rem;
+  border: 2px solid var(--obs-outline);
+  border-radius: 0.75rem;
   overflow: hidden;
-  box-shadow: 0 10px 0 rgba(31, 36, 54, 0.45);
+  box-shadow: 0 3px 0 #0d1117;
 }
 
 .obs-dest-card-header {
@@ -1125,14 +1122,14 @@
   color: #ffffff;
   padding: 0.8rem 1rem;
   text-align: center;
-  border-bottom: 3px solid var(--obs-outline);
+  border-bottom: 2px solid var(--obs-outline);
 }
 
 .obs-dest-card-header h2 {
   margin: 0;
-  font-family: var(--font-display, Georgia, serif);
+  font-family: var(--font-display);
   font-size: 1.35rem;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .obs-dest-card-body {
@@ -1159,9 +1156,9 @@
 
 .obs-dest-section-pill {
   background: var(--obs-sage-light);
-  color: #1f4435;
+  color: #1d3a30;
   font-size: 0.8rem;
-  font-weight: 800;
+  font-weight: 700;
   padding: 0.25rem 0.75rem;
   border-radius: 999px;
   border: 1.5px solid #689681;
@@ -1181,8 +1178,8 @@
   grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: 0.55rem;
-  background: #f5ead4;
-  border: 2px solid #d5c3a1;
+  background: #f1f3f6;
+  border: 1.5px solid #c5ccd6;
   border-radius: 0.65rem;
   padding: 0.35rem 0.6rem;
   font-weight: 700;
@@ -1202,7 +1199,7 @@
   align-items: center;
   justify-content: center;
   font-size: 0.9rem;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .obs-dot-range {
@@ -1229,7 +1226,7 @@
   border: 2px solid #cdc0a7;
   border-radius: 999px;
   padding: 0.1rem 0.5rem;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .obs-est-moves {
@@ -1238,7 +1235,7 @@
   justify-content: space-between;
   padding: 0.35rem 0.25rem;
   border-top: 2px dashed #cdbba0;
-  font-weight: 800;
+  font-weight: 700;
   font-size: 0.92rem;
 }
 
@@ -1265,41 +1262,54 @@
 
 .obs-telescope-upper {
   display: grid;
-  grid-template-columns: minmax(11rem, 14.5rem) minmax(0, 1fr) minmax(11rem, 14.5rem);
+  grid-template-columns: minmax(0, 1fr) minmax(14rem, 20rem);
+  grid-template-areas:
+    "lens info"
+    "tube tube";
   gap: 0.75rem;
   align-items: center;
+}
+
+.obs-telescope-upper .obs-lens-view {
+  grid-area: lens;
+}
+
+.obs-telescope-upper .obs-telescope-center-column {
+  grid-area: tube;
+}
+
+.obs-telescope-upper .obs-info-card {
+  grid-area: info;
+  align-self: stretch;
 }
 
 .obs-target-card,
 .obs-info-card {
   background: var(--obs-cream);
-  border: 3px solid var(--obs-outline);
-  border-radius: 1rem;
+  border: 2px solid var(--obs-outline);
+  border-radius: 0.75rem;
   overflow: hidden;
-  box-shadow: 0 8px 0 rgba(31, 36, 54, 0.42);
+  box-shadow: 0 3px 0 #0d1117;
 }
 
 .obs-target-card-header {
   background: var(--obs-sage);
   color: #ffffff;
-  font-weight: 800;
+  font-weight: 700;
   font-size: 0.95rem;
   padding: 0.65rem 0.85rem;
   text-align: center;
-  border-bottom: 3px solid var(--obs-outline);
+  border-bottom: 2px solid var(--obs-outline);
 }
 
 .obs-target-sector-name {
   font-size: 0.82rem;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--obs-ink-muted);
   text-align: center;
   padding: 0.45rem 0.75rem 0;
 }
 
-.obs-target-card .obs-config-list {
-  padding: 0.65rem 0.8rem 0.85rem;
-}
 
 .obs-info-card {
   padding: 0.85rem 0.95rem;
@@ -1332,7 +1342,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-weight: 800;
+  font-weight: 700;
   font-size: 0.9rem;
 }
 
@@ -1343,24 +1353,26 @@
 }
 
 .obs-budget-tracker {
-  background: #f2e4c7;
-  border: 2px solid #ccb995;
+  background: #eef1f5;
+  border: 2px solid #c5ccd6;
   border-radius: 0.65rem;
   padding: 0.45rem 0.65rem;
   font-size: 0.84rem;
-  font-weight: 800;
+  font-weight: 700;
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
 }
 
-.obs-budget-warn {
-  color: #a64b17;
-  font-size: 0.78rem;
+.obs-budget-sub {
+  color: var(--obs-ink-muted);
+  font-size: 0.76rem;
+  font-weight: 700;
+  line-height: 1.35;
 }
 
 .obs-empty-points-alert {
-  background: #fde8e8;
+  background: #fde8e6;
   border: 2px solid var(--obs-error);
   border-radius: 0.75rem;
   padding: 0.6rem;
@@ -1370,8 +1382,8 @@
 .obs-empty-points-alert p {
   margin: 0 0 0.45rem;
   font-size: 0.82rem;
-  font-weight: 800;
-  color: #8f1d1d;
+  font-weight: 700;
+  color: #8c231b;
 }
 
 .obs-alert-archive-btn {
@@ -1380,236 +1392,360 @@
   padding: 0.45rem 0.8rem;
 }
 
-/* Center Brass Lens Viewport */
-.obs-lens-housing {
-  width: min(100%, 17.5rem);
-  aspect-ratio: 1;
-  margin: 0 auto;
-  border-radius: 50%;
-  padding: 0.75rem;
-  background:
-    radial-gradient(circle at 30% 25%, #e5b363 0%, #b68033 60%, #7d5318 100%);
-  border: 4px solid var(--obs-outline);
-  box-shadow:
-    inset 0 0 0 4px #8e6120,
-    0 12px 26px rgba(0, 0, 0, 0.55);
+/* Center Stage: Copper Telescope Body + Anchored TracePuzzle Card */
+.obs-telescope-center-column {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 0;
 }
 
-.obs-lens-housing.is-matched {
-  box-shadow:
-    0 0 0 5px rgba(255, 216, 107, 0.65),
-    0 12px 26px rgba(0, 0, 0, 0.55);
+.obs-telescope-body-stage {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  background: rgba(18, 30, 54, 0.72);
+  border: 2px solid var(--obs-outline);
+  border-radius: 0.75rem;
+  padding: 0.75rem 0.9rem 0.9rem;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.42);
 }
 
-.obs-lens-viewport {
+.obs-telescope-body-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.obs-body-eyebrow {
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: var(--obs-cream);
+  opacity: 0.92;
+}
+
+.obs-body-progress-pill {
+  background: rgba(255, 214, 122, 0.18);
+  border: 1.5px solid rgba(255, 214, 122, 0.55);
+  color: #f1d79a;
+  border-radius: 999px;
+  padding: 0.18rem 0.65rem;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.obs-copper-tube-wrap {
   position: relative;
   width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  overflow: hidden;
-  border: 4px solid var(--obs-outline);
-  background: #0d1830;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
 }
 
-.obs-lens-svg {
+.obs-copper-tube-svg {
   width: 100%;
-  height: 100%;
+  height: auto;
   display: block;
-  transition: filter 260ms ease, transform 260ms ease;
+  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.45));
 }
 
-.obs-lens-reticle {
+
+
+
+
+
+
+
+
+.obs-cog-badge {
+  margin-top: 0.1rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 0.12rem 0.55rem;
+  background: #e8ebf0;
+  color: var(--obs-ink);
+}
+
+.obs-cog-badge.is-solved {
+  background: var(--obs-sage);
+  color: #ffffff;
+}
+
+.obs-cog-badge.is-short {
+  background: #fde8e6;
+  color: #8c231b;
+}
+
+.obs-cog-archive-link {
+  appearance: none;
+  border: 1.5px solid rgba(255, 214, 122, 0.65);
+  background: rgba(255, 214, 122, 0.15);
+  color: #f1d79a;
+  border-radius: 0.55rem;
+  padding: 0.25rem 0.45rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.obs-cog-archive-link:hover {
+  background: rgba(255, 214, 122, 0.28);
+}
+
+/* Anchored TracePuzzle Card (sits over the selected ring like the sketch) */
+.obs-trace-card {
   position: absolute;
-  inset: 14%;
-  border: 1.5px dashed rgba(253, 245, 230, 0.28);
-  border-radius: 50%;
+  top: 0.4rem;
+  z-index: 35;
+  width: min(17.5rem, 94%);
+  background: linear-gradient(180deg, #fafafa 0%, #e7e7e7 100%);
+  color: var(--obs-ink);
+  border: 2px solid var(--obs-outline);
+  border-radius: 0.75rem;
+  padding: 0.7rem 0.8rem 0.8rem;
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.55);
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.obs-trace-card--range {
+  left: 0.5rem;
+}
+
+.obs-trace-card--focus {
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.obs-trace-card--alignment {
+  right: 0.5rem;
+}
+
+.obs-trace-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.obs-trace-eyebrow {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--obs-ink-muted);
+}
+
+.obs-trace-title {
+  margin: 0.08rem 0 0;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.obs-trace-close-btn {
+  appearance: none;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 0.45rem;
+  border: 2px solid var(--obs-outline);
+  background: #ffffff;
+  color: var(--obs-ink);
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.obs-trace-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.obs-trace-counter {
+  background: #0d1117;
+  color: #ffffff;
+  border-radius: 999px;
+  padding: 0.14rem 0.55rem;
+}
+
+.obs-trace-cost {
+  color: #6b4c1b;
+}
+
+.obs-trace-board-shell {
+  background: radial-gradient(circle at 50% 45%, #f7f7f7 0%, #dcdcdc 100%);
+  border: 2px solid #1b1b1b;
+  border-radius: 0.65rem;
+  padding: 0.35rem;
+}
+
+.obs-trace-svg {
+  width: 100%;
+  aspect-ratio: 1;
+  display: block;
+  touch-action: none;
+  user-select: none;
+}
+
+.obs-trace-edge {
+  stroke: #121212;
+  stroke-width: 4.5;
+  stroke-linecap: round;
+  transition: stroke 140ms ease, stroke-width 140ms ease;
+}
+
+.obs-trace-edge.is-used {
+  stroke: #b97a35;
+  stroke-width: 6;
+}
+
+.obs-trace-start-halo {
+  fill: rgba(255, 198, 66, 0.32);
+  stroke: #b97a35;
+  stroke-width: 2;
+  stroke-dasharray: 2.5 2;
+}
+
+.obs-trace-node {
+  fill: #ffffff;
+  stroke: #121212;
+  stroke-width: 2.8;
+  cursor: pointer;
+  transition: transform 120ms ease, fill 120ms ease;
+}
+
+.obs-trace-node-group.is-start-hint .obs-trace-node {
+  fill: #ffe08a;
+  stroke: #b56808;
+}
+
+.obs-trace-node-group.is-neighbor .obs-trace-node {
+  fill: #dff3e4;
+  stroke: #2c6d45;
+}
+
+.obs-trace-node-group.is-visited .obs-trace-node {
+  fill: #f5d39b;
+}
+
+.obs-trace-node-group.is-current .obs-trace-node {
+  fill: #b97a35;
+  stroke: #121212;
+}
+
+.obs-trace-node-label {
+  font-size: 5.5px;
+  font-weight: 700;
+  fill: #121212;
   pointer-events: none;
 }
 
-/* Bottom Brass Console with Three Gear Dials */
+.obs-trace-node-group.is-current .obs-trace-node-label {
+  fill: #ffffff;
+}
+
+.obs-trace-stuck-banner {
+  background: #fde8e6;
+  border: 2px solid var(--obs-error);
+  color: #8c231b;
+  border-radius: 0.55rem;
+  padding: 0.35rem 0.55rem;
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.obs-trace-instruction {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--obs-ink-muted);
+  text-align: center;
+}
+
+.obs-trace-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.45rem;
+}
+
+.obs-trace-action-btn {
+  flex: 1;
+  padding: 0.35rem 0.55rem;
+  font-size: 0.78rem;
+}
+
+.obs-trace-short-callout {
+  background: #fde8e6;
+  border: 2px solid var(--obs-error);
+  border-radius: 0.75rem;
+  padding: 0.65rem;
+  text-align: center;
+}
+
+.obs-trace-short-callout p {
+  margin: 0 0 0.45rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #8c231b;
+}
+
+/* Bottom Brass Console Bar */
 .obs-console-base {
   background:
-    linear-gradient(180deg, #b88b58 0%, #8f6539 100%);
-  border: 3.5px solid var(--obs-outline);
-  border-radius: 1.35rem;
-  padding: 0.85rem 1rem 0.95rem;
+    linear-gradient(180deg, #2b3140 0%, #1c212c 100%);
+  border: 2px solid var(--obs-outline);
+  border-radius: 0.75rem;
+  padding: 0.7rem 1rem;
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: 0.75rem;
   box-shadow:
-    inset 0 3px 0 rgba(255, 255, 255, 0.28),
-    0 10px 0 rgba(31, 36, 54, 0.48);
+    0 3px 0 #0d1117;
 }
 
-.obs-console-cycle-btn {
-  appearance: none;
-  width: 2.75rem;
-  height: 2.75rem;
-  border-radius: 0.65rem;
-  border: 2.5px solid var(--obs-outline);
-  background: #6f8299;
-  color: #ffffff;
-  font-size: 1.5rem;
-  font-weight: 900;
-  cursor: pointer;
-  box-shadow: 0 3px 0 rgba(31, 36, 54, 0.4);
-}
-
-.obs-console-cycle-btn:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
-}
-
-.obs-dials-row {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.85rem;
-}
-
-.obs-gear-dial {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.3rem;
-}
-
-.obs-gear-pointer {
-  color: var(--obs-cream);
-  font-size: 0.85rem;
-  line-height: 1;
-  text-shadow: 0 2px 0 var(--obs-outline);
-}
-
-.obs-gear-wheel-row {
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-}
-
-.obs-gear-wheel-wrap {
-  position: relative;
-  width: 5.1rem;
-  height: 5.1rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: grab;
-  touch-action: none;
-  user-select: none;
-}
-
-.obs-gear-wheel-wrap:active {
-  cursor: grabbing;
-}
-
-.obs-gear-svg {
-  width: 100%;
-  height: 100%;
-  transition: transform 260ms cubic-bezier(0.34, 1.56, 0.64, 1);
-  filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.35));
-}
-
-.obs-gear-tooth,
-.obs-gear-outer {
-  stroke: var(--obs-outline);
-  stroke-width: 3px;
-}
-
-.obs-gear-inner {
-  fill: #6d5849;
-  stroke: var(--obs-outline);
-  stroke-width: 3px;
-}
-
-.obs-gear-range .obs-gear-tooth,
-.obs-gear-range .obs-gear-outer {
-  fill: var(--obs-range);
-}
-
-.obs-gear-focus .obs-gear-tooth,
-.obs-gear-focus .obs-gear-outer {
-  fill: var(--obs-focus);
-}
-
-.obs-gear-alignment .obs-gear-tooth,
-.obs-gear-alignment .obs-gear-outer {
-  fill: var(--obs-alignment);
-}
-
-.obs-gear-center-value {
-  position: absolute;
-  width: 2.7rem;
-  height: 2.7rem;
-  border-radius: 50%;
-  background: var(--obs-cream);
-  border: 2.5px solid var(--obs-outline);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--font-display, Georgia, serif);
-  font-size: 1.35rem;
-  font-weight: 900;
-  color: var(--obs-navy);
-}
-
-.obs-gear-dial.is-matched .obs-gear-center-value {
-  background: #d7f5e2;
-  border-color: var(--obs-sage);
-}
-
-.obs-dial-btn {
+.obs-console-arrow {
   appearance: none;
   width: 2.5rem;
   height: 2.5rem;
-  border-radius: 50%;
-  border: 2.5px solid var(--obs-outline);
-  background: var(--obs-cream);
-  color: var(--obs-navy);
-  font-size: 1.2rem;
-  font-weight: 900;
+  border-radius: 0.65rem;
+  border: 2px solid var(--obs-outline);
+  background: #6f8299;
+  color: #ffffff;
+  font-size: 1.4rem;
+  font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 3px 0 rgba(31, 36, 54, 0.4);
-  transition: transform 100ms ease, background 100ms ease;
 }
 
-.obs-dial-btn:hover:not(:disabled) {
-  background: #ffe7b3;
-  transform: scale(1.06);
-}
-
-.obs-dial-btn:disabled {
+.obs-console-arrow:disabled {
   opacity: 0.35;
   cursor: not-allowed;
 }
 
-.obs-gear-plaque {
-  background: var(--obs-cream);
-  border: 2.5px solid var(--obs-outline);
-  border-radius: 0.65rem;
-  padding: 0.2rem 0.85rem;
+.obs-console-summary-row {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   align-items: center;
-  min-width: 7.5rem;
-  box-shadow: 0 3px 0 rgba(31, 36, 54, 0.35);
-}
-
-.obs-gear-label {
-  font-weight: 800;
-  font-size: 0.9rem;
-}
-
-.obs-gear-target-hint {
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: var(--obs-ink-muted);
-}
-
-.obs-telescope-actions {
-  display: flex;
-  justify-content: center;
+  justify-content: space-between;
   gap: 0.75rem;
+}
+
+.obs-console-hint {
+  color: var(--obs-cream);
+  font-size: 0.82rem;
+  font-weight: 700;
 }
 
 /* Observation Success Overlay */
@@ -1619,8 +1755,8 @@
   left: 50%;
   transform: translate(-50%, -50%);
   background: var(--obs-cream);
-  border: 3.5px solid var(--obs-outline);
-  border-radius: 1.25rem;
+  border: 2px solid var(--obs-outline);
+  border-radius: 0.75rem;
   padding: 1.6rem 2.2rem;
   text-align: center;
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.65);
@@ -1637,9 +1773,9 @@
 }
 
 .obs-success-title {
-  font-family: var(--font-display, Georgia, serif);
+  font-family: var(--font-display);
   font-size: 1.6rem;
-  font-weight: 900;
+  font-weight: 700;
   color: var(--obs-sage);
 }
 
@@ -1659,9 +1795,9 @@
   margin: 0 auto;
   padding: 0.4rem 0.85rem 0.4rem 0.45rem;
   background: var(--obs-cream);
-  border: 2.5px solid var(--obs-outline);
+  border: 2px solid var(--obs-outline);
   border-radius: 999px;
-  box-shadow: 0 4px 0 rgba(31, 36, 54, 0.35);
+  box-shadow: 0 3px 0 #0d1117;
   font-size: 0.82rem;
   font-weight: 700;
   color: var(--obs-ink);
@@ -1686,8 +1822,8 @@
 }
 
 .obs-music-title {
-  font-family: var(--font-display, Georgia, serif);
-  font-weight: 800;
+  font-family: var(--font-display);
+  font-weight: 700;
   white-space: nowrap;
 }
 
@@ -1744,9 +1880,9 @@
   appearance: none;
   border: 1.5px solid rgba(255, 196, 86, 0.7);
   background: rgba(28, 22, 12, 0.92);
-  color: #ffc456;
+  color: #e6b453;
   font-size: 0.68rem;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0.08em;
   border-radius: 0.4rem;
   padding: 0.35rem 0.55rem;
@@ -1765,7 +1901,7 @@
   z-index: 80;
   width: min(18.5rem, calc(100vw - 1.5rem));
   background: rgba(16, 24, 40, 0.96);
-  color: #f5efe3;
+  color: #f1f3f6;
   border: 1.5px solid rgba(255, 196, 86, 0.55);
   border-radius: 0.65rem;
   box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
@@ -1787,7 +1923,7 @@
 }
 
 .obs-dev-panel-header strong {
-  color: #ffc456;
+  color: #e6b453;
   font-size: 0.74rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -1857,7 +1993,7 @@
 .obs-dev-cheatsheet summary {
   cursor: pointer;
   font-weight: 700;
-  color: #ffc456;
+  color: #e6b453;
 }
 
 .obs-dev-cheatsheet ul {
@@ -1894,7 +2030,7 @@
   appearance: none;
   border: 1px solid rgba(255, 196, 86, 0.45);
   background: rgba(255, 196, 86, 0.12);
-  color: #f5efe3;
+  color: #f1f3f6;
   border-radius: 0.35rem;
   padding: 0.2rem 0.45rem;
   font-size: 0.72rem;
@@ -1911,6 +2047,21 @@
   background: transparent;
   color: rgba(245, 239, 227, 0.85);
   font-weight: 600;
+}
+
+/* Tablet: telescope spans the full row, side cards drop below it */
+@media (max-width: 1024px) {
+  .obs-hud-row {
+    grid-template-columns: 1fr auto;
+  }
+
+  .obs-topbar {
+    grid-column: 1 / -1;
+  }
+
+  .obs-calibration-pill {
+    grid-column: 1 / -1;
+  }
 }
 
 /* Responsive adjustments for narrow phone viewports */
@@ -1933,13 +2084,451 @@
 
   .obs-archive-layout,
   .obs-atlas-layout,
-  .obs-telescope-upper,
   .obs-difficulty-grid,
   .obs-briefing-metrics {
     grid-template-columns: 1fr;
   }
 
-  .obs-dials-row {
+  .obs-telescope-upper {
     grid-template-columns: 1fr;
+    grid-template-areas:
+      "lens"
+      "tube"
+      "info";
   }
+
+  .obs-collar-label {
+    padding: 0.2rem 0.3rem;
+  }
+
+  .obs-collar-label .obs-cog-ring-name {
+    display: none;
+  }
+
+  .obs-trace-card,
+  .obs-trace-card--range,
+  .obs-trace-card--focus,
+  .obs-trace-card--alignment {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    right: auto;
+    transform: translate(-50%, -50%);
+    width: min(20rem, calc(100vw - 2rem));
+  }
+}
+
+/* ==========================================================================
+   Instrument telemetry layer (mono labels, panels, and v2 telescope classes)
+   ========================================================================== */
+
+.obs-outer-badge,
+.obs-sidebar-count,
+.obs-record-index,
+.obs-record-diff,
+.obs-record-reward,
+.obs-record-status,
+.obs-parchment-eyebrow,
+.obs-category-pill,
+.obs-intro-eyebrow,
+.obs-diff-meta,
+.obs-metric-label,
+.obs-dest-section-pill,
+.obs-config-val,
+.obs-est-moves,
+.obs-body-eyebrow,
+.obs-body-progress-pill,
+.obs-cog-badge,
+.obs-trace-eyebrow,
+.obs-trace-counter,
+.obs-trace-cost,
+.obs-calibration-value,
+.obs-footer-progress,
+.obs-rules-count {
+  font-family: var(--font-mono);
+  letter-spacing: 0.04em;
+}
+
+.obs-parchment-eyebrow,
+.obs-intro-eyebrow,
+.obs-body-eyebrow,
+.obs-trace-eyebrow,
+.obs-metric-label {
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--obs-ink-muted);
+}
+
+.obs-outer-btn,
+.obs-tab-btn,
+.obs-secondary-btn,
+.obs-primary-cta {
+  letter-spacing: 0.01em;
+}
+
+.obs-outer-btn {
+  border-radius: 0.45rem;
+  border-width: 1.5px;
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+
+.obs-outer-btn.is-on {
+  background: #e6f2ec;
+  color: var(--ka-canopy, #2f5648);
+  border-color: var(--ka-canopy, #2f5648);
+}
+
+.obs-primary-cta {
+  border-radius: 0.6rem;
+  box-shadow: 0 3px 0 var(--obs-pink-lip);
+}
+
+.obs-primary-cta:active:not(:disabled) {
+  box-shadow: 0 1px 0 var(--obs-pink-lip);
+}
+
+.obs-title-plaque,
+.obs-screen-tabs,
+.obs-parchment-card,
+.obs-records-sidebar,
+.obs-dest-card,
+.obs-target-card,
+.obs-info-card,
+.obs-trace-card,
+.obs-intro-overlay,
+.obs-briefing-card {
+  background-color: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.obs-calibration-pill {
+  background: var(--hw-panel, #3a3f49);
+  border-radius: 0.6rem;
+  font-family: var(--font-mono);
+}
+
+.obs-calibration-value {
+  background: #0b1320;
+  color: var(--hw-screen, #bdd7ee);
+  border-radius: 0.4rem;
+}
+
+.obs-footer-progress {
+  font-size: 0.76rem;
+  text-transform: uppercase;
+}
+
+/* Archive parchment header row */
+.obs-parchment-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding-bottom: 0.6rem;
+  margin-bottom: 0.4rem;
+  border-bottom: 1.5px solid #d5dae2;
+}
+
+/* Telescope collar ring labels */
+.obs-cog-ring-code {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  padding: 0.1rem 0.4rem;
+  border-radius: 0.3rem;
+  background: #0b1320;
+  color: var(--hw-screen, #bdd7ee);
+}
+
+.obs-cog-ring-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+}
+
+.obs-collar-svg-group {
+  transition: filter 160ms ease;
+}
+
+.obs-collar-svg-group.is-active {
+  filter: drop-shadow(0 0 6px rgba(189, 215, 238, 0.55));
+}
+
+.obs-collar-svg-group.is-solved {
+  filter: drop-shadow(0 0 4px rgba(127, 176, 138, 0.5));
+}
+
+/* First-dial "Follow this line" hint */
+.obs-trace-hint-arrow {
+  stroke: #e3b23c;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-dasharray: 3.2 2.4;
+  fill: none;
+  pointer-events: none;
+  animation: obs-hint-dash 900ms linear infinite;
+}
+
+.obs-trace-line-hint {
+  pointer-events: none;
+}
+
+.obs-trace-hint-pill {
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 0.45rem;
+  border: 1.5px solid #8a6a1d;
+  background: #fdf3da;
+  color: #6b4f0f;
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+@keyframes obs-hint-dash {
+  to {
+    stroke-dashoffset: -5.6;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .obs-trace-hint-arrow {
+    animation: none;
+  }
+}
+
+/* Collar labels over the tube: the only way to open a ring's trace */
+.obs-copper-tube-wrap {
+  display: block;
+}
+
+.obs-collar-label-slot {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  z-index: 4;
+}
+
+.obs-collar-label {
+  appearance: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.35rem 0.5rem;
+  border: 1.5px solid #0a0c10;
+  border-radius: 0.5rem;
+  background: rgba(18, 22, 31, 0.92);
+  color: #ffffff;
+  cursor: pointer;
+  box-shadow: 0 3px 0 #0a0c10;
+  transition: transform 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.obs-collar-label:hover {
+  transform: translateY(-1px);
+  border-color: var(--hw-screen, #bdd7ee);
+}
+
+.obs-collar-label:focus-visible {
+  outline: 2px solid var(--hw-screen, #bdd7ee);
+  outline-offset: 2px;
+}
+
+.obs-collar-label .obs-cog-ring-name {
+  font-size: 0.8rem;
+  color: #ffffff;
+}
+
+.obs-collar-label-slot.is-active .obs-collar-label {
+  border-color: #e3b23c;
+  box-shadow: 0 0 0 3px rgba(227, 178, 60, 0.35), 0 3px 0 #0a0c10;
+}
+
+.obs-collar-label-slot.is-solved .obs-collar-label {
+  border-color: #7fb08a;
+}
+
+.obs-collar-label-slot.is-short .obs-collar-label {
+  border-color: #d96459;
+}
+
+/* Lens view: the sector's star field sharpens with each aligned collar */
+.obs-lens-view {
+  margin: 0 auto;
+  width: min(100%, 15rem);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.obs-lens-view svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.5));
+}
+
+.obs-lens-view circle {
+  transition: opacity 600ms ease;
+}
+
+.obs-lens-caption {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.6rem;
+  border-radius: 0.4rem;
+  border: 1.5px solid #0a0c10;
+  background: #0b1320;
+  color: var(--hw-screen, #bdd7ee);
+}
+
+.obs-lens-view.is-in-view .obs-lens-caption {
+  color: #7fb08a;
+}
+
+.obs-info-card .obs-target-card-header {
+  margin: -0.85rem -0.95rem 0;
+}
+
+.obs-info-card .obs-target-sector-name {
+  padding-top: 0;
+}
+
+/* Sector log for charted sectors on the Atlas */
+.obs-sector-log {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  text-align: left;
+  padding: 0.75rem 0.85rem;
+  border: 1.5px solid #c5ccd6;
+  border-radius: 0.6rem;
+  background: #f1f3f6;
+}
+
+.obs-sector-log-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--obs-ink-muted);
+}
+
+.obs-sector-log-blurb {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.obs-sector-log-facts {
+  margin: 0;
+  padding-left: 1.1rem;
+  display: grid;
+  gap: 0.3rem;
+  font-size: 0.84rem;
+  line-height: 1.4;
+}
+
+.obs-game-over-card {
+  border-color: #d96459;
+}
+
+.obs-game-over-countdown {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #8c231b;
+}
+
+/* Intro hero carousel, sized like Staff DeCode's rules carousel */
+.obs-intro-overlay .obs-intro-header {
+  text-align: left;
+}
+
+.obs-rules-carousel--hero {
+  overflow: hidden;
+  background: none;
+  border: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.45rem;
+  margin-top: 0.35rem;
+  text-align: left;
+}
+
+.obs-rules-carousel--hero .obs-rules-slide {
+  display: block;
+  min-height: 7.6rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1.35rem, 1rem + 1.8vw, 2.15rem);
+  line-height: 1.2;
+  color: var(--obs-ink);
+  animation: obs-rules-hero-slide 7000ms ease-in-out both;
+}
+
+.obs-rules-carousel--hero .obs-rules-nav {
+  justify-content: flex-start;
+  gap: 0.45rem;
+}
+
+.obs-rules-carousel--hero .obs-rules-arrow {
+  width: 1.7rem;
+  height: 1.7rem;
+  border-width: 1.5px;
+  background: transparent;
+}
+
+.obs-rules-carousel--hero .obs-rules-count {
+  font-size: 0.72rem;
+}
+
+@keyframes obs-rules-hero-slide {
+  0% { transform: translateX(12%); opacity: 0; }
+  8% { transform: translateX(0); opacity: 1; }
+  92% { transform: translateX(0); opacity: 1; }
+  100% { transform: translateX(-12%); opacity: 0; }
+}
+
+@media (max-width: 640px) {
+  .obs-rules-carousel--hero .obs-rules-slide {
+    min-height: 9rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .obs-rules-carousel--hero .obs-rules-slide {
+    animation: none;
+  }
+}
+
+/* Trace card anchors to the whole telescope area (over the lens), not the tube row */
+.obs-telescope-upper {
+  position: relative;
+}
+
+.obs-telescope-upper .obs-telescope-center-column {
+  position: static;
 }

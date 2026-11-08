@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { getChallengeReward } from "../../engine/archive-engine";
 import type {
   ControlMode,
   GameState,
@@ -13,7 +14,7 @@ interface ArchiveScreenProps {
   controlMode: ControlMode;
   challenges: readonly WordChallengeModel[];
   onChallengeComplete: (challengeId: string, intervalValue: number) => void;
-  onBack: () => void;
+  onBack?: () => void;
 }
 
 export function ArchiveScreen({
@@ -64,6 +65,10 @@ export function ArchiveScreen({
             {challenges.map((challenge, idx) => {
               const isDone = state.completedChallengeIds.includes(challenge.id);
               const isSelected = selectedChallenge.id === challenge.id;
+              const reward = getChallengeReward(
+                challenge.intervalValue,
+                state.difficulty,
+              );
 
               return (
                 <button
@@ -73,14 +78,14 @@ export function ArchiveScreen({
                   onClick={() => setSelectedChallengeId(challenge.id)}
                   data-testid={`challenge-card-${challenge.id}`}
                 >
-                  <span className="obs-record-index">Record {idx + 1}</span>
+                  <span className="obs-record-index">
+                    REC-{String(idx + 1).padStart(2, "0")}
+                  </span>
                   <span className="obs-record-meta">
                     <span className="obs-record-diff">
                       {challenge.difficulty}
                     </span>
-                    <span className="obs-record-reward">
-                      +{challenge.intervalValue}
-                    </span>
+                    <span className="obs-record-reward">+{reward}</span>
                   </span>
                   <span
                     className={`obs-record-status${isDone ? " is-done" : isSelected ? " is-active" : ""}`}
@@ -93,19 +98,22 @@ export function ArchiveScreen({
             })}
           </div>
 
-          <button
-            type="button"
-            className="obs-secondary-btn obs-return-atlas-btn"
-            onClick={onBack}
-            data-testid="return-to-atlas"
-          >
-            Return to Atlas
-          </button>
+          {onBack && (
+            <button
+              type="button"
+              className="obs-secondary-btn obs-return-atlas-btn"
+              onClick={onBack}
+              data-testid="return-to-atlas"
+            >
+              Return to Atlas
+            </button>
+          )}
         </aside>
 
         <div className="obs-archive-stage">
           <WordChallenge
             challenge={selectedChallenge}
+            difficulty={state.difficulty}
             controlMode={controlMode}
             isCompleted={state.completedChallengeIds.includes(
               selectedChallenge.id,

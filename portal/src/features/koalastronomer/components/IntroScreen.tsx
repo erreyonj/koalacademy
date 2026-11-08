@@ -5,16 +5,24 @@ import { useEffect, useState } from "react";
 import type { Difficulty } from "../engine/game-state";
 
 const RULES_INTERVAL_MS = 4500;
+const HERO_RULES_INTERVAL_MS = 7000;
 
 export const INTRO_RULES: readonly string[] = [
-  "1. Visit the Archive to reconstruct damaged observatory records using the musical alphabet (A through G).",
-  "2. Each recovered record plays its ascending musical interval and awards that interval number in Calibration points.",
-  "3. Open the Celestial Atlas to select an unlocked sky sector and review its target telescope configuration.",
-  "4. Spend 1 Calibration per gear move on the brass telescope to align Range, Focus, and Alignment and chart the sector.",
-  "5. Resetting the telescope dials returns them to their starting positions and refunds Calibration based on your chosen difficulty.",
+  "You're a legendary Astronomer and have discovered a new celestial body...",
+  "But an unknown interference has altered your observatory records.",
+  "Recover the damaged records in the Archive by rebuilding words with the musical alphabet (A to G). Each one earns Calibration.",
+  "Choose a sky sector in the Atlas, then calibrate the telescope's Range, Focus, and Alignment collars.",
+  "Trace each collar's optic in one continuous line. Count the lines at each dot: if some are odd, start on one of them.",
+  "Calibrate all four sectors to bring the new body into view.",
 ];
 
-export function RulesCarousel({ lines }: { lines: readonly string[] }) {
+export function RulesCarousel({
+  lines,
+  hero = false,
+}: {
+  lines: readonly string[];
+  hero?: boolean;
+}) {
   const [index, setIndex] = useState(0);
   const [hold, setHold] = useState(0);
 
@@ -22,9 +30,9 @@ export function RulesCarousel({ lines }: { lines: readonly string[] }) {
     if (lines.length < 2) return;
     const timer = window.setInterval(() => {
       setIndex((current) => (current + 1) % lines.length);
-    }, RULES_INTERVAL_MS);
+    }, hero ? HERO_RULES_INTERVAL_MS : RULES_INTERVAL_MS);
     return () => window.clearInterval(timer);
-  }, [lines.length, hold]);
+  }, [lines.length, hold, hero]);
 
   function go(delta: number) {
     setIndex((current) => (current + delta + lines.length) % lines.length);
@@ -32,7 +40,10 @@ export function RulesCarousel({ lines }: { lines: readonly string[] }) {
   }
 
   return (
-    <div className="obs-rules-carousel" data-testid="rules-carousel">
+    <div
+      className={`obs-rules-carousel${hero ? " obs-rules-carousel--hero" : ""}`}
+      data-testid="rules-carousel"
+    >
       <p key={index} className="obs-rules-slide">
         {lines[index]}
       </p>
@@ -72,32 +83,32 @@ const DIFFICULTY_OPTIONS: ReadonlyArray<{
   title: string;
   records: string;
   sectors: string;
-  refund: string;
+  hintPolicy: string;
   rules: string;
 }> = [
   {
     id: "easy",
     title: "Easy",
-    records: "16 Archive records · Ascending intervals",
-    sectors: "4 Atlas sectors · Par move budgets",
-    refund: "50% Calibration refund on dial reset",
-    rules: "Two-turn cushion when recalibrating",
+    records: "16 Archive records · 1x interval rewards (65 Cal)",
+    sectors: "4–6 line figures · 55 Cal total across 4 sectors",
+    hintPolicy: "1 'Follow this line' hint on the very first dial only",
+    rules: "Failed traces are free · Pay 1 Cal per line on solve",
   },
   {
     id: "medium",
     title: "Medium",
-    records: "16 Archive records · Ascending intervals",
-    sectors: "4 Atlas sectors · Par move budgets",
-    refund: "25% Calibration refund on dial reset",
-    rules: "Lighter refund when resetting dials",
+    records: "16 Archive records · 1x interval rewards (65 Cal)",
+    sectors: "6–9 line double-loop lattices · Capped 4–6 Cal per ring",
+    hintPolicy: "No line hints · Count odd-degree crossroads",
+    rules: "Failed traces are free · Fixed 55 Cal total sector cost",
   },
   {
     id: "hard",
     title: "Hard",
-    records: "16 Archive records · Ascending intervals",
-    sectors: "4 Atlas sectors · Par move budgets",
-    refund: "0% Calibration refund on dial reset",
-    rules: "Every gear movement is permanent",
+    records: "16 Archive records · 2x interval rewards (130 Cal)",
+    sectors: "8–11 line multi-mesh optics · Unlabeled nodes",
+    hintPolicy: "No hints or node labels · Pure graph analysis",
+    rules: "Failed traces cost 1 Cal · Pay 1 Cal per line",
   },
 ];
 
@@ -117,7 +128,7 @@ export function IntroScreen({
           Toolkit · Games · Musical Interval Observatory
         </span>
         <h2 className="obs-intro-title">Restore the observatory.</h2>
-        <RulesCarousel lines={INTRO_RULES} />
+        <RulesCarousel lines={INTRO_RULES} hero />
       </div>
 
       <div
@@ -143,7 +154,7 @@ export function IntroScreen({
               </span>
               <span className="obs-diff-meta">{opt.records}</span>
               <span className="obs-diff-meta">{opt.sectors}</span>
-              <span className="obs-diff-meta">{opt.refund}</span>
+              <span className="obs-diff-meta">{opt.hintPolicy}</span>
               <span className="obs-diff-meta">{opt.rules}</span>
             </button>
           );

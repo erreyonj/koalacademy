@@ -1,247 +1,274 @@
-import type {
-  DialConfiguration,
-  Difficulty,
-  GameState,
-  TelescopeDestination,
+import { getTraceFigure } from "../data/trace-figures";
+import { isDestinationUnlocked } from "./atlas-engine";
+import {
+  createTelescopeProgress,
+  type DialName,
+  type Difficulty,
+  type GameState,
+  type TelescopeDestination,
+  type TelescopeProgress,
 } from "./game-state";
+import { findEulerianPath, type TraceEdge, type TraceFigure } from "./trace-engine";
 
-export type DialName = "range" | "focus" | "alignment";
-export type DialDirection = "clockwise" | "counterclockwise";
+export type { DialName };
 
 export const DIAL_NAMES: readonly DialName[] = ["range", "focus", "alignment"];
-export const DIAL_DIRECTIONS: readonly DialDirection[] = [
-  "clockwise",
-  "counterclockwise",
-];
 
-export const RESET_REFUND_RATE: Record<Difficulty, number> = {
-  easy: 0.5,
-  medium: 0.25,
-  hard: 0,
+export const RING_METADATA: Readonly<
+  Record<
+    DialName,
+    {
+      label: string;
+      componentTitle: string;
+      code: string;
+      icon: string;
+    }
+  >
+> = {
+  range: {
+    label: "Range",
+    componentTitle: "Objective Lens",
+    code: "RNG-01",
+    icon: "⚙",
+  },
+  focus: {
+    label: "Focus",
+    componentTitle: "Focusing Filament",
+    code: "FCS-02",
+    icon: "◎",
+  },
+  alignment: {
+    label: "Alignment",
+    componentTitle: "Finder Reticle",
+    code: "ALN-03",
+    icon: "⌖",
+  },
 };
 
-export function calculateResetRefund(
-  spentPoints: number,
-  difficulty: Difficulty,
+export function getComponentFigure(
+  destination: TelescopeDestination,
+  ring: DialName,
+  difficulty: Difficulty = "easy",
+): TraceFigure {
+  return getTraceFigure(destination.components[ring], difficulty);
+}
+
+/**
+ * Calibration cost to solve a ring component:
+ * - Easy: 1 Cal per line in the Easy figure (4-6 Cal, 55 total across all 4 sectors)
+ * - Medium (Option A): capped at the sector's base Easy component cost (4-6 Cal, 55 total)
+ *   regardless of the Medium figure's higher line count (6-9 lines)
+ * - Hard (Option B): 1 Cal per line in the Hard figure (8-11 Cal, 113 total across all 4 sectors,
+ *   paired with 2x Archive rewards = 130 total)
+ */
+export function getComponentCost(
+  destination: TelescopeDestination,
+  ring: DialName,
+  difficulty: Difficulty = "easy",
 ): number {
-  const rate = RESET_REFUND_RATE[difficulty] ?? 0;
-  return Math.floor(Math.max(0, spentPoints) * rate);
-}
-
-/**
- * Apply modulo-7 wraparound to dial values.
- */
-export function mod7(value: number): number {
-  return ((value % 7) + 7) % 7;
-}
-
-/**
- * Apply the linked gear step without checking point balance.
- *
- * Gear rules:
- * - Range CW: Range +1, Focus -1
- * - Focus CW: Focus +1, Range -1, Alignment -1
- * - Alignment CW: Alignment +1, Focus -1
- * - CCW: exact inverse
- */
-export function stepDialConfiguration(
-  config: DialConfiguration,
-  dial: DialName,
-  direction: DialDirection,
-): DialConfiguration {
-  const delta = direction === "clockwise" ? 1 : -1;
-  let { range, focus, alignment } = config;
-
-  switch (dial) {
-    case "range":
-      range = mod7(range + delta);
-      focus = mod7(focus - delta);
-      break;
-    case "focus":
-      focus = mod7(focus + delta);
-      range = mod7(range - delta);
-      alignment = mod7(alignment - delta);
-      break;
-    case "alignment":
-      alignment = mod7(alignment + delta);
-      focus = mod7(focus - delta);
-      break;
+  if (difficulty === "hard") {
+    return getComponentFigure(destination, ring, "hard").edges.length;
   }
+  return getComponentFigure(destination, ring, "easy").edges.length;
+}
 
-  return { range, focus, alignment };
+export function getDestinationTotalCost(
+  destination: TelescopeDestination,
+  difficulty: Difficulty = "easy",
+): number {
+  return DIAL_NAMES.reduce(
+    (sum, ring) => sum + getComponentCost(destination, ring, difficulty),
+    0,
+  );
+}
+
+export function getRemainingDestinationCost(
+  destination: TelescopeDestination,
+  progress: TelescopeProgress | null | undefined,
+  difficulty: Difficulty = "easy",
+): number {
+  return DIAL_NAMES.reduce((sum, ring) => {
+    if (progress?.destinationId === destination.id && progress.solved[ring]) {
+      return sum;
+    }
+    return sum + getComponentCost(destination, ring, difficulty);
+  }, 0);
+}
+
+export function isObservationSolved(
+  progress: TelescopeProgress | null | undefined,
+): boolean {
+  if (!progress) return false;
+  return (
+    progress.solved.range &&
+    progress.solved.focus &&
+    progress.solved.alignment
+  );
 }
 
 /**
- * Move a single dial one notch and apply gear linkage rules.
- * Returns null if player has insufficient points.
+ * Return a single "Follow this line" directional edge `[fromNodeId, toNodeId]`
+ * ONLY on Easy mode's very first dial (`mercury-sector`, `range`, with zero
+ * rings solved across the run) before the student has traced their first edge.
+ * If `forceShow` is true (DevPanel toggle), returns the first Eulerian step on any dial.
  */
-export function moveDial(
-  config: DialConfiguration,
-  calibrationPoints: number,
-  dial: DialName,
-  direction: DialDirection,
-): { config: DialConfiguration; pointsSpent: number } | null {
-  if (calibrationPoints < 1) {
+export function getFirstDialLineHint(
+  state: GameState,
+  destination: TelescopeDestination,
+  ring: DialName,
+  figure: TraceFigure,
+  usedEdgeCount: number = 0,
+  forceShow: boolean = false,
+): TraceEdge | null {
+  if (usedEdgeCount > 0) {
     return null;
   }
 
-  return {
-    config: stepDialConfiguration(config, dial, direction),
-    pointsSpent: 1,
-  };
+  if (!forceShow) {
+    if (state.difficulty !== "easy") return null;
+    if (destination.id !== "mercury-sector" || ring !== "range") return null;
+    if (state.completedDestinationIds.length > 0) return null;
+    const solved = state.telescopeProgress?.solved;
+    if (solved && (solved.range || solved.focus || solved.alignment)) {
+      return null;
+    }
+  }
+
+  const path = findEulerianPath(figure);
+  if (!path || path.length < 2) return null;
+  return [path[0], path[1]];
 }
 
-/**
- * Check if current configuration matches target.
- */
-export function isTargetMatched(
-  current: DialConfiguration,
-  target: DialConfiguration,
-): boolean {
-  return (
-    current.range === target.range &&
-    current.focus === target.focus &&
-    current.alignment === target.alignment
-  );
-}
-
-function circularMod7Distance(a: number, b: number): number {
-  const diff = Math.abs(mod7(a) - mod7(b));
-  return Math.min(diff, 7 - diff);
-}
-
-/**
- * Total circular distance across all 3 dials (0 when matched, max 9).
- * Used as a visual clarity heuristic for the telescope lens viewport.
- */
-export function dialDistanceFromTarget(
-  current: DialConfiguration,
-  target: DialConfiguration,
-): number {
-  return (
-    circularMod7Distance(current.range, target.range) +
-    circularMod7Distance(current.focus, target.focus) +
-    circularMod7Distance(current.alignment, target.alignment)
-  );
-}
-
-/**
- * Reset telescope to starting configuration.
- */
-export function resetTelescope(
+function ensureProgressForDestination(
+  state: GameState,
   destination: TelescopeDestination,
-): DialConfiguration {
-  return { ...destination.startingConfiguration };
+): TelescopeProgress {
+  if (
+    state.currentDestinationId === destination.id &&
+    state.telescopeProgress &&
+    state.telescopeProgress.destinationId === destination.id
+  ) {
+    return state.telescopeProgress;
+  }
+  return createTelescopeProgress(destination.id);
 }
 
 /**
  * Open the non-spoiler telescope briefing for a selected destination.
- * Preserves in-progress dials if returning to the same destination.
+ * Preserves in-progress ring solves if returning to the same destination.
  */
 export function openTelescopeBriefing(
   state: GameState,
   destination: TelescopeDestination,
 ): GameState {
-  if (
-    state.currentDestinationId === destination.id &&
-    state.telescopeDialState !== null
-  ) {
-    return {
-      ...state,
-      currentScreen: "telescope-briefing",
-    };
-  }
-
+  const progress = ensureProgressForDestination(state, destination);
   return {
     ...state,
     currentScreen: "telescope-briefing",
     currentDestinationId: destination.id,
-    telescopeDialState: { ...destination.startingConfiguration },
-    telescopeSpentPoints: 0,
+    telescopeProgress: progress,
   };
 }
 
 /**
  * Start or resume a telescope observation puzzle.
- * Leaving the telescope keeps current dials and spent points; returning to the
- * same destination resumes. Starting a different destination replaces them.
  */
 export function startObservation(
   state: GameState,
   destination: TelescopeDestination,
 ): GameState {
-  if (
-    state.currentDestinationId === destination.id &&
-    state.telescopeDialState !== null
-  ) {
-    return {
-      ...state,
-      currentScreen: "telescope",
-    };
-  }
-
+  const progress = ensureProgressForDestination(state, destination);
   return {
     ...state,
     currentScreen: "telescope",
     currentDestinationId: destination.id,
-    telescopeDialState: { ...destination.startingConfiguration },
-    telescopeSpentPoints: 0,
+    telescopeProgress: progress,
   };
 }
 
+/** Calibration lost per failed or abandoned trace: 1 on Hard, free otherwise. */
+export function getFailedTracePenalty(difficulty: Difficulty): number {
+  return difficulty === "hard" ? 1 : 0;
+}
+
 /**
- * Reset the current telescope dials to the destination's starting configuration
- * and refund Calibration points according to the difficulty rate:
- * - Easy: 50% of spent points (floor)
- * - Medium: 25% of spent points (floor)
- * - Hard: 0% refund
- * Clears telescopeSpentPoints to 0 for the fresh turn.
+ * Record a failed trace attempt on a ring. On Hard this deducts the failed-trace
+ * penalty (never below 0); `options.free` (dev unlimited mode) skips it.
  */
-export function resetCurrentObservation(
+export function recordComponentStuck(
   state: GameState,
   destination: TelescopeDestination,
-  difficulty: Difficulty = state.difficulty,
+  ring: DialName,
+  options?: { free?: boolean },
 ): GameState {
-  const refund = calculateResetRefund(state.telescopeSpentPoints, difficulty);
-  return {
-    ...state,
-    calibrationPoints: state.calibrationPoints + refund,
-    telescopeDialState: resetTelescope(destination),
-    telescopeSpentPoints: 0,
-  };
-}
-
-/**
- * Apply a dial movement and deduct 1 calibration point.
- */
-export function applyDialMovement(
-  state: GameState,
-  dial: DialName,
-  direction: DialDirection,
-): GameState {
-  if (!state.telescopeDialState) return state;
-
-  const result = moveDial(
-    state.telescopeDialState,
-    state.calibrationPoints,
-    dial,
-    direction,
-  );
-
-  if (!result) {
+  const progress = ensureProgressForDestination(state, destination);
+  if (progress.solved[ring]) {
     return state;
   }
 
+  const penalty = options?.free ? 0 : getFailedTracePenalty(state.difficulty);
+
   return {
     ...state,
-    telescopeDialState: result.config,
-    calibrationPoints: state.calibrationPoints - result.pointsSpent,
-    telescopeSpentPoints: state.telescopeSpentPoints + result.pointsSpent,
+    calibrationPoints: Math.max(0, state.calibrationPoints - penalty),
+    currentDestinationId: destination.id,
+    telescopeProgress: {
+      ...progress,
+      stuckCounts: {
+        ...progress.stuckCounts,
+        [ring]: (progress.stuckCounts[ring] ?? 0) + 1,
+      },
+    },
   };
 }
 
 /**
- * Complete observation and reveal map region.
+ * Mark a telescope component ring as solved and deduct its difficulty-appropriate
+ * Calibration cost (once per ring). When all three rings are solved, records the
+ * destination in `completedDestinationIds`.
+ */
+export function solveComponent(
+  state: GameState,
+  destination: TelescopeDestination,
+  ring: DialName,
+  options?: { free?: boolean },
+): GameState {
+  const progress = ensureProgressForDestination(state, destination);
+  if (progress.solved[ring]) {
+    return state;
+  }
+
+  const cost = getComponentCost(destination, ring, state.difficulty);
+  const charge = options?.free ? 0 : cost;
+  if (!options?.free && state.calibrationPoints < cost) {
+    return state;
+  }
+
+  const nextProgress: TelescopeProgress = {
+    ...progress,
+    solved: {
+      ...progress.solved,
+      [ring]: true,
+    },
+  };
+
+  const allSolved = isObservationSolved(nextProgress);
+  const completedDestinationIds =
+    allSolved && !state.completedDestinationIds.includes(destination.id)
+      ? [...state.completedDestinationIds, destination.id]
+      : state.completedDestinationIds;
+
+  return {
+    ...state,
+    currentDestinationId: destination.id,
+    calibrationPoints: state.calibrationPoints - charge,
+    telescopeProgress: nextProgress,
+    completedDestinationIds,
+  };
+}
+
+/**
+ * Complete observation and return to the Atlas with the map region revealed.
  */
 export function completeObservation(
   state: GameState,
@@ -258,63 +285,41 @@ export function completeObservation(
     currentScreen: "atlas",
     completedDestinationIds,
     currentDestinationId: null,
-    telescopeDialState: null,
-    telescopeSpentPoints: 0,
+    telescopeProgress: null,
   };
 }
 
-function configKey(config: DialConfiguration): string {
-  return `${config.range},${config.focus},${config.alignment}`;
-}
-
 /**
- * Breadth-first search over the 343 dial states to find a shortest path
- * from start to target within maxMoves.
+ * Hard-mode soft lock: every Archive record is recovered, a sector is still
+ * uncharted, and Calibration can't fund the cheapest unsolved ring left in
+ * any unlocked sector. Easy and Medium can't soft lock (failed traces are free).
  */
-export function findOptimalSolution(
-  start: DialConfiguration,
-  target: DialConfiguration,
-  maxMoves: number = 343,
-): {
-  moves: Array<{ dial: DialName; direction: DialDirection }>;
-  length: number;
-} | null {
-  if (isTargetMatched(start, target)) {
-    return { moves: [], length: 0 };
-  }
+export function isGameOver(
+  state: GameState,
+  destinations: readonly TelescopeDestination[],
+  totalChallenges: number,
+): boolean {
+  if (state.difficulty !== "hard") return false;
+  if (state.currentScreen === "intro") return false;
+  if (state.completedChallengeIds.length < totalChallenges) return false;
 
-  const queue: Array<{
-    config: DialConfiguration;
-    moves: Array<{ dial: DialName; direction: DialDirection }>;
-  }> = [{ config: start, moves: [] }];
-  const visited = new Set<string>([configKey(start)]);
+  const open = destinations.filter(
+    (dest) =>
+      !state.completedDestinationIds.includes(dest.id) &&
+      isDestinationUnlocked(dest, state.completedDestinationIds),
+  );
+  if (open.length === 0) return false;
 
-  while (queue.length > 0) {
-    const current = queue.shift()!;
-    if (current.moves.length >= maxMoves) {
-      continue;
-    }
-
-    for (const dial of DIAL_NAMES) {
-      for (const direction of DIAL_DIRECTIONS) {
-        const nextConfig = stepDialConfiguration(
-          current.config,
-          dial,
-          direction,
-        );
-        const key = configKey(nextConfig);
-        if (visited.has(key)) continue;
-
-        const nextMoves = [...current.moves, { dial, direction }];
-        if (isTargetMatched(nextConfig, target)) {
-          return { moves: nextMoves, length: nextMoves.length };
-        }
-
-        visited.add(key);
-        queue.push({ config: nextConfig, moves: nextMoves });
-      }
+  let cheapest = Number.POSITIVE_INFINITY;
+  for (const dest of open) {
+    for (const ring of DIAL_NAMES) {
+      const solvedHere =
+        state.telescopeProgress?.destinationId === dest.id &&
+        state.telescopeProgress.solved[ring];
+      if (solvedHere) continue;
+      cheapest = Math.min(cheapest, getComponentCost(dest, ring, state.difficulty));
     }
   }
 
-  return null;
+  return Number.isFinite(cheapest) && state.calibrationPoints < cheapest;
 }

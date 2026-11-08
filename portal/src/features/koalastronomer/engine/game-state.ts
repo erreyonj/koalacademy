@@ -4,6 +4,7 @@ export type { NoteLetter };
 
 export type Difficulty = "easy" | "medium" | "hard";
 export type ControlMode = "touch" | "buttons";
+export type DialName = "range" | "focus" | "alignment";
 export type Screen =
   | "intro"
   | "archive"
@@ -22,21 +23,27 @@ export interface WordChallenge {
   hint: string;
 }
 
-export interface DialConfiguration {
-  range: number;
-  focus: number;
-  alignment: number;
+export type DestinationComponents = Record<DialName, string>;
+
+export interface DestinationProfile {
+  blurb: string;
+  facts: string[];
 }
 
 export interface TelescopeDestination {
   id: string;
   name: string;
   description: string;
-  startingConfiguration: DialConfiguration;
-  targetConfiguration: DialConfiguration;
-  movementBudget: number;
+  profile: DestinationProfile;
+  components: DestinationComponents;
   requiredCompletedDestinations: string[];
   mapRevealRegion: string;
+}
+
+export interface TelescopeProgress {
+  destinationId: string;
+  solved: Record<DialName, boolean>;
+  stuckCounts: Record<DialName, number>;
 }
 
 export interface GameState {
@@ -46,11 +53,28 @@ export interface GameState {
   completedChallengeIds: string[];
   completedDestinationIds: string[];
   currentDestinationId: string | null;
-  telescopeDialState: DialConfiguration | null;
-  telescopeSpentPoints: number;
+  telescopeProgress: TelescopeProgress | null;
 }
 
 export const STORAGE_KEY = "koalastronomer-save";
+
+export function createTelescopeProgress(
+  destinationId: string,
+): TelescopeProgress {
+  return {
+    destinationId,
+    solved: {
+      range: false,
+      focus: false,
+      alignment: false,
+    },
+    stuckCounts: {
+      range: 0,
+      focus: 0,
+      alignment: 0,
+    },
+  };
+}
 
 export function createInitialState(difficulty: Difficulty = "easy"): GameState {
   return {
@@ -60,8 +84,7 @@ export function createInitialState(difficulty: Difficulty = "easy"): GameState {
     completedChallengeIds: [],
     completedDestinationIds: [],
     currentDestinationId: null,
-    telescopeDialState: null,
-    telescopeSpentPoints: 0,
+    telescopeProgress: null,
   };
 }
 
@@ -79,29 +102,57 @@ function isValidScreen(value: unknown): value is Screen {
   );
 }
 
-function isValidDialValue(value: unknown): value is number {
-  return (
-    typeof value === "number" &&
-    Number.isInteger(value) &&
-    value >= 0 &&
-    value <= 6
-  );
-}
-
-function isValidDialConfig(value: unknown): value is DialConfiguration {
-  if (!value || typeof value !== "object") return false;
-  const candidate = value as Record<string, unknown>;
-  return (
-    isValidDialValue(candidate.range) &&
-    isValidDialValue(candidate.focus) &&
-    isValidDialValue(candidate.alignment)
-  );
-}
-
 function isStringArray(value: unknown): value is string[] {
   return (
     Array.isArray(value) && value.every((item) => typeof item === "string")
   );
+}
+
+function nonNegativeInt(value: unknown): number {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0
+    ? Math.floor(value)
+    : 0;
+}
+
+function parseTelescopeProgress(
+  value: unknown,
+  currentDestinationId: string | null,
+): TelescopeProgress | null {
+  if (!currentDestinationId) return null;
+  if (!value || typeof value !== "object") return null;
+
+  const candidate = value as Record<string, unknown>;
+  const destinationId =
+    typeof candidate.destinationId === "string"
+      ? candidate.destinationId
+      : currentDestinationId;
+
+  if (destinationId !== currentDestinationId) {
+    return createTelescopeProgress(currentDestinationId);
+  }
+
+  const solvedRaw =
+    candidate.solved && typeof candidate.solved === "object"
+      ? (candidate.solved as Record<string, unknown>)
+      : {};
+  const stuckRaw =
+    candidate.stuckCounts && typeof candidate.stuckCounts === "object"
+      ? (candidate.stuckCounts as Record<string, unknown>)
+      : {};
+
+  return {
+    destinationId,
+    solved: {
+      range: Boolean(solvedRaw.range),
+      focus: Boolean(solvedRaw.focus),
+      alignment: Boolean(solvedRaw.alignment),
+    },
+    stuckCounts: {
+      range: nonNegativeInt(stuckRaw.range),
+      focus: nonNegativeInt(stuckRaw.focus),
+      alignment: nonNegativeInt(stuckRaw.alignment),
+    },
+  };
 }
 
 export function parseSavedGameState(raw: string | null): GameState {
@@ -121,12 +172,7 @@ export function parseSavedGameState(raw: string | null): GameState {
       ? parsed.currentScreen
       : "intro";
 
-    const calibrationPoints =
-      typeof parsed.calibrationPoints === "number" &&
-      Number.isFinite(parsed.calibrationPoints) &&
-      parsed.calibrationPoints >= 0
-        ? Math.floor(parsed.calibrationPoints)
-        : 0;
+    const calibrationPoints = nonNegativeInt(parsed.calibrationPoints);
 
     const completedChallengeIds = isStringArray(parsed.completedChallengeIds)
       ? Array.from(new Set(parsed.completedChallengeIds))
@@ -144,26 +190,29 @@ export function parseSavedGameState(raw: string | null): GameState {
         ? parsed.currentDestinationId
         : null;
 
-    const telescopeDialState = isValidDialConfig(parsed.telescopeDialState)
-      ? {
-          range: parsed.telescopeDialState.range,
-          focus: parsed.telescopeDialState.focus,
-          alignment: parsed.telescopeDialState.alignment,
-        }
-      : null;
+    // Migrate old saves that had telescopeDialState/telescopeSpentPoints by
+    // dropping the legacy fields and initializing fresh telescopeProgress when needed.
+    const parsedProgress = parseTelescopeProgress(
+      parsed.telescopeProgress,
+      currentDestinationId,
+    );
+    const hadLegacyDialState =
+      parsed.telescopeDialState !== null &&
+      typeof parsed.telescopeDialState === "object";
 
-    const telescopeSpentPoints =
-      typeof parsed.telescopeSpentPoints === "number" &&
-      Number.isFinite(parsed.telescopeSpentPoints) &&
-      parsed.telescopeSpentPoints >= 0
-        ? Math.floor(parsed.telescopeSpentPoints)
-        : 0;
+    const telescopeProgress =
+      parsedProgress ??
+      (currentDestinationId &&
+      (hadLegacyDialState ||
+        currentScreen === "telescope" ||
+        currentScreen === "telescope-briefing")
+        ? createTelescopeProgress(currentDestinationId)
+        : null);
 
-    // If screen was saved as telescope or briefing without a valid destination, fall back to atlas
     let resolvedScreen: Screen = currentScreen;
     if (
       resolvedScreen === "telescope" &&
-      (!currentDestinationId || !telescopeDialState)
+      (!currentDestinationId || !telescopeProgress)
     ) {
       resolvedScreen = "atlas";
     } else if (
@@ -180,10 +229,8 @@ export function parseSavedGameState(raw: string | null): GameState {
       completedChallengeIds,
       completedDestinationIds,
       currentDestinationId,
-      telescopeDialState:
-        currentDestinationId && telescopeDialState ? telescopeDialState : null,
-      telescopeSpentPoints:
-        currentDestinationId && telescopeDialState ? telescopeSpentPoints : 0,
+      telescopeProgress:
+        currentDestinationId && telescopeProgress ? telescopeProgress : null,
     };
   } catch {
     return createInitialState();

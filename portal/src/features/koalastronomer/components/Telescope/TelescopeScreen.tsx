@@ -1,30 +1,34 @@
 "use client";
 
-import { useEffect } from "react";
-import type {
-  ControlMode,
-  GameState,
-  TelescopeDestination,
+import { useEffect, useState } from "react";
+import {
+  createTelescopeProgress,
+  type DialName,
+  type GameState,
+  type TelescopeDestination,
 } from "../../engine/game-state";
 import {
-  calculateResetRefund,
-  type DialDirection,
-  type DialName,
-  isTargetMatched,
+  DIAL_NAMES,
+  getComponentCost,
+  getComponentFigure,
+  getFailedTracePenalty,
+  getFirstDialLineHint,
+  isObservationSolved,
 } from "../../engine/telescope-engine";
-import { DialAssembly } from "./DialAssembly";
-import { DialControl } from "./DialControl";
+import { LensView } from "./LensView";
 import { ObservationSuccess } from "./ObservationSuccess";
-import { formatRefundLabel } from "./TelescopeBriefing";
+import { TelescopeBody } from "./TelescopeBody";
+import { TracePuzzle } from "./TracePuzzle";
 
 interface TelescopeScreenProps {
   state: GameState;
-  controlMode: ControlMode;
   destination: TelescopeDestination;
   availableDestinations: readonly TelescopeDestination[];
+  unlimitedCalibration?: boolean;
+  alwaysShowStartDots?: boolean;
   onSwitchDestination: (destinationId: string) => void;
-  onDialMove: (dial: DialName, direction: DialDirection) => void;
-  onReset: () => void;
+  onSolveComponent: (ring: DialName) => void;
+  onRecordStuck: (ring: DialName) => void;
   onComplete: () => void;
   onBack: () => void;
   onNavigateArchive: () => void;
@@ -32,31 +36,50 @@ interface TelescopeScreenProps {
 
 export function TelescopeScreen({
   state,
-  controlMode,
   destination,
   availableDestinations,
+  unlimitedCalibration = false,
+  alwaysShowStartDots = false,
   onSwitchDestination,
-  onDialMove,
-  onReset,
+  onSolveComponent,
+  onRecordStuck,
   onComplete,
   onBack,
   onNavigateArchive,
 }: TelescopeScreenProps) {
-  const current = state.telescopeDialState ?? destination.startingConfiguration;
-  const target = destination.targetConfiguration;
-  const isMatched = isTargetMatched(current, target);
+  const progress =
+    state.telescopeProgress?.destinationId === destination.id
+      ? state.telescopeProgress
+      : createTelescopeProgress(destination.id);
 
-  const remainingBudget =
-    destination.movementBudget - state.telescopeSpentPoints;
-  const canMove = state.calibrationPoints > 0 && !isMatched;
-  const refundLabel = formatRefundLabel(state.difficulty);
-  const refundPreview = calculateResetRefund(
-    state.telescopeSpentPoints,
-    state.difficulty,
-  );
+  const [activeRing, setActiveRing] = useState<DialName | null>(null);
+
+  const isMatched = isObservationSolved(progress);
+  const solvedCount = DIAL_NAMES.filter((ring) => progress.solved[ring]).length;
+  const failedTracePenalty = unlimitedCalibration
+    ? 0
+    : getFailedTracePenalty(state.difficulty);
+
+  const minUnsolvedCost = DIAL_NAMES.reduce((min, ring) => {
+    if (progress.solved[ring]) return min;
+    const c = getComponentCost(destination, ring, state.difficulty);
+    return Math.min(min, c);
+  }, Number.POSITIVE_INFINITY);
+
+  const cannotAffordNextRing =
+    !isMatched &&
+    !unlimitedCalibration &&
+    Number.isFinite(minUnsolvedCost) &&
+    state.calibrationPoints < minUnsolvedCost;
+
+  // Close active ring puzzle when observation completes or sector changes
+  useEffect(() => {
+    setActiveRing(null);
+  }, [destination.id]);
 
   useEffect(() => {
     if (!isMatched) return;
+    setActiveRing(null);
     const timer = window.setTimeout(() => {
       onComplete();
     }, 1400);
@@ -76,6 +99,28 @@ export function TelescopeScreen({
     onSwitchDestination(availableDestinations[nextIdx].id);
   };
 
+  const figures = {
+    range: getComponentFigure(destination, "range", state.difficulty),
+    focus: getComponentFigure(destination, "focus", state.difficulty),
+    alignment: getComponentFigure(destination, "alignment", state.difficulty),
+  };
+
+  const costs = {
+    range: getComponentCost(destination, "range", state.difficulty),
+    focus: getComponentCost(destination, "focus", state.difficulty),
+    alignment: getComponentCost(destination, "alignment", state.difficulty),
+  };
+
+  const handleSelectRing = (ring: DialName) => {
+    if (progress.solved[ring]) return;
+    setActiveRing((curr) => (curr === ring ? null : ring));
+  };
+
+  const handleSolveRing = (ring: DialName) => {
+    onSolveComponent(ring);
+    setActiveRing(null);
+  };
+
   return (
     <section
       className="obs-screen obs-telescope-screen"
@@ -83,93 +128,77 @@ export function TelescopeScreen({
       data-testid="telescope-screen"
     >
       <div className="obs-telescope-upper">
-        {/* Left panel: Target Configuration */}
-        <aside
-          className="obs-target-card"
-          aria-label="Target Configuration"
-          data-testid="target-config-card"
-        >
-          <div className="obs-target-card-header">Target Configuration</div>
-          <div className="obs-target-sector-name">{destination.name}</div>
-          <ul className="obs-config-list">
-            <li
-              className={`obs-config-row${current.range === target.range ? " is-matched" : ""}`}
-            >
-              <span className="obs-config-dot obs-dot-range" aria-hidden="true">
-                ⚙
-              </span>
-              <span className="obs-config-name">Range</span>
-              <span className="obs-config-val">{target.range}</span>
-            </li>
-            <li
-              className={`obs-config-row${current.focus === target.focus ? " is-matched" : ""}`}
-            >
-              <span className="obs-config-dot obs-dot-focus" aria-hidden="true">
-                ◎
-              </span>
-              <span className="obs-config-name">Focus</span>
-              <span className="obs-config-val">{target.focus}</span>
-            </li>
-            <li
-              className={`obs-config-row${current.alignment === target.alignment ? " is-matched" : ""}`}
-            >
-              <span
-                className="obs-config-dot obs-dot-alignment"
-                aria-hidden="true"
-              >
-                ⌖
-              </span>
-              <span className="obs-config-name">Alignment</span>
-              <span className="obs-config-val">{target.alignment}</span>
-            </li>
-          </ul>
-        </aside>
-
-        {/* Center circular brass telescope lens */}
-        <DialAssembly
-          current={current}
-          target={target}
-          destinationName={destination.name}
+        <LensView
+          sectorId={destination.id}
+          sectorName={destination.name}
+          solvedCount={solvedCount}
         />
 
-        {/* Right panel: Calibration cost & movement budget status (no linkage hints) */}
-        <aside className="obs-info-card" aria-label="Calibration status">
+        {/* Telescope body + anchored TracePuzzle card */}
+        <div className="obs-telescope-center-column">
+          <TelescopeBody
+            costs={costs}
+            solved={progress.solved}
+            activeRing={activeRing}
+            calibrationPoints={state.calibrationPoints}
+            unlimitedCalibration={unlimitedCalibration}
+            onSelectRing={handleSelectRing}
+            onNavigateArchive={onNavigateArchive}
+          />
+
+          {activeRing && !progress.solved[activeRing] && (
+            <TracePuzzle
+              ring={activeRing}
+              figure={figures[activeRing]}
+              cost={costs[activeRing]}
+              difficulty={state.difficulty}
+              calibrationPoints={state.calibrationPoints}
+              unlimitedCalibration={unlimitedCalibration}
+              lineHint={getFirstDialLineHint(
+                state,
+                destination,
+                activeRing,
+                figures[activeRing],
+                0,
+                alwaysShowStartDots,
+              )}
+              failedTracePenalty={failedTracePenalty}
+              onSolve={handleSolveRing}
+              onStuck={onRecordStuck}
+              onClose={() => setActiveRing(null)}
+              onNavigateArchive={onNavigateArchive}
+            />
+          )}
+        </div>
+
+        <aside
+          className="obs-info-card"
+          aria-label="Telescope optics"
+          data-testid="target-config-card"
+        >
+          <div className="obs-target-card-header">Telescope Optics</div>
+          <div className="obs-target-sector-name">{destination.name}</div>
           <div className="obs-info-row">
             <span className="obs-info-gear" aria-hidden="true">
               ⚙
             </span>
-            <p>Each move costs 1 Calibration.</p>
-          </div>
-          <hr className="obs-info-divider" />
-          <div
-            className="obs-budget-tracker"
-            data-testid="movement-budget-status"
-          >
-            <span>
-              Moves used: {state.telescopeSpentPoints} /{" "}
-              {destination.movementBudget}
-            </span>
-            {remainingBudget <= 3 && remainingBudget >= 0 && !isMatched && (
-              <span className="obs-budget-warn">
-                {remainingBudget} par moves left
-              </span>
-            )}
-            {remainingBudget < 0 && !isMatched && (
-              <span className="obs-budget-warn">
-                Over par budget — keep calibrating or reset dials
-              </span>
-            )}
+            <p data-testid="trace-cost-rule">
+              Solving a collar trace deducts its Calibration cost.{" "}
+              {failedTracePenalty > 0
+                ? `Each failed trace costs ${failedTracePenalty} Calibration.`
+                : "Failed traces are free."}
+            </p>
           </div>
 
-          {state.calibrationPoints === 0 && !isMatched && (
+          {cannotAffordNextRing && (
             <div
               className="obs-empty-points-alert"
               data-testid="out-of-points-banner"
               role="alert"
             >
               <p>
-                Out of Calibration points! Recover more records in the Archive
-                or reset dials.
+                Needs {minUnsolvedCost} Calibration for the next ring (you have{" "}
+                {state.calibrationPoints}). Recover more records in the Archive!
               </p>
               <button
                 type="button"
@@ -183,84 +212,48 @@ export function TelescopeScreen({
         </aside>
       </div>
 
-      {/* Bottom brass console with three colored gear dials */}
+      {/* Bottom instrument console bar with sector switcher & back to Atlas */}
       <div className="obs-console-base">
         <button
           type="button"
-          className="obs-console-cycle-btn"
+          className="obs-console-arrow"
           onClick={() => handleCycle(-1)}
           disabled={!canCycle}
-          aria-label="Previous destination"
+          aria-label="Previous unlocked sector"
         >
           ‹
         </button>
 
-        <div className="obs-dials-row">
-          <DialControl
-            name="range"
-            label="Range"
-            currentValue={current.range}
-            targetValue={target.range}
-            controlMode={controlMode}
-            onMove={(dir) => onDialMove("range", dir)}
-            disabled={!canMove}
-          />
-          <DialControl
-            name="focus"
-            label="Focus"
-            currentValue={current.focus}
-            targetValue={target.focus}
-            controlMode={controlMode}
-            onMove={(dir) => onDialMove("focus", dir)}
-            disabled={!canMove}
-          />
-          <DialControl
-            name="alignment"
-            label="Alignment"
-            currentValue={current.alignment}
-            targetValue={target.alignment}
-            controlMode={controlMode}
-            onMove={(dir) => onDialMove("alignment", dir)}
-            disabled={!canMove}
-          />
+        <div className="obs-console-dials-row obs-console-summary-row">
+          <button
+            type="button"
+            className="obs-secondary-btn"
+            onClick={onBack}
+            data-testid="telescope-back-atlas-btn"
+          >
+            ← Back to Atlas
+          </button>
+          <span className="obs-console-hint">
+            Tap a collar label on the tube to trace its optic in one
+            continuous line.
+          </span>
         </div>
 
         <button
           type="button"
-          className="obs-console-cycle-btn"
+          className="obs-console-arrow"
           onClick={() => handleCycle(1)}
           disabled={!canCycle}
-          aria-label="Next destination"
+          aria-label="Next unlocked sector"
         >
           ›
-        </button>
-      </div>
-
-      <div className="obs-telescope-actions">
-        <button
-          type="button"
-          className="obs-secondary-btn"
-          onClick={onReset}
-          disabled={isMatched}
-          data-testid="reset-dials-btn"
-        >
-          Reset Dials ({refundLabel}
-          {refundPreview > 0 ? ` · +${refundPreview}` : ""})
-        </button>
-        <button
-          type="button"
-          className="obs-secondary-btn"
-          onClick={onBack}
-          data-testid="back-to-atlas-btn"
-        >
-          Back to Atlas
         </button>
       </div>
 
       {isMatched && (
         <ObservationSuccess
           destinationName={destination.name}
-          regionName={destination.name}
+          regionName={destination.mapRevealRegion}
           onContinue={onComplete}
         />
       )}

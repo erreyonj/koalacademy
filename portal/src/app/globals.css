@@ -134,6 +134,12 @@ h1, h2, h3 {
   padding: 0 1.25rem;
 }
 
+@media (max-width: 767px) {
+  html[data-game-active="true"] .site-header {
+    display: none;
+  }
+}
+
 .site-header-inner {
   display: flex;
   align-items: center;

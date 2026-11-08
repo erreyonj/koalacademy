@@ -246,6 +246,19 @@ export function StaffDecodeApp() {
     return () => window.clearTimeout(t);
   }, [droppedTarget]);
 
+  // Hide the mobile site header once the run has started (non-start phases)
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    if (state.phase !== "start") {
+      document.documentElement.dataset.gameActive = "true";
+    } else {
+      delete document.documentElement.dataset.gameActive;
+    }
+    return () => {
+      delete document.documentElement.dataset.gameActive;
+    };
+  }, [state.phase]);
+
   // 3. 1-second clock (elapsed timer on Easy/Medium; countdown on Hard)
   useEffect(() => {
     if (

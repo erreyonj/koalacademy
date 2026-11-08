@@ -2,11 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 import {
+  getChallengeReward,
   validateWordChallenge,
   type WordValidationResult,
 } from "../../engine/archive-engine";
 import type {
   ControlMode,
+  Difficulty,
   WordChallenge as WordChallengeModel,
 } from "../../engine/game-state";
 import type { NoteLetter } from "../../engine/intervals";
@@ -16,6 +18,7 @@ import { LetterSelector } from "./LetterSelector";
 
 interface WordChallengeProps {
   challenge: WordChallengeModel;
+  difficulty?: Difficulty;
   controlMode: ControlMode;
   isCompleted: boolean;
   onComplete: (intervalValue: number) => void;
@@ -24,6 +27,7 @@ interface WordChallengeProps {
 
 export function WordChallenge({
   challenge,
+  difficulty = "easy",
   controlMode,
   isCompleted,
   onComplete,
@@ -92,73 +96,12 @@ export function WordChallenge({
 
   return (
     <div className="obs-parchment-card" data-testid="word-challenge-card">
-      {/* Decorative celestial line-art doodles in corners */}
-      <svg
-        className="obs-doodle obs-doodle-saturn"
-        viewBox="0 0 80 56"
-        aria-hidden="true"
-      >
-        <circle
-          cx="40"
-          cy="28"
-          r="14"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.2"
-        />
-        <ellipse
-          cx="40"
-          cy="28"
-          rx="32"
-          ry="9"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.2"
-          transform="rotate(-18 40 28)"
-        />
-      </svg>
-
-      <svg
-        className="obs-doodle obs-doodle-moon"
-        viewBox="0 0 64 64"
-        aria-hidden="true"
-      >
-        <circle
-          cx="32"
-          cy="32"
-          r="22"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.2"
-        />
-        <circle
-          cx="24"
-          cy="24"
-          r="4"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.8"
-        />
-        <circle
-          cx="40"
-          cy="35"
-          r="5"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.8"
-        />
-        <circle
-          cx="28"
-          cy="41"
-          r="3"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.8"
-        />
-      </svg>
-
-      <div className="obs-parchment-eyebrow">OBSERVATORY RECORD</div>
-      <div className="obs-category-pill">{challenge.category}</div>
+      <div className="obs-parchment-header">
+        <span className="obs-parchment-eyebrow">
+          OBSERVATORY TELEMETRY LOG · {challenge.title}
+        </span>
+        <span className="obs-category-pill">{challenge.category}</span>
+      </div>
 
       <p className="obs-hint">{challenge.hint}</p>
 
@@ -222,6 +165,7 @@ export function WordChallenge({
           firstNote={result.firstNote!}
           secondNote={result.secondNote!}
           intervalValue={result.intervalValue!}
+          rewardPoints={getChallengeReward(result.intervalValue!, difficulty)}
         />
       )}
 

@@ -1,10 +1,19 @@
 import { describe, expect, it } from "vitest";
 import { DESTINATIONS } from "../data/destinations";
 import {
+  getTraceFigure,
+  TRACE_FIGURES,
+  TRACE_FIGURES_BY_DIFFICULTY,
+} from "../data/trace-figures";
+import {
   validateChallengeDefinition,
   WORD_CHALLENGES,
 } from "../data/word-challenges";
-import { completeChallenge, validateWordChallenge } from "./archive-engine";
+import {
+  completeChallenge,
+  getChallengeReward,
+  validateWordChallenge,
+} from "./archive-engine";
 import {
   getAvailableDestinations,
   getRevealedRegions,
@@ -12,8 +21,6 @@ import {
 } from "./atlas-engine";
 import {
   createInitialState,
-  type DialConfiguration,
-  type GameState,
   parseSavedGameState,
   serializeGameState,
   type WordChallenge,
@@ -25,17 +32,31 @@ import {
   stepNoteLetter,
 } from "./intervals";
 import {
-  applyDialMovement,
-  calculateResetRefund,
   completeObservation,
-  dialDistanceFromTarget,
-  findOptimalSolution,
-  isTargetMatched,
-  moveDial,
+  DIAL_NAMES,
+  getComponentCost,
+  getComponentFigure,
+  getDestinationTotalCost,
+  getFailedTracePenalty,
+  getFirstDialLineHint,
+  getRemainingDestinationCost,
+  isGameOver,
+  isObservationSolved,
   openTelescopeBriefing,
-  resetCurrentObservation,
+  recordComponentStuck,
+  solveComponent,
   startObservation,
 } from "./telescope-engine";
+import {
+  createTraceState,
+  degrees,
+  extendTrace,
+  findEulerianPath,
+  isComplete,
+  isEulerian,
+  isStuck,
+  validStartNodes,
+} from "./trace-engine";
 
 describe("calculateInterval & ascendingIntervalPitches", () => {
   it("calculates unison (1) for identical notes", () => {
@@ -66,11 +87,9 @@ describe("calculateInterval & ascendingIntervalPitches", () => {
   });
 
   it("always selects an ascending or unison pitch pair for playback", () => {
-    // Non-wrapping in scientific pitch (C4 < D4 < E4 < F4 < G4 < A4 < B4)
     expect(ascendingIntervalPitches("C", "E")).toEqual(["C4", "E4"]);
     expect(ascendingIntervalPitches("A", "B")).toEqual(["A4", "B4"]);
     expect(ascendingIntervalPitches("A", "A")).toEqual(["A4", "A4"]);
-    // Wrapping past B4 into octave 5 so playback never descends
     expect(ascendingIntervalPitches("B", "F")).toEqual(["B4", "F5"]);
     expect(ascendingIntervalPitches("B", "D")).toEqual(["B4", "D5"]);
     expect(ascendingIntervalPitches("F", "D")).toEqual(["F4", "D5"]);
@@ -132,150 +151,240 @@ describe("Archive engine & curated word bank", () => {
   });
 });
 
-describe("Telescope gear system, reset refunds & puzzle budgets", () => {
-  const origin: DialConfiguration = { range: 0, focus: 0, alignment: 0 };
-
-  it("moves Range CW: Range +1, Focus -1 (mod 7)", () => {
-    const res = moveDial(origin, 5, "range", "clockwise");
-    expect(res).toEqual({
-      config: { range: 1, focus: 6, alignment: 0 },
-      pointsSpent: 1,
-    });
+describe("One-line Eulerian trace engine & figure bank economy", () => {
+  it("verifies all 36 trace figures across difficulties are connected Eulerian graphs", () => {
+    for (const figures of Object.values(TRACE_FIGURES_BY_DIFFICULTY)) {
+      expect(figures.length).toBe(12);
+      for (const figure of figures) {
+        expect(isEulerian(figure), figure.id).toBe(true);
+        const path = findEulerianPath(figure);
+        expect(path).not.toBeNull();
+        expect(path!.length).toBe(figure.edges.length + 1);
+      }
+    }
+    expect(TRACE_FIGURES).toBe(TRACE_FIGURES_BY_DIFFICULTY.easy);
   });
 
-  it("moves Focus CW: Focus +1, Range -1, Alignment -1 (mod 7)", () => {
-    const res = moveDial(origin, 5, "focus", "clockwise");
-    expect(res).toEqual({
-      config: { range: 6, focus: 1, alignment: 6 },
-      pointsSpent: 1,
-    });
-  });
-
-  it("moves Alignment CW: Alignment +1, Focus -1 (mod 7)", () => {
-    const res = moveDial(origin, 5, "alignment", "clockwise");
-    expect(res).toEqual({
-      config: { range: 0, focus: 6, alignment: 1 },
-      pointsSpent: 1,
-    });
-  });
-
-  it("inverts every clockwise move when moved counterclockwise", () => {
-    for (const dial of ["range", "focus", "alignment"] as const) {
-      const cw = moveDial(
-        { range: 3, focus: 0, alignment: 6 },
-        2,
-        dial,
-        "clockwise",
-      );
-      expect(cw).not.toBeNull();
-      const ccw = moveDial(cw!.config, 2, dial, "counterclockwise");
-      expect(ccw?.config).toEqual({ range: 3, focus: 0, alignment: 6 });
+  it("makes every ring progressively longer from Easy to Medium to Hard", () => {
+    for (const dest of DESTINATIONS) {
+      for (const ring of DIAL_NAMES) {
+        const easy = getComponentFigure(dest, ring, "easy").edges.length;
+        const medium = getComponentFigure(dest, ring, "medium").edges.length;
+        const hard = getComponentFigure(dest, ring, "hard").edges.length;
+        expect(medium).toBeGreaterThan(easy);
+        expect(hard).toBeGreaterThan(medium);
+      }
     }
   });
 
-  it("blocks movement when calibrationPoints is 0", () => {
-    expect(moveDial(origin, 0, "range", "clockwise")).toBeNull();
+  it("keeps every difficulty's total ring cost at least 10 below its Archive total", () => {
+    const archiveTotal = WORD_CHALLENGES.reduce(
+      (sum, c) => sum + c.intervalValue,
+      0,
+    );
+    expect(archiveTotal).toBe(65);
+
+    const totalCost = (difficulty: "easy" | "medium" | "hard") =>
+      DESTINATIONS.reduce(
+        (sum, dest) => sum + getDestinationTotalCost(dest, difficulty),
+        0,
+      );
+    expect(totalCost("easy")).toBeLessThanOrEqual(55);
+    expect(totalCost("medium")).toBe(totalCost("easy"));
+
+    const hardArchiveTotal = WORD_CHALLENGES.reduce(
+      (sum, c) => sum + getChallengeReward(c.intervalValue, "hard"),
+      0,
+    );
+    expect(hardArchiveTotal).toBe(130);
+    expect(hardArchiveTotal - totalCost("hard")).toBeGreaterThanOrEqual(10);
   });
 
-  it("tracks target matching and circular dial distance", () => {
-    expect(isTargetMatched(origin, { range: 0, focus: 0, alignment: 0 })).toBe(
-      true,
-    );
-    expect(isTargetMatched(origin, { range: 0, focus: 0, alignment: 1 })).toBe(
-      false,
-    );
-    expect(dialDistanceFromTarget(origin, origin)).toBe(0);
+  it("doubles Archive rewards on Hard only", () => {
+    expect(getChallengeReward(5, "easy")).toBe(5);
+    expect(getChallengeReward(5, "medium")).toBe(5);
+    expect(getChallengeReward(5, "hard")).toBe(10);
+  });
+
+  it("shows the follow-this-line hint only on Easy's first dial before the first step", () => {
+    const mercury = DESTINATIONS[0];
+    const fig = getComponentFigure(mercury, "range", "easy");
+    const easy = createInitialState("easy");
+
+    const hint = getFirstDialLineHint(easy, mercury, "range", fig);
+    expect(hint).not.toBeNull();
+    expect(fig.edges.some(([a, b]) =>
+      (a === hint![0] && b === hint![1]) || (a === hint![1] && b === hint![0]),
+    )).toBe(true);
+
+    expect(getFirstDialLineHint(easy, mercury, "range", fig, 1)).toBeNull();
+    expect(getFirstDialLineHint(easy, mercury, "focus", fig)).toBeNull();
     expect(
-      dialDistanceFromTarget(origin, { range: 6, focus: 1, alignment: 0 }),
-    ).toBe(2);
+      getFirstDialLineHint(createInitialState("medium"), mercury, "range", fig),
+    ).toBeNull();
+    expect(
+      getFirstDialLineHint(createInitialState("hard"), mercury, "focus", fig, 0, true),
+    ).not.toBeNull();
+
+    const afterRange = solveComponent(
+      startObservation({ ...easy, calibrationPoints: 20 }, mercury),
+      mercury,
+      "range",
+    );
+    expect(getFirstDialLineHint(afterRange, mercury, "range", fig)).toBeNull();
   });
 
-  it("calculates difficulty-based reset refunds (Easy 50%, Medium 25%, Hard 0%)", () => {
-    expect(calculateResetRefund(20, "easy")).toBe(10);
-    expect(calculateResetRefund(20, "medium")).toBe(5);
-    expect(calculateResetRefund(20, "hard")).toBe(0);
-    expect(calculateResetRefund(7, "easy")).toBe(3);
+  it("identifies odd-degree start nodes or all nodes when all degrees are even", () => {
+    const mercuryRange = getTraceFigure("mercury-range");
+    expect(degrees(mercuryRange)).toEqual({ a: 1, b: 3, c: 2, d: 2 });
+    expect(validStartNodes(mercuryRange)).toEqual(["a", "b"]);
 
-    const mercury = DESTINATIONS[0];
-    let state: GameState = {
-      ...createInitialState("easy"),
-      calibrationPoints: 0,
-      currentScreen: "telescope",
-      currentDestinationId: mercury.id,
-      telescopeDialState: { range: 4, focus: 2, alignment: 5 },
-      telescopeSpentPoints: 20,
-    };
-
-    state = resetCurrentObservation(state, mercury, "easy");
-    expect(state.calibrationPoints).toBe(10);
-    expect(state.telescopeDialState).toEqual(mercury.startingConfiguration);
-    expect(state.telescopeSpentPoints).toBe(0);
+    const mercuryAlign = getTraceFigure("mercury-alignment");
+    expect(degrees(mercuryAlign)).toEqual({ a: 2, b: 2, c: 2, d: 2 });
+    expect(validStartNodes(mercuryAlign)).toEqual(["a", "b", "c", "d"]);
   });
 
-  it("resumes in-progress dials when returning to the same destination and resets when switching", () => {
-    const mercury = DESTINATIONS[0];
-    const outerBelt = DESTINATIONS[1];
+  it("rejects non-adjacent and reused edges, detects stuck dead-ends, and completes when all edges are traced", () => {
+    const fig = getTraceFigure("mercury-range");
 
-    let state = { ...createInitialState("hard"), calibrationPoints: 10 };
+    // Dead-end path: b -> a traps the player at leaf `a` with 3 edges remaining
+    let stuckTrace = createTraceState();
+    stuckTrace = extendTrace(fig, stuckTrace, "b");
+    stuckTrace = extendTrace(fig, stuckTrace, "a");
+    expect(stuckTrace.usedEdgeIndices.length).toBe(1);
+    expect(isStuck(fig, stuckTrace)).toBe(true);
+    expect(isComplete(fig, stuckTrace)).toBe(false);
+
+    // Trying to reuse edge a -> b or jump to non-adjacent node c is ignored
+    expect(extendTrace(fig, stuckTrace, "b")).toBe(stuckTrace);
+    expect(extendTrace(fig, stuckTrace, "c")).toBe(stuckTrace);
+
+    // Valid full path: a -> b -> c -> d -> b uses all 4 edges
+    let solvedTrace = createTraceState();
+    for (const nodeId of ["a", "b", "c", "d", "b"]) {
+      solvedTrace = extendTrace(fig, solvedTrace, nodeId);
+    }
+    expect(solvedTrace.usedEdgeIndices.length).toBe(4);
+    expect(isStuck(fig, solvedTrace)).toBe(false);
+    expect(isComplete(fig, solvedTrace)).toBe(true);
+  });
+
+  it("deducts ring line cost once on solveComponent and tracks free stuck attempts", () => {
+    const mercury = DESTINATIONS[0];
+    let state = { ...createInitialState("medium"), calibrationPoints: 20 };
     state = openTelescopeBriefing(state, mercury);
     expect(state.currentScreen).toBe("telescope-briefing");
     state = startObservation(state, mercury);
     expect(state.currentScreen).toBe("telescope");
+    expect(getRemainingDestinationCost(mercury, state.telescopeProgress)).toBe(
+      12,
+    );
 
-    state = applyDialMovement(state, "range", "clockwise");
-    expect(state.telescopeDialState).toEqual({
-      range: 1,
-      focus: 6,
-      alignment: 0,
-    });
-    expect(state.telescopeSpentPoints).toBe(1);
-    expect(state.calibrationPoints).toBe(9);
+    // Two stuck attempts on Range cost 0 Calibration and increment stuckCounts.range to 2
+    state = recordComponentStuck(state, mercury, "range");
+    state = recordComponentStuck(state, mercury, "range");
+    expect(state.calibrationPoints).toBe(20);
+    expect(state.telescopeProgress?.stuckCounts.range).toBe(2);
 
-    // Leave to archive and return to the same destination
-    state = { ...state, currentScreen: "archive" };
-    state = startObservation(state, mercury);
-    expect(state.telescopeDialState).toEqual({
-      range: 1,
-      focus: 6,
-      alignment: 0,
-    });
-    expect(state.telescopeSpentPoints).toBe(1);
+    // Solving Range deducts 4 Calibration exactly once
+    const rangeCost = getComponentCost(mercury, "range");
+    expect(rangeCost).toBe(4);
+    state = solveComponent(state, mercury, "range");
+    expect(state.calibrationPoints).toBe(16);
+    expect(state.telescopeProgress?.solved.range).toBe(true);
 
-    // On Hard, resetting dials refunds 0 points and clears telescopeSpentPoints
-    state = resetCurrentObservation(state, mercury, "hard");
-    expect(state.telescopeDialState).toEqual(mercury.startingConfiguration);
-    expect(state.telescopeSpentPoints).toBe(0);
-    expect(state.calibrationPoints).toBe(9);
+    // Duplicate solve call is a no-op
+    state = solveComponent(state, mercury, "range");
+    expect(state.calibrationPoints).toBe(16);
 
-    // Starting a different destination replaces the active dials
-    state = startObservation(state, outerBelt);
-    expect(state.currentDestinationId).toBe(outerBelt.id);
-    expect(state.telescopeDialState).toEqual(outerBelt.startingConfiguration);
-    expect(state.telescopeSpentPoints).toBe(0);
+    // Solving Focus and Alignment completes the observation and marks destination completed
+    for (const ring of DIAL_NAMES) {
+      state = solveComponent(state, mercury, ring);
+    }
+    expect(state.calibrationPoints).toBe(8);
+    expect(isObservationSolved(state.telescopeProgress)).toBe(true);
+    expect(state.completedDestinationIds).toContain(mercury.id);
+  });
+});
+
+describe("Hard-mode failed traces & Game Over", () => {
+  const mercury = DESTINATIONS[0];
+  const allChallengeIds = WORD_CHALLENGES.map((c) => c.id);
+
+  it("charges 1 Calibration per failed trace only on Hard, never below 0", () => {
+    expect(getFailedTracePenalty("easy")).toBe(0);
+    expect(getFailedTracePenalty("medium")).toBe(0);
+    expect(getFailedTracePenalty("hard")).toBe(1);
+
+    const easy = startObservation(
+      { ...createInitialState("easy"), calibrationPoints: 5 },
+      mercury,
+    );
+    expect(recordComponentStuck(easy, mercury, "range").calibrationPoints).toBe(5);
+
+    let hard = startObservation(
+      { ...createInitialState("hard"), calibrationPoints: 1 },
+      mercury,
+    );
+    hard = recordComponentStuck(hard, mercury, "range");
+    expect(hard.calibrationPoints).toBe(0);
+    expect(hard.telescopeProgress?.stuckCounts.range).toBe(1);
+    hard = recordComponentStuck(hard, mercury, "range");
+    expect(hard.calibrationPoints).toBe(0);
+
+    const free = recordComponentStuck(
+      { ...hard, calibrationPoints: 3 },
+      mercury,
+      "range",
+      { free: true },
+    );
+    expect(free.calibrationPoints).toBe(3);
   });
 
-  it("verifies every destination has a shortest path within its movementBudget", () => {
-    const expectedLengths: Record<string, number> = {
-      "mercury-sector": 7,
-      "outer-belt": 4,
-      "distant-region": 5,
-      "the-new-body": 4,
+  it("detects Game Over only on Hard once the Archive is exhausted and no ring is affordable", () => {
+    const base = {
+      ...createInitialState("hard"),
+      currentScreen: "atlas" as const,
+      completedChallengeIds: allChallengeIds,
+      calibrationPoints: 2,
     };
+    const total = WORD_CHALLENGES.length;
+    expect(isGameOver(base, DESTINATIONS, total)).toBe(true);
 
+    expect(
+      isGameOver({ ...base, difficulty: "easy" }, DESTINATIONS, total),
+    ).toBe(false);
+    expect(
+      isGameOver(
+        { ...base, completedChallengeIds: allChallengeIds.slice(1) },
+        DESTINATIONS,
+        total,
+      ),
+    ).toBe(false);
+    expect(
+      isGameOver({ ...base, calibrationPoints: 8 }, DESTINATIONS, total),
+    ).toBe(false);
+    expect(
+      isGameOver(
+        {
+          ...base,
+          completedDestinationIds: DESTINATIONS.map((d) => d.id),
+        },
+        DESTINATIONS,
+        total,
+      ),
+    ).toBe(false);
+  });
+
+  it("gives every destination a sector log profile", () => {
     for (const dest of DESTINATIONS) {
-      const solution = findOptimalSolution(
-        dest.startingConfiguration,
-        dest.targetConfiguration,
-        dest.movementBudget,
-      );
-      expect(solution).not.toBeNull();
-      expect(solution!.length).toBe(expectedLengths[dest.id]);
-      expect(solution!.length).toBeLessThanOrEqual(dest.movementBudget);
+      expect(dest.profile.blurb.length).toBeGreaterThan(20);
+      expect(dest.profile.facts.length).toBeGreaterThanOrEqual(2);
     }
   });
 });
 
-describe("Atlas unlock progression & persistence serialization", () => {
+describe("Atlas unlock progression & persistence migration", () => {
   it("unlocks destinations sequentially as requirements are met", () => {
     let state = createInitialState();
     expect(
@@ -294,14 +403,36 @@ describe("Atlas unlock progression & persistence serialization", () => {
     ).toEqual(["outer-belt"]);
   });
 
-  it("round-trips valid saved state and falls back gracefully on corrupt JSON", () => {
+  it("round-trips valid saved state and migrates legacy dial saves cleanly", () => {
     let state = createInitialState("medium");
     state = completeChallenge(state, "beef-1", 5);
     state = startObservation(state, DESTINATIONS[0]);
+    state = solveComponent(state, DESTINATIONS[0], "range");
 
     const raw = serializeGameState(state);
     const restored = parseSavedGameState(raw);
     expect(restored).toEqual(state);
+
+    // Legacy save with telescopeDialState and telescopeSpentPoints migrates cleanly
+    const legacySave = JSON.stringify({
+      currentScreen: "telescope",
+      difficulty: "easy",
+      calibrationPoints: 14,
+      completedChallengeIds: ["beef-1"],
+      completedDestinationIds: [],
+      currentDestinationId: "mercury-sector",
+      telescopeDialState: { range: 2, focus: 1, alignment: 0 },
+      telescopeSpentPoints: 6,
+    });
+    const migrated = parseSavedGameState(legacySave);
+    expect(migrated.currentScreen).toBe("telescope");
+    expect(migrated.calibrationPoints).toBe(14);
+    expect(migrated.telescopeProgress).toEqual({
+      destinationId: "mercury-sector",
+      solved: { range: false, focus: false, alignment: false },
+      stuckCounts: { range: 0, focus: 0, alignment: 0 },
+    });
+    expect("telescopeDialState" in migrated).toBe(false);
 
     expect(parseSavedGameState("{not-valid-json")).toEqual(
       createInitialState(),

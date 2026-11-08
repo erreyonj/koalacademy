@@ -22,6 +22,12 @@ export default function GamesPage() {
         treble pitch and matching the note value with the stethoscope.
       </p>
       <p>
+        <Link href="/toolkit/games/koalastronomer/">Koalastronomer</Link> —
+        recover damaged observatory records by their musical intervals to earn
+        Calibration, then align the linked telescope gears to chart the night
+        sky.
+      </p>
+      <p>
         <Link href="/toolkit/games/salad-bowl/">Salad Bowl</Link> — the
         bowl game in three rounds: Describe, Charades, then One Word.
         Free-for-all cards from the class, or a Koala/Music deck from the

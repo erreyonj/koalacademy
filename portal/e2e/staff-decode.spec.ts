@@ -248,4 +248,41 @@ test("Staff DeCode full game loop: start, cipher, wrong pitch, wrong value, clea
   await page.screenshot({
     path: path.join(SCREENSHOT_DIR, "07-hard-mode-dial.png"),
   });
+
+  // 10. Hard: the staff grows behind the dial without moving the workbench
+  await page.waitForTimeout(950);
+  await page.getByTestId("touch-screen-toggle").click();
+  const steth = page.getByTestId("stethoscope-selector");
+  const wheelBefore = (await wheel.boundingBox())!;
+  const stethBefore = (await steth.boundingBox())!;
+
+  for (let step = 0; step < 8; step++) {
+    if ((await page.getByTestId("queued-code-letter").count()) === 0) break;
+    const letterEl = page.getByTestId("active-code-letter");
+    const targetPitch = await letterEl.getAttribute("data-target-pitch");
+    const targetDuration = await letterEl.getAttribute("data-target-duration");
+    if (!targetPitch || !targetDuration) break;
+    await page.getByTestId(`dial-stop-${targetPitch}`).click({ force: true });
+    await expect(wheel).toHaveAttribute("data-selected-pitch", targetPitch);
+    await page.getByTestId(`steth-option-${targetDuration}`).click();
+    await page.waitForTimeout(950);
+  }
+  await expect(stage).toHaveAttribute("data-phase", "dial");
+  expect(
+    await page.locator('[data-testid="live-staff-card"] .vf-stavenote').count(),
+  ).toBeGreaterThanOrEqual(3);
+
+  const wheelAfter = (await wheel.boundingBox())!;
+  const stethAfter = (await steth.boundingBox())!;
+  for (const [before, after] of [
+    [wheelBefore, wheelAfter],
+    [stethBefore, stethAfter],
+  ]) {
+    expect(Math.abs(after.x - before.x)).toBeLessThanOrEqual(1);
+    expect(Math.abs(after.y - before.y)).toBeLessThanOrEqual(1);
+    expect(Math.abs(after.height - before.height)).toBeLessThanOrEqual(1);
+  }
+  await page.screenshot({
+    path: path.join(SCREENSHOT_DIR, "08-hard-long-staff.png"),
+  });
 });

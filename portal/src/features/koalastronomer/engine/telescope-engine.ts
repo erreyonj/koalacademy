@@ -59,7 +59,7 @@ export function getComponentFigure(
  * - Medium (Option A): capped at the sector's base Easy component cost (4-6 Cal, 55 total)
  *   regardless of the Medium figure's higher line count (6-9 lines)
  * - Hard (Option B): 1 Cal per line in the Hard figure (8-11 Cal, 113 total across all 4 sectors,
- *   paired with 2x Archive rewards = 130 total)
+ *   funded by Hard's extra record blanks, which pay larger cumulative intervals)
  */
 export function getComponentCost(
   destination: TelescopeDestination,

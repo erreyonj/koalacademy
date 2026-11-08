@@ -98,10 +98,10 @@ export function RecordsControl({
                   REC-{String(idx + 1).padStart(2, "0")}
                 </span>
                 <span className="obs-record-set">
-                  {SET_LABELS[challenge.set]}
+                  {challenge.hardOnly ? "Bonus" : SET_LABELS[challenge.set]}
                 </span>
                 <span className="obs-record-reward">
-                  +{getChallengeReward(challenge.intervalValue, difficulty)}
+                  +{getChallengeReward(challenge, difficulty)}
                 </span>
                 <span
                   className={`obs-record-status${isDone ? " is-done" : isSelected ? " is-active" : ""}`}

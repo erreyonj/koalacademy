@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { type CSSProperties, useEffect, useRef, useState } from "react";
 import {
-  getChallengeReward,
+  getBlankNotes,
   validateWordChallenge,
   type WordValidationResult,
 } from "../../engine/archive-engine";
@@ -16,13 +16,27 @@ import { playRecoveredInterval } from "../../hooks/useGameState";
 import { IntervalReward } from "./IntervalReward";
 import { LetterSelector } from "./LetterSelector";
 
+const ORDINALS = ["First", "Second", "Third", "Fourth", "Fifth", "Sixth"];
+
 interface WordChallengeProps {
   challenge: WordChallengeModel;
   difficulty?: Difficulty;
   controlMode: ControlMode;
   isCompleted: boolean;
-  onComplete: (intervalValue: number) => void;
+  onComplete: (reward: number) => void;
+  /** Shown after success when another record is still unrecovered. */
   onNextRecord?: () => void;
+  /** Shown after success when no unrecovered records remain. */
+  onCalibrate?: () => void;
+}
+
+function initialGuesses(
+  challenge: WordChallengeModel,
+  difficulty: Difficulty,
+  isCompleted: boolean,
+): NoteLetter[] {
+  const notes = getBlankNotes(challenge, difficulty);
+  return isCompleted ? notes : notes.map(() => "A");
 }
 
 export function WordChallenge({
@@ -32,63 +46,43 @@ export function WordChallenge({
   isCompleted,
   onComplete,
   onNextRecord,
+  onCalibrate,
 }: WordChallengeProps) {
-  const [pos1, pos2] = challenge.missingPositions;
-  const correctFirst = challenge.answer[pos1].toUpperCase() as NoteLetter;
-  const correctSecond = challenge.answer[pos2].toUpperCase() as NoteLetter;
-
-  const [firstGuess, setFirstGuess] = useState<NoteLetter>(() =>
-    isCompleted ? correctFirst : "A",
-  );
-  const [secondGuess, setSecondGuess] = useState<NoteLetter>(() =>
-    isCompleted ? correctSecond : "A",
+  const blanks = challenge.blanks[difficulty];
+  const [guesses, setGuesses] = useState<NoteLetter[]>(() =>
+    initialGuesses(challenge, difficulty, isCompleted),
   );
   const [result, setResult] = useState<WordValidationResult | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
 
-  const prevChallengeIdRef = useRef(challenge.id);
+  const prevKeyRef = useRef(`${challenge.id}:${difficulty}`);
   useEffect(() => {
-    if (prevChallengeIdRef.current === challenge.id) return;
-    prevChallengeIdRef.current = challenge.id;
-    const [p1, p2] = challenge.missingPositions;
-    setFirstGuess(
-      isCompleted ? (challenge.answer[p1].toUpperCase() as NoteLetter) : "A",
-    );
-    setSecondGuess(
-      isCompleted ? (challenge.answer[p2].toUpperCase() as NoteLetter) : "A",
-    );
+    const key = `${challenge.id}:${difficulty}`;
+    if (prevKeyRef.current === key) return;
+    prevKeyRef.current = key;
+    setGuesses(initialGuesses(challenge, difficulty, isCompleted));
     setResult(null);
     setShowSuccess(false);
-  }, [challenge.id, challenge.answer, challenge.missingPositions, isCompleted]);
+  }, [challenge, difficulty, isCompleted]);
 
   const chars = challenge.answer.split("");
+  const wrongIndex = result && !result.valid ? result.wrongIndex : null;
 
-  const handleFirstChange = (letter: NoteLetter) => {
-    setFirstGuess(letter);
-    if (result?.error === "first-letter-wrong") {
-      setResult(null);
-    }
-  };
-
-  const handleSecondChange = (letter: NoteLetter) => {
-    setSecondGuess(letter);
-    if (result?.error === "second-letter-wrong") {
+  const handleChange = (bearing: number, letter: NoteLetter) => {
+    setGuesses((prev) => prev.map((g, i) => (i === bearing ? letter : g)));
+    if (wrongIndex === bearing) {
       setResult(null);
     }
   };
 
   const handleSubmit = () => {
-    const validation = validateWordChallenge(
-      challenge,
-      firstGuess,
-      secondGuess,
-    );
+    const validation = validateWordChallenge(challenge, difficulty, guesses);
     setResult(validation);
 
-    if (validation.valid && validation.firstNote && validation.secondNote) {
+    if (validation.valid) {
       setShowSuccess(true);
-      playRecoveredInterval(validation.firstNote, validation.secondNote);
-      onComplete(validation.intervalValue!);
+      playRecoveredInterval(validation.notes);
+      onComplete(validation.total);
     }
   };
 
@@ -100,22 +94,27 @@ export function WordChallenge({
         <span className="obs-parchment-eyebrow">
           OBSERVATORY TELEMETRY LOG · {challenge.title}
         </span>
-        <span className="obs-category-pill">{challenge.category}</span>
       </div>
 
       <p className="obs-hint">{challenge.hint}</p>
 
-      {/* Centered word with circular telescope bearings directly in the blank spaces */}
       <div
         className="obs-word-bearing-line"
         data-testid="challenge-word-display"
+        data-letters={chars.length}
+        data-bearings={blanks.length}
         aria-label="Damaged record letters and bearings"
+        style={
+          {
+            "--obs-word-letters": chars.length,
+            "--obs-word-bearings": blanks.length,
+          } as CSSProperties
+        }
       >
         {chars.map((char, idx) => {
-          const isFirstMissing = idx === pos1;
-          const isSecondMissing = idx === pos2;
+          const bearing = blanks.indexOf(idx);
 
-          if (!isFirstMissing && !isSecondMissing) {
+          if (bearing === -1) {
             return (
               <div key={idx} className="obs-static-letter-tile">
                 <span className="obs-word-char">{char}</span>
@@ -124,48 +123,32 @@ export function WordChallenge({
             );
           }
 
-          if (isFirstMissing) {
-            return (
-              <LetterSelector
-                key={idx}
-                position="first"
-                value={locked ? (char as NoteLetter) : firstGuess}
-                controlMode={controlMode}
-                onChange={handleFirstChange}
-                disabled={locked}
-                error={result?.error === "first-letter-wrong"}
-              />
-            );
-          }
-
           return (
             <LetterSelector
               key={idx}
-              position="second"
-              value={locked ? (char as NoteLetter) : secondGuess}
+              index={bearing}
+              value={locked ? (char as NoteLetter) : guesses[bearing]}
               controlMode={controlMode}
-              onChange={handleSecondChange}
+              onChange={(letter) => handleChange(bearing, letter)}
               disabled={locked}
-              error={result?.error === "second-letter-wrong"}
+              error={wrongIndex === bearing}
             />
           );
         })}
       </div>
 
-      {result?.error && !showSuccess && (
+      {wrongIndex !== null && !showSuccess && (
         <div className="obs-error-msg" data-testid="error-message" role="alert">
-          {result.error === "first-letter-wrong"
-            ? "First letter is incorrect"
-            : "Second letter is incorrect"}
+          {ORDINALS[wrongIndex] ?? `Bearing ${wrongIndex + 1}`} letter is
+          incorrect
         </div>
       )}
 
       {showSuccess && result?.valid && (
         <IntervalReward
-          firstNote={result.firstNote!}
-          secondNote={result.secondNote!}
-          intervalValue={result.intervalValue!}
-          rewardPoints={getChallengeReward(result.intervalValue!, difficulty)}
+          notes={result.notes}
+          steps={result.steps}
+          total={result.total}
         />
       )}
 
@@ -188,6 +171,17 @@ export function WordChallenge({
             data-testid="next-record-btn"
           >
             Next Record →
+          </button>
+        )}
+
+        {showSuccess && !onNextRecord && onCalibrate && (
+          <button
+            type="button"
+            className="obs-secondary-btn"
+            onClick={onCalibrate}
+            data-testid="calibrate-telescope-btn"
+          >
+            Calibrate Telescope →
           </button>
         )}
       </div>

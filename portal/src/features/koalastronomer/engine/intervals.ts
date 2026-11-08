@@ -83,3 +83,26 @@ export function ascendingIntervalPitches(
   const secondOctave = secondSemitone < firstSemitone ? 5 : 4;
   return [`${firstNote}4`, `${secondNote}${secondOctave}`];
 }
+
+/**
+ * Scientific pitches for a run of notes where each note sounds at or above the
+ * one before it (same letter repeats the pitch). The run is shifted down an
+ * octave at a time so it never climbs past octave 6.
+ */
+export function ascendingSequencePitches(notes: readonly NoteLetter[]): string[] {
+  const heights: number[] = [];
+  for (const note of notes) {
+    const base = SEMITONE_FROM_C[note];
+    const prev = heights[heights.length - 1];
+    let height = 48 + base;
+    if (prev !== undefined) {
+      while (height < prev) height += 12;
+    }
+    heights.push(height);
+  }
+  const top = heights[heights.length - 1] ?? 48;
+  const shift = Math.max(0, Math.ceil((top - (6 * 12 + 11)) / 12)) * 12;
+  return notes.map(
+    (note, i) => `${note}${Math.floor((heights[i] - shift) / 12)}`,
+  );
+}

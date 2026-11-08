@@ -13,7 +13,9 @@ interface ArchiveScreenProps {
   challenges: readonly WordChallengeModel[];
   selectedChallengeId: string | null;
   onSelectChallenge: (challengeId: string) => void;
-  onChallengeComplete: (challengeId: string, intervalValue: number) => void;
+  onChallengeComplete: (challengeId: string, reward: number) => void;
+  /** Opens the telescope once every available record is recovered. */
+  onCalibrate?: () => void;
 }
 
 export function getDefaultChallengeId(
@@ -34,6 +36,7 @@ export function ArchiveScreen({
   selectedChallengeId,
   onSelectChallenge,
   onChallengeComplete,
+  onCalibrate,
 }: ArchiveScreenProps) {
   const fallbackId = getDefaultChallengeId(
     challenges,
@@ -45,14 +48,11 @@ export function ArchiveScreen({
 
   if (!selectedChallenge) return null;
 
-  const handleSelectNextIncomplete = () => {
-    const next = challenges.find(
-      (c) =>
-        c.id !== selectedChallenge.id &&
-        !state.completedChallengeIds.includes(c.id),
-    );
-    if (next) onSelectChallenge(next.id);
-  };
+  const nextIncomplete = challenges.find(
+    (c) =>
+      c.id !== selectedChallenge.id &&
+      !state.completedChallengeIds.includes(c.id),
+  );
 
   return (
     <section
@@ -68,10 +68,13 @@ export function ArchiveScreen({
           isCompleted={state.completedChallengeIds.includes(
             selectedChallenge.id,
           )}
-          onComplete={(intervalValue) => {
-            onChallengeComplete(selectedChallenge.id, intervalValue);
+          onComplete={(reward) => {
+            onChallengeComplete(selectedChallenge.id, reward);
           }}
-          onNextRecord={handleSelectNextIncomplete}
+          onNextRecord={
+            nextIncomplete ? () => onSelectChallenge(nextIncomplete.id) : undefined
+          }
+          onCalibrate={onCalibrate}
         />
       </div>
     </section>

@@ -12,8 +12,8 @@ export const RECORD_SETS_BY_DIFFICULTY: Readonly<
   Record<Difficulty, readonly RecordSet[]>
 > = {
   easy: ["primary", "backup-1", "backup-2"],
-  medium: ["primary", "backup-1"],
-  hard: ["primary"],
+  medium: ["primary", "backup-1", "backup-2"],
+  hard: ["primary", "backup-1"],
 };
 
 /**
@@ -37,6 +37,14 @@ export function getArchiveSector(
   return destinations.find(isOpen) ?? destinations[destinations.length - 1];
 }
 
+/** Records that exist on this difficulty (Hard adds its bonus records). */
+export function getDifficultyChallenges(
+  challenges: readonly WordChallenge[],
+  difficulty: Difficulty,
+): WordChallenge[] {
+  return challenges.filter((c) => !c.hardOnly || difficulty === "hard");
+}
+
 /**
  * Records playable right now for the Archive sector. The primary set is always
  * shown. A backup set the difficulty allows only opens once the previous set is
@@ -49,9 +57,10 @@ export function getAvailableChallenges(
   destinations: readonly TelescopeDestination[],
 ): WordChallenge[] {
   const sector = getArchiveSector(state, destinations);
-  const sectorChallenges = challenges.filter(
-    (c) => c.destinationId === sector.id,
-  );
+  const sectorChallenges = getDifficultyChallenges(
+    challenges,
+    state.difficulty,
+  ).filter((c) => c.destinationId === sector.id);
   const isDone = (c: WordChallenge) =>
     state.completedChallengeIds.includes(c.id);
   const short = isCalibrationShort(state, destinations);
@@ -81,7 +90,7 @@ export function getRecordTotal(
   available: readonly WordChallenge[],
 ): number {
   const availableIds = new Set(available.map((c) => c.id));
-  return challenges.filter(
+  return getDifficultyChallenges(challenges, state.difficulty).filter(
     (c) =>
       c.set === "primary" ||
       availableIds.has(c.id) ||
@@ -90,10 +99,10 @@ export function getRecordTotal(
 }
 
 /**
- * Hard-mode soft lock: every record the current sector offers is recovered, a
- * sector is still uncharted, and Calibration can't fund the cheapest unsolved
- * ring left in any unlocked sector. Easy and Medium can't soft lock (failed
- * traces are free, and their backup sets cover shortfalls).
+ * Hard-mode soft lock: the sector's primary and backup records are all
+ * recovered, a sector is still uncharted, and Calibration can't fund the
+ * cheapest unsolved ring left in any unlocked sector. Easy and Medium can't
+ * soft lock (failed traces are free, and two backup sets cover shortfalls).
  */
 export function isGameOver(
   state: GameState,

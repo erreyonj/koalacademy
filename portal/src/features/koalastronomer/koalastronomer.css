@@ -557,18 +557,6 @@
   margin-bottom: 0.65rem;
 }
 
-.obs-category-pill {
-  display: table;
-  margin: 0 auto 0.65rem;
-  background: var(--obs-sage-light);
-  color: #1d3a30;
-  border: 2px solid #598773;
-  border-radius: 999px;
-  padding: 0.25rem 1.1rem;
-  font-weight: 700;
-  font-size: 0.92rem;
-}
-
 .obs-hint {
   margin: 0 auto 1.1rem;
   max-width: 34rem;
@@ -578,12 +566,23 @@
 }
 
 /* Centered word + circular telescope bearings in the blank positions */
+/* Tiles shrink to fit long records: each bearing counts as ~1.6 tiles wide. */
 .obs-word-bearing-line {
+  --obs-word-gap: 0.5rem;
+  --obs-tile: clamp(
+    2.3rem,
+    calc(
+      (100cqi - (var(--obs-word-letters, 6) - 1) * var(--obs-word-gap)) /
+        (var(--obs-word-letters, 6) + var(--obs-word-bearings, 2) * 0.6)
+    ),
+    4.5rem
+  );
+  container-type: inline-size;
   display: flex;
   justify-content: center;
   align-items: flex-start;
   flex-wrap: wrap;
-  gap: 0.7rem;
+  gap: var(--obs-word-gap);
   margin: 0.4rem auto 1.15rem;
 }
 
@@ -595,8 +594,8 @@
 }
 
 .obs-word-char {
-  width: 4.5rem;
-  height: 4.5rem;
+  width: var(--obs-tile, 4.5rem);
+  height: var(--obs-tile, 4.5rem);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -604,14 +603,14 @@
   border: 2px solid var(--obs-outline);
   border-radius: 0.75rem;
   font-family: var(--font-display);
-  font-size: 2rem;
+  font-size: calc(var(--obs-tile, 4.5rem) * 0.44);
   font-weight: 700;
   color: var(--obs-navy);
   box-shadow: 0 3px 0 #0d1117;
 }
 
 .obs-tile-pedestal {
-  width: 2.8rem;
+  width: calc(var(--obs-tile, 4.5rem) * 0.62);
   height: 0.45rem;
   border-radius: 999px;
   background: rgba(119, 85, 59, 0.45);
@@ -626,8 +625,8 @@
 
 .obs-bearing-wheel {
   position: relative;
-  width: 5.5rem;
-  height: 5.5rem;
+  width: calc(var(--obs-tile, 4.5rem) * 1.22);
+  height: calc(var(--obs-tile, 4.5rem) * 1.22);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -658,8 +657,8 @@
 
 .obs-bearing-hub {
   position: absolute;
-  width: 2.55rem;
-  height: 2.55rem;
+  width: calc(var(--obs-tile, 4.5rem) * 0.57);
+  height: calc(var(--obs-tile, 4.5rem) * 0.57);
   border-radius: 50%;
   background: var(--obs-cream);
   border: 2px solid var(--obs-outline);
@@ -667,7 +666,7 @@
   align-items: center;
   justify-content: center;
   font-family: var(--font-display);
-  font-size: 1.35rem;
+  font-size: calc(var(--obs-tile, 4.5rem) * 0.3);
   font-weight: 700;
   color: var(--obs-navy);
   box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.6);
@@ -718,6 +717,7 @@
   flex-direction: column;
   align-items: center;
   gap: 0.3rem;
+  --obs-stop: max(0.85rem, calc(var(--obs-tile, 4.5rem) * 0.27));
 }
 
 .obs-bearing-step-row {
@@ -727,8 +727,8 @@
 
 .obs-bearing-step-btn {
   appearance: none;
-  width: 1.9rem;
-  height: 1.9rem;
+  width: max(1.4rem, calc(var(--obs-tile, 4.5rem) * 0.42));
+  height: max(1.4rem, calc(var(--obs-tile, 4.5rem) * 0.42));
   border-radius: 50%;
   border: 2px solid var(--obs-outline);
   background: var(--obs-cream);
@@ -740,21 +740,22 @@
 }
 
 .obs-bearing-stops {
-  display: flex;
-  gap: 0.2rem;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(4, var(--obs-stop));
+  gap: 0.15rem;
   justify-content: center;
 }
 
 .obs-bearing-stop-btn {
   appearance: none;
-  width: 1.65rem;
-  height: 1.65rem;
-  border-radius: 0.4rem;
+  width: var(--obs-stop);
+  height: var(--obs-stop);
+  padding: 0;
+  border-radius: 0.35rem;
   border: 1.8px solid var(--obs-outline);
   background: var(--obs-cream);
   color: var(--obs-navy);
-  font-size: 0.76rem;
+  font-size: calc(var(--obs-stop) * 0.52);
   font-weight: 700;
   cursor: pointer;
 }
@@ -1031,6 +1032,21 @@
   gap: 0.5rem;
   font-weight: 700;
   color: var(--obs-navy);
+}
+
+.obs-reward-pitch {
+  display: inline-flex;
+  gap: 0.5rem;
+}
+
+.obs-reward-steps {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.2rem 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #4f4334;
 }
 
 .obs-reward-points {
@@ -2131,7 +2147,6 @@
 .obs-record-reward,
 .obs-record-status,
 .obs-parchment-eyebrow,
-.obs-category-pill,
 .obs-intro-eyebrow,
 .obs-diff-meta,
 .obs-metric-label,

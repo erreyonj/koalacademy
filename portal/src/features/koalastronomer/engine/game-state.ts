@@ -18,12 +18,12 @@ export interface WordChallenge {
   id: string;
   destinationId: string;
   set: RecordSet;
+  /** Hard-only bonus record, served in the primary set on Hard. */
+  hardOnly?: boolean;
   title: string;
   answer: string;
-  missingPositions: [number, number];
-  difficulty: Difficulty;
-  intervalValue: number;
-  category: string;
+  /** Ascending blank positions per difficulty; each contains the easier one's. */
+  blanks: Record<Difficulty, readonly number[]>;
   hint: string;
 }
 

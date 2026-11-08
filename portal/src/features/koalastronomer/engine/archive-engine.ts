@@ -5,93 +5,106 @@ import {
   type NoteLetter,
 } from "./intervals";
 
-export type WordValidationError =
-  | "first-letter-wrong"
-  | "second-letter-wrong"
-  | null;
+export interface IntervalStep {
+  from: NoteLetter;
+  to: NoteLetter;
+  interval: number;
+}
 
 export interface WordValidationResult {
   valid: boolean;
-  firstNote: NoteLetter | null;
-  secondNote: NoteLetter | null;
-  intervalValue: number | null;
-  error: WordValidationError;
+  /** Index of the first wrong bearing, or null when every bearing is right. */
+  wrongIndex: number | null;
+  notes: NoteLetter[];
+  steps: IntervalStep[];
+  total: number;
 }
 
-/**
- * Return the Calibration reward for a word challenge on the given difficulty:
- * - Easy & Medium: 1x intervalValue (primary sets total 66 across 4 sectors)
- * - Hard: 2x intervalValue (132 from primary sets to fund 8-11 line Hard figures)
- */
+export function getBlanks(
+  challenge: WordChallenge,
+  difficulty: Difficulty,
+): readonly number[] {
+  return challenge.blanks[difficulty];
+}
+
+/** The notes hidden behind a record's blanks on the given difficulty. */
+export function getBlankNotes(
+  challenge: WordChallenge,
+  difficulty: Difficulty,
+): NoteLetter[] {
+  return getBlanks(challenge, difficulty).map((pos) => {
+    const letter = challenge.answer[pos]?.toUpperCase() ?? "";
+    if (!isValidNoteLetter(letter)) {
+      throw new Error(
+        `Challenge ${challenge.id} has a non-note blank at ${pos}: ${letter}`,
+      );
+    }
+    return letter;
+  });
+}
+
+/** Ascending interval for each consecutive pair of notes. */
+export function getIntervalSteps(notes: readonly NoteLetter[]): IntervalStep[] {
+  const steps: IntervalStep[] = [];
+  for (let i = 0; i < notes.length - 1; i += 1) {
+    steps.push({
+      from: notes[i],
+      to: notes[i + 1],
+      interval: calculateInterval(notes[i], notes[i + 1]),
+    });
+  }
+  return steps;
+}
+
+/** Sum of ascending intervals across consecutive notes (A D E -> 4 + 2 = 6). */
+export function getCumulativeInterval(notes: readonly NoteLetter[]): number {
+  return getIntervalSteps(notes).reduce((sum, step) => sum + step.interval, 0);
+}
+
+/** Calibration a record pays on the given difficulty. */
 export function getChallengeReward(
-  intervalValue: number,
-  difficulty: Difficulty = "easy",
+  challenge: WordChallenge,
+  difficulty: Difficulty,
 ): number {
-  return difficulty === "hard" ? intervalValue * 2 : intervalValue;
+  return getCumulativeInterval(getBlankNotes(challenge, difficulty));
 }
 
 /**
- * Validate user's letter selections against the answer word.
+ * Validate the player's bearings, left to right, against the record's blanks.
  */
 export function validateWordChallenge(
   challenge: WordChallenge,
-  firstGuess: NoteLetter,
-  secondGuess: NoteLetter,
+  difficulty: Difficulty,
+  guesses: readonly NoteLetter[],
 ): WordValidationResult {
-  const [pos1, pos2] = challenge.missingPositions;
-  const correctFirst = challenge.answer[pos1]?.toUpperCase() ?? "";
-  const correctSecond = challenge.answer[pos2]?.toUpperCase() ?? "";
+  const notes = getBlankNotes(challenge, difficulty);
+  const wrongIndex = notes.findIndex((note, i) => guesses[i] !== note);
 
-  if (!isValidNoteLetter(correctFirst) || !isValidNoteLetter(correctSecond)) {
-    throw new Error(
-      `Challenge ${challenge.id} has non-note missing positions: ${correctFirst}, ${correctSecond}`,
-    );
+  if (wrongIndex !== -1) {
+    return { valid: false, wrongIndex, notes: [], steps: [], total: 0 };
   }
 
-  if (firstGuess !== correctFirst) {
-    return {
-      valid: false,
-      firstNote: null,
-      secondNote: null,
-      intervalValue: null,
-      error: "first-letter-wrong",
-    };
-  }
-
-  if (secondGuess !== correctSecond) {
-    return {
-      valid: false,
-      firstNote: null,
-      secondNote: null,
-      intervalValue: null,
-      error: "second-letter-wrong",
-    };
-  }
-
-  const intervalValue = calculateInterval(firstGuess, secondGuess);
-
+  const steps = getIntervalSteps(notes);
   return {
     valid: true,
-    firstNote: firstGuess,
-    secondNote: secondGuess,
-    intervalValue,
-    error: null,
+    wrongIndex: null,
+    notes,
+    steps,
+    total: steps.reduce((sum, step) => sum + step.interval, 0),
   };
 }
 
 /**
- * Complete a challenge and award calibration points once (scaled by difficulty).
+ * Complete a challenge and award its Calibration once.
  */
 export function completeChallenge(
   state: GameState,
   challengeId: string,
-  intervalValue: number,
+  reward: number,
 ): GameState {
   if (state.completedChallengeIds.includes(challengeId)) {
     return state;
   }
-
-  const reward = getChallengeReward(intervalValue, state.difficulty);
 
   return {
     ...state,

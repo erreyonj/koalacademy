@@ -12,6 +12,7 @@ import {
 import {
   completeChallenge,
   getChallengeReward,
+  getCumulativeInterval,
   validateWordChallenge,
 } from "./archive-engine";
 import {
@@ -27,6 +28,7 @@ import {
 } from "./game-state";
 import {
   ascendingIntervalPitches,
+  ascendingSequencePitches,
   calculateInterval,
   isValidNoteLetter,
   stepNoteLetter,
@@ -50,6 +52,7 @@ import {
 import {
   getArchiveSector,
   getAvailableChallenges,
+  getDifficultyChallenges,
   getRecordTotal,
   isGameOver,
 } from "./sector-archive";
@@ -106,37 +109,56 @@ describe("calculateInterval & ascendingIntervalPitches", () => {
 
 describe("Archive engine & curated word bank", () => {
   const sampleChallenge: WordChallenge = {
-    id: "beef-1",
-    destinationId: "mercury-sector",
+    id: "andromeda-1",
+    destinationId: "new-body",
     set: "primary",
     title: "Record 01",
-    answer: "BEEF",
-    missingPositions: [0, 3],
-    difficulty: "easy",
-    intervalValue: 5,
-    category: "Celestial Designation",
-    hint: "Provision",
+    answer: "ANDROMEDA",
+    blanks: { easy: [0, 2], medium: [0, 2, 6], hard: [0, 2, 6, 8] },
+    hint: "Nearest large galaxy",
   };
 
-  it("validates correct first and second letters and returns the interval", () => {
-    const result = validateWordChallenge(sampleChallenge, "B", "F");
+  it("sums ascending intervals between consecutive blanks (A→D 4th + D→E 2nd = 6)", () => {
+    expect(getCumulativeInterval(["A", "D", "E"])).toBe(6);
+    expect(getCumulativeInterval(["A", "D"])).toBe(4);
+    expect(getCumulativeInterval(["F", "E"])).toBe(7);
+    expect(getChallengeReward(sampleChallenge, "easy")).toBe(4);
+    expect(getChallengeReward(sampleChallenge, "medium")).toBe(6);
+    expect(getChallengeReward(sampleChallenge, "hard")).toBe(10);
+
+    const real = WORD_CHALLENGES.find((c) => c.answer === "ANDROMEDA")!;
+    expect(real.blanks.medium).toEqual([0, 2, 6]);
+    expect(getChallengeReward(real, "medium")).toBe(6);
+  });
+
+  it("validates every bearing and returns the interval chain", () => {
+    const result = validateWordChallenge(sampleChallenge, "medium", [
+      "A",
+      "D",
+      "E",
+    ]);
     expect(result.valid).toBe(true);
-    expect(result.firstNote).toBe("B");
-    expect(result.secondNote).toBe("F");
-    expect(result.intervalValue).toBe(5);
-    expect(result.error).toBeNull();
+    expect(result.wrongIndex).toBeNull();
+    expect(result.notes).toEqual(["A", "D", "E"]);
+    expect(result.steps.map((step) => step.interval)).toEqual([4, 2]);
+    expect(result.total).toBe(6);
   });
 
-  it("flags wrong first letter without spending points", () => {
-    const result = validateWordChallenge(sampleChallenge, "A", "F");
-    expect(result.valid).toBe(false);
-    expect(result.error).toBe("first-letter-wrong");
+  it("flags the first wrong bearing without spending points", () => {
+    const first = validateWordChallenge(sampleChallenge, "medium", ["B", "D", "E"]);
+    expect(first.valid).toBe(false);
+    expect(first.wrongIndex).toBe(0);
+    expect(first.total).toBe(0);
+
+    const third = validateWordChallenge(sampleChallenge, "medium", ["A", "D", "F"]);
+    expect(third.wrongIndex).toBe(2);
   });
 
-  it("flags wrong second letter", () => {
-    const result = validateWordChallenge(sampleChallenge, "B", "E");
-    expect(result.valid).toBe(false);
-    expect(result.error).toBe("second-letter-wrong");
+  it("plays a multi-note record as one ascending run", () => {
+    expect(ascendingSequencePitches(["A", "D", "E"])).toEqual(["A4", "D5", "E5"]);
+    expect(ascendingSequencePitches(["C", "C", "E"])).toEqual(["C4", "C4", "E4"]);
+    const long = ascendingSequencePitches(["G", "F", "E", "D", "C"]);
+    expect(Number(long[long.length - 1].slice(1))).toBeLessThanOrEqual(6);
   });
 
   it("awards calibration points once per completed challenge", () => {
@@ -151,34 +173,59 @@ describe("Archive engine & curated word bank", () => {
     expect(afterDuplicate.completedChallengeIds).toEqual(["beef-1"]);
   });
 
-  it("has 40 valid A-G word challenges whose stored intervals match calculateInterval", () => {
-    expect(WORD_CHALLENGES.length).toBe(40);
+  it("has 44 valid records with nested, note-only blanks per difficulty", () => {
+    expect(WORD_CHALLENGES.length).toBe(44);
     for (const challenge of WORD_CHALLENGES) {
       expect(validateChallengeDefinition(challenge), challenge.id).toBe(true);
     }
-    expect(new Set(WORD_CHALLENGES.map((c) => c.id)).size).toBe(40);
-    expect(new Set(WORD_CHALLENGES.map((c) => c.answer)).size).toBe(40);
+    expect(new Set(WORD_CHALLENGES.map((c) => c.id)).size).toBe(44);
+    expect(new Set(WORD_CHALLENGES.map((c) => c.answer)).size).toBe(44);
+    expect(
+      validateChallengeDefinition({
+        ...sampleChallenge,
+        blanks: { easy: [0, 2], medium: [0, 6], hard: [0, 2, 6] },
+      }),
+    ).toBe(false);
   });
 
-  it("gives every sector a primary set that funds its own calibration on every difficulty", () => {
+  it("gives every sector a primary set that funds its calibration within 6 Cal on every difficulty", () => {
     for (const dest of DESTINATIONS) {
       const sector = WORD_CHALLENGES.filter((c) => c.destinationId === dest.id);
-      const primary = sector.filter((c) => c.set === "primary");
-      expect(primary.length, dest.id).toBe(4);
+      expect(sector.filter((c) => c.set === "primary" && !c.hardOnly).length).toBe(4);
+      expect(sector.filter((c) => c.hardOnly).length).toBe(1);
       expect(sector.filter((c) => c.set === "backup-1").length).toBe(3);
       expect(sector.filter((c) => c.set === "backup-2").length).toBe(3);
 
-      const sum = (difficulty: "easy" | "hard") =>
-        primary.reduce(
-          (total, c) => total + getChallengeReward(c.intervalValue, difficulty),
+      for (const difficulty of ["easy", "medium", "hard"] as const) {
+        const primary = getDifficultyChallenges(sector, difficulty).filter(
+          (c) => c.set === "primary",
+        );
+        expect(primary.length).toBe(difficulty === "hard" ? 5 : 4);
+        const sum = primary.reduce(
+          (total, c) => total + getChallengeReward(c, difficulty),
           0,
         );
-      expect(sum("easy")).toBeGreaterThanOrEqual(
-        getDestinationTotalCost(dest, "easy"),
-      );
-      expect(sum("hard")).toBeGreaterThanOrEqual(
-        getDestinationTotalCost(dest, "hard"),
-      );
+        const cost = getDestinationTotalCost(dest, difficulty);
+        expect(sum, `${dest.id} ${difficulty}`).toBeGreaterThanOrEqual(cost);
+        expect(sum, `${dest.id} ${difficulty}`).toBeLessThanOrEqual(cost + 6);
+      }
+    }
+  });
+
+  it("gives every backup set enough Calibration to fund at least one ring", () => {
+    for (const dest of DESTINATIONS) {
+      for (const difficulty of ["easy", "medium", "hard"] as const) {
+        const ring = Math.max(
+          ...DIAL_NAMES.map((dial) => getComponentCost(dest, dial, difficulty)),
+        );
+        for (const set of ["backup-1", "backup-2"] as const) {
+          if (difficulty === "hard" && set === "backup-2") continue;
+          const sum = WORD_CHALLENGES.filter(
+            (c) => c.destinationId === dest.id && c.set === set,
+          ).reduce((total, c) => total + getChallengeReward(c, difficulty), 0);
+          expect(sum, `${dest.id} ${difficulty} ${set}`).toBeGreaterThanOrEqual(ring);
+        }
+      }
     }
   });
 });
@@ -209,11 +256,7 @@ describe("One-line Eulerian trace engine & figure bank economy", () => {
     }
   });
 
-  it("keeps every difficulty's total ring cost at least 10 below its Archive total", () => {
-    const primary = WORD_CHALLENGES.filter((c) => c.set === "primary");
-    const archiveTotal = primary.reduce((sum, c) => sum + c.intervalValue, 0);
-    expect(archiveTotal).toBe(66);
-
+  it("caps Medium's ring cost at Easy's and keeps Hard's at 113", () => {
     const totalCost = (difficulty: "easy" | "medium" | "hard") =>
       DESTINATIONS.reduce(
         (sum, dest) => sum + getDestinationTotalCost(dest, difficulty),
@@ -221,19 +264,7 @@ describe("One-line Eulerian trace engine & figure bank economy", () => {
       );
     expect(totalCost("easy")).toBeLessThanOrEqual(55);
     expect(totalCost("medium")).toBe(totalCost("easy"));
-
-    const hardArchiveTotal = primary.reduce(
-      (sum, c) => sum + getChallengeReward(c.intervalValue, "hard"),
-      0,
-    );
-    expect(hardArchiveTotal).toBe(132);
-    expect(hardArchiveTotal - totalCost("hard")).toBeGreaterThanOrEqual(10);
-  });
-
-  it("doubles Archive rewards on Hard only", () => {
-    expect(getChallengeReward(5, "easy")).toBe(5);
-    expect(getChallengeReward(5, "medium")).toBe(5);
-    expect(getChallengeReward(5, "hard")).toBe(10);
+    expect(totalCost("hard")).toBe(113);
   });
 
   it("shows the follow-this-line hint only on Easy's first dial before the first step", () => {
@@ -342,6 +373,9 @@ describe("Hard-mode failed traces & Game Over", () => {
   const mercuryPrimaryIds = WORD_CHALLENGES.filter(
     (c) => c.destinationId === mercury.id && c.set === "primary",
   ).map((c) => c.id);
+  const mercuryBackupIds = WORD_CHALLENGES.filter(
+    (c) => c.destinationId === mercury.id && c.set === "backup-1",
+  ).map((c) => c.id);
 
   it("charges 1 Calibration per failed trace only on Hard, never below 0", () => {
     expect(getFailedTracePenalty("easy")).toBe(0);
@@ -373,25 +407,29 @@ describe("Hard-mode failed traces & Game Over", () => {
     expect(free.calibrationPoints).toBe(3);
   });
 
-  it("detects Game Over only on Hard once the sector's records are exhausted and no ring is affordable", () => {
+  it("detects Game Over only on Hard after backup-1 is exhausted and no ring is affordable", () => {
     const base = {
       ...createInitialState("hard"),
       currentScreen: "atlas" as const,
-      completedChallengeIds: mercuryPrimaryIds,
+      completedChallengeIds: [...mercuryPrimaryIds, ...mercuryBackupIds],
       calibrationPoints: 2,
     };
     const all = WORD_CHALLENGES;
     expect(isGameOver(base, DESTINATIONS, all)).toBe(true);
 
+    // Primary spent but backup-1 still open: not over yet
+    expect(
+      isGameOver(
+        { ...base, completedChallengeIds: mercuryPrimaryIds },
+        DESTINATIONS,
+        all,
+      ),
+    ).toBe(false);
     expect(
       isGameOver({ ...base, difficulty: "easy" }, DESTINATIONS, all),
     ).toBe(false);
     expect(
-      isGameOver(
-        { ...base, completedChallengeIds: mercuryPrimaryIds.slice(1) },
-        DESTINATIONS,
-        all,
-      ),
+      isGameOver({ ...base, difficulty: "medium" }, DESTINATIONS, all),
     ).toBe(false);
     expect(
       isGameOver({ ...base, calibrationPoints: 8 }, DESTINATIONS, all),
@@ -423,13 +461,18 @@ describe("Per-sector Archive record sets", () => {
       (c) => c.destinationId === destinationId && c.set === set,
     ).map((c) => c.id);
 
-  it("serves only the current uncharted sector's records", () => {
+  it("serves only the current uncharted sector's records, with bonus records on Hard only", () => {
     const state = createInitialState("easy");
     expect(getArchiveSector(state, DESTINATIONS).id).toBe(mercury.id);
+    const easy = getAvailableChallenges(state, WORD_CHALLENGES, DESTINATIONS);
+    expect(easy).toHaveLength(4);
+    expect(easy.some((c) => c.hardOnly)).toBe(false);
     expect(
-      getAvailableChallenges(state, WORD_CHALLENGES, DESTINATIONS).map(
-        (c) => c.id,
-      ),
+      getAvailableChallenges(
+        createInitialState("hard"),
+        WORD_CHALLENGES,
+        DESTINATIONS,
+      ).map((c) => c.id),
     ).toEqual(idsFor(mercury.id, "primary"));
 
     const charted = completeObservation(state, mercury.id);
@@ -441,8 +484,11 @@ describe("Per-sector Archive record sets", () => {
     ).toBe(true);
   });
 
-  it("opens Easy 2 / Medium 1 / Hard 0 backup sets only when Calibration runs dry", () => {
-    const primary = idsFor(mercury.id, "primary");
+  it("opens Easy 2 / Medium 2 / Hard 1 backup sets only when Calibration runs dry", () => {
+    const primary = WORD_CHALLENGES.filter(
+      (c) => c.destinationId === mercury.id && c.set === "primary" && !c.hardOnly,
+    ).map((c) => c.id);
+    const hardPrimary = idsFor(mercury.id, "primary");
     const backup1 = idsFor(mercury.id, "backup-1");
     const visibleSets = (
       difficulty: "easy" | "medium" | "hard",
@@ -477,8 +523,14 @@ describe("Per-sector Archive record sets", () => {
     expect(visibleSets("medium", [...primary, ...backup1], 0)).toEqual([
       "primary",
       "backup-1",
+      "backup-2",
     ]);
+    // Hard's bonus record must be recovered before its single backup opens
     expect(visibleSets("hard", primary, 0)).toEqual(["primary"]);
+    expect(visibleSets("hard", [...hardPrimary, ...backup1], 0)).toEqual([
+      "primary",
+      "backup-1",
+    ]);
 
     // A backup set stays open once any of its records is recovered
     expect(visibleSets("easy", [...primary, backup1[0]], 20)).toEqual([
@@ -499,6 +551,7 @@ describe("Per-sector Archive record sets", () => {
       );
     expect(total(flush)).toBe(16);
     expect(total(dry)).toBe(19);
+    expect(total({ ...createInitialState("hard"), calibrationPoints: 20 })).toBe(20);
   });
 });
 

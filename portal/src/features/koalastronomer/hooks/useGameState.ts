@@ -15,7 +15,7 @@ import {
   STORAGE_KEY,
   serializeGameState,
 } from "../engine/game-state";
-import { ascendingIntervalPitches } from "../engine/intervals";
+import { ascendingSequencePitches } from "../engine/intervals";
 import {
   completeObservation,
   openTelescopeBriefing,
@@ -35,20 +35,17 @@ function writeStateToStorage(state: GameState): void {
   }
 }
 
-export function playRecoveredInterval(
-  firstNote: NoteLetter,
-  secondNote: NoteLetter,
-): [string, string] {
-  const [firstPitch, secondPitch] = ascendingIntervalPitches(
-    firstNote,
-    secondNote,
-  );
+export function playRecoveredInterval(notes: readonly NoteLetter[]): string[] {
+  const pitches = ascendingSequencePitches(notes);
   resumePiano();
-  playNote(firstPitch);
-  window.setTimeout(() => {
-    playNote(secondPitch);
-  }, 360);
-  return [firstPitch, secondPitch];
+  pitches.forEach((pitch, i) => {
+    if (i === 0) {
+      playNote(pitch);
+    } else {
+      window.setTimeout(() => playNote(pitch), i * 360);
+    }
+  });
+  return pitches;
 }
 
 export function useGameState() {
@@ -110,10 +107,8 @@ export function useGameState() {
   }, [updateState]);
 
   const handleChallengeComplete = useCallback(
-    (challengeId: string, intervalValue: number) => {
-      updateState((prev) =>
-        completeChallenge(prev, challengeId, intervalValue),
-      );
+    (challengeId: string, reward: number) => {
+      updateState((prev) => completeChallenge(prev, challengeId, reward));
     },
     [updateState],
   );

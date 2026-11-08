@@ -118,10 +118,10 @@ export function KoalastronomerApp() {
   );
 
   const handleChallengeComplete = useCallback(
-    (challengeId: string, intervalValue: number) => {
+    (challengeId: string, reward: number) => {
       startMusic();
       setDucked(true);
-      actions.challengeComplete(challengeId, intervalValue);
+      actions.challengeComplete(challengeId, reward);
     },
     [actions, startMusic],
   );
@@ -257,6 +257,7 @@ export function KoalastronomerApp() {
               selectedChallengeId={selectedRecordId}
               onSelectChallenge={setSelectedRecordId}
               onChallengeComplete={handleChallengeComplete}
+              onCalibrate={() => handleSelectObservation(archiveSector.id)}
             />
           )}
 

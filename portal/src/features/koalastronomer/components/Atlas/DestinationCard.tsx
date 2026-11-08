@@ -67,7 +67,9 @@ export function DestinationCard({
           </svg>
         </div>
 
-        <p className="obs-dest-desc">{destination.description}</p>
+        {!showLog && (
+          <p className="obs-dest-desc">{destination.description}</p>
+        )}
 
         {isCompleted ? (
           <>

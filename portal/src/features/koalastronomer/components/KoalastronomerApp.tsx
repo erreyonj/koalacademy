@@ -8,9 +8,9 @@ import { getAvailableDestinations } from "../engine/atlas-engine";
 import {
   getArchiveSector,
   getAvailableChallenges,
-  getRecordTotalForDifficulty,
+  getRecordTotal,
+  isGameOver,
 } from "../engine/sector-archive";
-import { isGameOver } from "../engine/telescope-engine";
 import type { ControlMode, DialName, Screen } from "../engine/game-state";
 import { useGameState } from "../hooks/useGameState";
 import "../koalastronomer.css";
@@ -54,9 +54,10 @@ export function KoalastronomerApp() {
     WORD_CHALLENGES,
     DESTINATIONS,
   );
-  const recordTotal = getRecordTotalForDifficulty(
+  const recordTotal = getRecordTotal(
+    state,
     WORD_CHALLENGES,
-    state.difficulty,
+    availableChallenges,
   );
   const gameOver =
     !unlimitedCalibration &&
@@ -331,24 +332,6 @@ export function KoalastronomerApp() {
             onVolume={music.setVolume}
           />
         </div>
-
-        {!isIntro && (
-          <footer className="obs-shell-footer">
-            <span className="obs-footer-progress">
-              Sectors Charted: {state.completedDestinationIds.length} /{" "}
-              {DESTINATIONS.length} · Records Recovered:{" "}
-              {state.completedChallengeIds.length} / {recordTotal}
-            </span>
-            <button
-              type="button"
-              className="obs-reset-game-btn"
-              onClick={actions.resetGame}
-              data-testid="reset-game-btn"
-            >
-              Reset Progress
-            </button>
-          </footer>
-        )}
       </div>
 
       <DevPanel

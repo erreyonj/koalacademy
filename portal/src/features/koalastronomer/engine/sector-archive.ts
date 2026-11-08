@@ -6,6 +6,7 @@ import type {
   TelescopeDestination,
   WordChallenge,
 } from "./game-state";
+import { isCalibrationShort } from "./telescope-engine";
 
 export const RECORD_SETS_BY_DIFFICULTY: Readonly<
   Record<Difficulty, readonly RecordSet[]>
@@ -38,8 +39,9 @@ export function getArchiveSector(
 
 /**
  * Records playable right now for the Archive sector. The primary set is always
- * shown; each backup set the difficulty allows appears once the previous set
- * is fully recovered.
+ * shown. A backup set the difficulty allows only opens once the previous set is
+ * fully recovered and Calibration still can't fund the next ring; once any of
+ * its records is recovered it stays open.
  */
 export function getAvailableChallenges(
   state: GameState,
@@ -52,21 +54,58 @@ export function getAvailableChallenges(
   );
   const isDone = (c: WordChallenge) =>
     state.completedChallengeIds.includes(c.id);
+  const short = isCalibrationShort(state, destinations);
 
   const visible: WordChallenge[] = [];
+  let previousComplete = true;
   for (const set of RECORD_SETS_BY_DIFFICULTY[state.difficulty]) {
     const setChallenges = sectorChallenges.filter((c) => c.set === set);
+    const opened =
+      set === "primary" ||
+      setChallenges.some(isDone) ||
+      (previousComplete && short);
+    if (!opened) break;
     visible.push(...setChallenges);
-    if (!setChallenges.every(isDone)) break;
+    previousComplete = setChallenges.every(isDone);
   }
   return visible;
 }
 
-/** Every record the difficulty can ever reach across all sectors. */
-export function getRecordTotalForDifficulty(
+/**
+ * Records counted toward progress: every primary record plus any backup record
+ * that is open or already recovered.
+ */
+export function getRecordTotal(
+  state: GameState,
   challenges: readonly WordChallenge[],
-  difficulty: Difficulty,
+  available: readonly WordChallenge[],
 ): number {
-  const sets = RECORD_SETS_BY_DIFFICULTY[difficulty];
-  return challenges.filter((c) => sets.includes(c.set)).length;
+  const availableIds = new Set(available.map((c) => c.id));
+  return challenges.filter(
+    (c) =>
+      c.set === "primary" ||
+      availableIds.has(c.id) ||
+      state.completedChallengeIds.includes(c.id),
+  ).length;
+}
+
+/**
+ * Hard-mode soft lock: every record the current sector offers is recovered, a
+ * sector is still uncharted, and Calibration can't fund the cheapest unsolved
+ * ring left in any unlocked sector. Easy and Medium can't soft lock (failed
+ * traces are free, and their backup sets cover shortfalls).
+ */
+export function isGameOver(
+  state: GameState,
+  destinations: readonly TelescopeDestination[],
+  challenges: readonly WordChallenge[],
+): boolean {
+  if (state.difficulty !== "hard") return false;
+  if (state.currentScreen === "intro") return false;
+  const archiveExhausted = getAvailableChallenges(
+    state,
+    challenges,
+    destinations,
+  ).every((c) => state.completedChallengeIds.includes(c.id));
+  return archiveExhausted && isCalibrationShort(state, destinations);
 }

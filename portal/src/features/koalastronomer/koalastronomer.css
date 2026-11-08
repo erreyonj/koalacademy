@@ -20,6 +20,9 @@
 }
 
 .obs-outer-topbar {
+  position: sticky;
+  top: 0.5rem;
+  z-index: 30;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1871,38 +1874,6 @@
   accent-color: var(--obs-sage);
 }
 
-/* Footer */
-.obs-shell-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  background: rgba(22, 38, 67, 0.86);
-  color: var(--obs-cream);
-  border: 2px solid var(--obs-outline);
-  border-radius: 0.75rem;
-  padding: 0.45rem 0.9rem;
-  font-size: 0.84rem;
-  font-weight: 700;
-  z-index: 10;
-}
-
-.obs-reset-game-btn {
-  appearance: none;
-  background: transparent;
-  color: var(--obs-cream);
-  border: 1.5px solid rgba(253, 245, 230, 0.45);
-  border-radius: 0.5rem;
-  padding: 0.25rem 0.65rem;
-  font-size: 0.78rem;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.obs-reset-game-btn:hover {
-  background: rgba(253, 245, 230, 0.14);
-}
-
 /* —— Dev sandbox (delete with DevPanel.tsx) —— */
 .obs-dev-reopen {
   position: fixed;
@@ -2174,7 +2145,6 @@
 .obs-trace-counter,
 .obs-trace-cost,
 .obs-calibration-value,
-.obs-footer-progress,
 .obs-rules-count {
   font-family: var(--font-mono);
   letter-spacing: 0.04em;
@@ -2247,10 +2217,6 @@
   border-radius: 0.4rem;
 }
 
-.obs-footer-progress {
-  font-size: 0.76rem;
-  text-transform: uppercase;
-}
 
 /* Archive parchment header row */
 .obs-parchment-header {
@@ -2631,13 +2597,50 @@
   animation: obs-sector-log-open 260ms ease-out;
 }
 
-.obs-sector-log .obs-lens-view {
-  width: min(100%, 11rem);
+.obs-atlas-lens {
+  width: min(100%, 31rem);
+  margin: 0 auto;
+  animation: obs-sector-log-open 320ms ease-out;
+}
+
+.obs-atlas-lens .obs-lens-view {
+  width: 100%;
+}
+
+.obs-atlas-lens .obs-lens-caption {
+  font-size: 0.82rem;
+}
+
+.obs-sector-log-scroll {
+  max-height: 9.5rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0 0.15rem 1.4rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  -webkit-mask-image: linear-gradient(
+    180deg,
+    #000 0,
+    #000 calc(100% - 2.2rem),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    180deg,
+    #000 0,
+    #000 calc(100% - 2.2rem),
+    transparent 100%
+  );
 }
 
 .obs-sector-log-eyebrow {
+  align-self: center;
   text-align: center;
   color: #2a241c;
+  padding: 0 0.4rem;
+  background: #fbf4e6;
+  position: relative;
+  z-index: 1;
 }
 
 @keyframes obs-sector-log-open {
@@ -2653,6 +2656,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .obs-sector-log,
+  .obs-atlas-lens,
   .obs-records-popover {
     animation: none;
   }

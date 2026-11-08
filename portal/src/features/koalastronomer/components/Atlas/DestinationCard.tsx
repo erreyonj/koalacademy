@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import type {
   Difficulty,
   TelescopeDestination,
@@ -12,7 +11,6 @@ import {
   getDestinationTotalCost,
   RING_METADATA,
 } from "../../engine/telescope-engine";
-import { LensView } from "../Telescope/LensView";
 
 interface DestinationCardProps {
   destination: TelescopeDestination;
@@ -20,6 +18,8 @@ interface DestinationCardProps {
   isCompleted: boolean;
   isUnlocked: boolean;
   isInProgress: boolean;
+  showLog: boolean;
+  onShowLogChange: (open: boolean) => void;
   onObserve: () => void;
   onNavigateArchive: () => void;
 }
@@ -30,15 +30,12 @@ export function DestinationCard({
   isCompleted,
   isUnlocked,
   isInProgress,
+  showLog,
+  onShowLogChange,
   onObserve,
   onNavigateArchive,
 }: DestinationCardProps) {
   const totalCost = getDestinationTotalCost(destination, difficulty);
-  const [showLog, setShowLog] = useState(false);
-
-  useEffect(() => {
-    setShowLog(false);
-  }, [destination.id]);
 
   return (
     <aside className="obs-dest-card" data-testid="destination-detail-card">
@@ -85,23 +82,23 @@ export function DestinationCard({
                 <span className="obs-sector-log-eyebrow">
                   Sector log · {destination.name}
                 </span>
-                <LensView
-                  sectorId={destination.id}
-                  sectorName={destination.name}
-                  solvedCount={3}
-                />
-                <p className="obs-sector-log-blurb">
-                  {destination.profile.blurb}
-                </p>
-                <ul className="obs-sector-log-facts">
-                  {destination.profile.facts.map((fact) => (
-                    <li key={fact}>{fact}</li>
-                  ))}
-                </ul>
+                <div
+                  className="obs-sector-log-scroll"
+                  data-testid="sector-log-scroll"
+                >
+                  <p className="obs-sector-log-blurb">
+                    {destination.profile.blurb}
+                  </p>
+                  <ul className="obs-sector-log-facts">
+                    {destination.profile.facts.map((fact) => (
+                      <li key={fact}>{fact}</li>
+                    ))}
+                  </ul>
+                </div>
                 <button
                   type="button"
                   className="obs-secondary-btn"
-                  onClick={() => setShowLog(false)}
+                  onClick={() => onShowLogChange(false)}
                   data-testid="close-sector-log-btn"
                 >
                   Close Log
@@ -111,7 +108,7 @@ export function DestinationCard({
               <button
                 type="button"
                 className="obs-primary-cta obs-observe-btn"
-                onClick={() => setShowLog(true)}
+                onClick={() => onShowLogChange(true)}
                 data-testid="view-sector-log-btn"
               >
                 View Sector Log

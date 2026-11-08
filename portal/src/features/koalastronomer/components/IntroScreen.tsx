@@ -89,7 +89,7 @@ const DIFFICULTY_OPTIONS: ReadonlyArray<{
   {
     id: "easy",
     title: "Easy",
-    records: "4 records per sector + 2 backup sets · 1x rewards",
+    records: "4 records per sector · 2 backup sets if Calibration runs dry · 1x rewards",
     sectors: "4–6 line figures · 55 Cal total across 4 sectors",
     hintPolicy: "1 'Follow this line' hint on the very first dial only",
     rules: "Failed traces are free · Pay 1 Cal per line on solve",
@@ -97,7 +97,7 @@ const DIFFICULTY_OPTIONS: ReadonlyArray<{
   {
     id: "medium",
     title: "Medium",
-    records: "4 records per sector + 1 backup set · 1x rewards",
+    records: "4 records per sector · 1 backup set if Calibration runs dry · 1x rewards",
     sectors: "6–9 line double-loop lattices · Capped 4–6 Cal per ring",
     hintPolicy: "No line hints · Count odd-degree crossroads",
     rules: "Failed traces are free · Fixed 55 Cal total sector cost",

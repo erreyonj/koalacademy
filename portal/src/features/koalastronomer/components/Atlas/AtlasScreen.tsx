@@ -10,6 +10,7 @@ import type {
   GameState,
   TelescopeDestination,
 } from "../../engine/game-state";
+import { LensView } from "../Telescope/LensView";
 import { DestinationCard } from "./DestinationCard";
 import { StarMap } from "./StarMap";
 
@@ -33,6 +34,12 @@ export function AtlasScreen({
     destinations[0];
 
   const [selectedDestId, setSelectedDestId] = useState<string>(defaultDest.id);
+  const [showLog, setShowLog] = useState(false);
+
+  const handleSelect = (destinationId: string) => {
+    setSelectedDestId(destinationId);
+    setShowLog(false);
+  };
 
   const selectedDest =
     destinations.find((d) => d.id === selectedDestId) ?? defaultDest;
@@ -58,13 +65,23 @@ export function AtlasScreen({
       data-testid="atlas-screen"
     >
       <div className="obs-atlas-layout">
-        <StarMap
-          destinations={destinations}
-          completedDestinationIds={state.completedDestinationIds}
-          revealedRegions={revealedRegions}
-          selectedDestinationId={selectedDest.id}
-          onSelectDestination={setSelectedDestId}
-        />
+        {showLog && isCompleted ? (
+          <div className="obs-atlas-lens" data-testid="atlas-sector-lens">
+            <LensView
+              sectorId={selectedDest.id}
+              sectorName={selectedDest.name}
+              solvedCount={3}
+            />
+          </div>
+        ) : (
+          <StarMap
+            destinations={destinations}
+            completedDestinationIds={state.completedDestinationIds}
+            revealedRegions={revealedRegions}
+            selectedDestinationId={selectedDest.id}
+            onSelectDestination={handleSelect}
+          />
+        )}
 
         <DestinationCard
           destination={selectedDest}
@@ -72,6 +89,8 @@ export function AtlasScreen({
           isCompleted={isCompleted}
           isUnlocked={isUnlocked}
           isInProgress={isInProgress}
+          showLog={showLog && isCompleted}
+          onShowLogChange={setShowLog}
           onObserve={() => onSelectDestination(selectedDest.id)}
           onNavigateArchive={onNavigateArchive}
         />

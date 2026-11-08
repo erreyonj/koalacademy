@@ -7,9 +7,7 @@ import {
   type GameState,
   type TelescopeDestination,
   type TelescopeProgress,
-  type WordChallenge,
 } from "./game-state";
-import { getAvailableChallenges } from "./sector-archive";
 import { findEulerianPath, type TraceEdge, type TraceFigure } from "./trace-engine";
 
 export type { DialName };
@@ -292,31 +290,18 @@ export function completeObservation(
 }
 
 /**
- * Hard-mode soft lock: every record the current sector offers is recovered, a
- * sector is still uncharted, and Calibration can't fund the cheapest unsolved
- * ring left in any unlocked sector. Easy and Medium can't soft lock (failed
- * traces are free).
+ * True when Calibration can't fund the cheapest unsolved ring in any unlocked,
+ * uncharted sector, i.e. the player needs more records to keep calibrating.
  */
-export function isGameOver(
+export function isCalibrationShort(
   state: GameState,
   destinations: readonly TelescopeDestination[],
-  challenges: readonly WordChallenge[],
 ): boolean {
-  if (state.difficulty !== "hard") return false;
-  if (state.currentScreen === "intro") return false;
-  const archiveExhausted = getAvailableChallenges(
-    state,
-    challenges,
-    destinations,
-  ).every((c) => state.completedChallengeIds.includes(c.id));
-  if (!archiveExhausted) return false;
-
   const open = destinations.filter(
     (dest) =>
       !state.completedDestinationIds.includes(dest.id) &&
       isDestinationUnlocked(dest, state.completedDestinationIds),
   );
-  if (open.length === 0) return false;
 
   let cheapest = Number.POSITIVE_INFINITY;
   for (const dest of open) {

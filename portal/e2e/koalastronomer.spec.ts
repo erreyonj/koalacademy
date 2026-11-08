@@ -262,9 +262,15 @@ test("Koalastronomer full UX loop: intro, touch toggle outside shell, circular b
   await expect(page.getByTestId("begin-observation")).toHaveCount(0);
   await page.getByTestId("view-sector-log-btn").click();
   await expect(page.getByTestId("sector-log")).toContainText("Mercury");
+  // The charted sector's lens takes the star chart's place while the log is open
+  await expect(page.getByTestId("star-map")).toHaveCount(0);
   await expect(
-    page.getByTestId("sector-log").getByTestId("lens-view"),
+    page.getByTestId("atlas-sector-lens").getByTestId("lens-view"),
   ).toHaveAttribute("data-solved", "3");
+  const logScroll = page.getByTestId("sector-log-scroll");
+  expect(
+    await logScroll.evaluate((el) => el.scrollHeight > el.clientHeight),
+  ).toBe(true);
   await page.screenshot({
     path: path.join(SCREENSHOT_DIR, "05-sector-log.png"),
     animations: "disabled",
@@ -388,17 +394,41 @@ test("Hard mode soft lock shows Game Over and resets to the intro", async ({
   );
 });
 
-test("Easy unlocks a backup record set once the primary set is recovered", async ({
+test("Easy opens a backup record set only once Calibration runs dry", async ({
   page,
 }) => {
+  const seed = (calibrationPoints: number) =>
+    page.evaluate((points) => {
+      window.localStorage.setItem(
+        "koalastronomer-save",
+        JSON.stringify({
+          currentScreen: "archive",
+          difficulty: "easy",
+          calibrationPoints: points,
+          completedChallengeIds: ["beef-1", "bed-1", "cafe-1", "added-1"],
+          completedDestinationIds: [],
+          currentDestinationId: null,
+          telescopeProgress: null,
+        }),
+      );
+    }, calibrationPoints);
+
   await page.goto("/toolkit/games/koalastronomer/");
+  // Enough Calibration for the cheapest ring: backups stay hidden
+  await seed(4);
+  await page.reload();
+  await expect(page.getByTestId("records-count")).toHaveText("4 / 4");
+  await expect(page.getByTestId("sector-progress-badge")).toContainText(
+    "Records 4 / 16",
+  );
+
   await page.evaluate(() => {
     window.localStorage.setItem(
       "koalastronomer-save",
       JSON.stringify({
         currentScreen: "archive",
         difficulty: "easy",
-        calibrationPoints: 4,
+        calibrationPoints: 3,
         completedChallengeIds: ["beef-1", "bed-1", "cafe-1", "added-1"],
         completedDestinationIds: [],
         currentDestinationId: null,
@@ -409,6 +439,9 @@ test("Easy unlocks a backup record set once the primary set is recovered", async
   await page.reload();
 
   await expect(page.getByTestId("records-count")).toHaveText("4 / 7");
+  await expect(page.getByTestId("sector-progress-badge")).toContainText(
+    "Records 4 / 19",
+  );
   await page.getByTestId("records-toggle").click();
   await expect(page.getByTestId("challenge-card-ace-1")).toBeVisible();
   await expect(page.getByTestId("challenge-card-egg-1")).toHaveCount(0);

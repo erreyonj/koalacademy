@@ -40,7 +40,7 @@ import {
   getFailedTracePenalty,
   getFirstDialLineHint,
   getRemainingDestinationCost,
-  isGameOver,
+  isCalibrationShort,
   isObservationSolved,
   openTelescopeBriefing,
   recordComponentStuck,
@@ -50,7 +50,8 @@ import {
 import {
   getArchiveSector,
   getAvailableChallenges,
-  getRecordTotalForDifficulty,
+  getRecordTotal,
+  isGameOver,
 } from "./sector-archive";
 import {
   createTraceState,
@@ -440,40 +441,64 @@ describe("Per-sector Archive record sets", () => {
     ).toBe(true);
   });
 
-  it("unlocks Easy 2 / Medium 1 / Hard 0 backup sets after the previous set is recovered", () => {
+  it("opens Easy 2 / Medium 1 / Hard 0 backup sets only when Calibration runs dry", () => {
     const primary = idsFor(mercury.id, "primary");
     const backup1 = idsFor(mercury.id, "backup-1");
-    const backup2 = idsFor(mercury.id, "backup-2");
     const visibleSets = (
       difficulty: "easy" | "medium" | "hard",
       completed: string[],
+      calibrationPoints = 0,
     ) => [
       ...new Set(
         getAvailableChallenges(
-          { ...createInitialState(difficulty), completedChallengeIds: completed },
+          {
+            ...createInitialState(difficulty),
+            completedChallengeIds: completed,
+            calibrationPoints,
+          },
           WORD_CHALLENGES,
           DESTINATIONS,
         ).map((c) => c.set),
       ),
     ];
 
-    expect(visibleSets("easy", primary.slice(1))).toEqual(["primary"]);
-    expect(visibleSets("easy", primary)).toEqual(["primary", "backup-1"]);
-    expect(visibleSets("easy", [...primary, ...backup1])).toEqual([
+    // Cheapest Easy Mercury ring costs 4: with enough Calibration, no backups
+    expect(isCalibrationShort({ ...createInitialState("easy"), calibrationPoints: 4 }, DESTINATIONS)).toBe(false);
+    expect(visibleSets("easy", primary, 4)).toEqual(["primary"]);
+    expect(visibleSets("easy", primary.slice(1), 0)).toEqual(["primary"]);
+
+    // Out of Calibration with the primary set spent opens the next backup
+    expect(visibleSets("easy", primary, 3)).toEqual(["primary", "backup-1"]);
+    expect(visibleSets("easy", [...primary, ...backup1], 0)).toEqual([
       "primary",
       "backup-1",
       "backup-2",
     ]);
-    expect(visibleSets("medium", [...primary, ...backup1])).toEqual([
+    expect(visibleSets("medium", [...primary, ...backup1], 0)).toEqual([
       "primary",
       "backup-1",
     ]);
-    expect(visibleSets("hard", primary)).toEqual(["primary"]);
-    expect(backup2.length).toBe(3);
+    expect(visibleSets("hard", primary, 0)).toEqual(["primary"]);
 
-    expect(getRecordTotalForDifficulty(WORD_CHALLENGES, "easy")).toBe(40);
-    expect(getRecordTotalForDifficulty(WORD_CHALLENGES, "medium")).toBe(28);
-    expect(getRecordTotalForDifficulty(WORD_CHALLENGES, "hard")).toBe(16);
+    // A backup set stays open once any of its records is recovered
+    expect(visibleSets("easy", [...primary, backup1[0]], 20)).toEqual([
+      "primary",
+      "backup-1",
+    ]);
+  });
+
+  it("counts primary records plus any open or recovered backups toward progress", () => {
+    const primary = idsFor(mercury.id, "primary");
+    const flush = { ...createInitialState("easy"), completedChallengeIds: primary, calibrationPoints: 4 };
+    const dry = { ...flush, calibrationPoints: 0 };
+    const total = (state: typeof flush) =>
+      getRecordTotal(
+        state,
+        WORD_CHALLENGES,
+        getAvailableChallenges(state, WORD_CHALLENGES, DESTINATIONS),
+      );
+    expect(total(flush)).toBe(16);
+    expect(total(dry)).toBe(19);
   });
 });
 

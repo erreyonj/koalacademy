@@ -12,8 +12,12 @@ export type Screen =
   | "telescope-briefing"
   | "telescope";
 
+export type RecordSet = "primary" | "backup-1" | "backup-2";
+
 export interface WordChallenge {
   id: string;
+  destinationId: string;
+  set: RecordSet;
   title: string;
   answer: string;
   missingPositions: [number, number];

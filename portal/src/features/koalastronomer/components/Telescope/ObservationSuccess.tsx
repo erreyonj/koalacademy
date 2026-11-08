@@ -3,13 +3,11 @@
 interface ObservationSuccessProps {
   destinationName: string;
   regionName: string;
-  onContinue: () => void;
 }
 
 export function ObservationSuccess({
   destinationName,
   regionName,
-  onContinue,
 }: ObservationSuccessProps) {
   return (
     <div
@@ -24,14 +22,6 @@ export function ObservationSuccess({
       <div className="obs-success-subtitle">
         {destinationName} locked in — revealing {regionName} on the Atlas.
       </div>
-      <button
-        type="button"
-        className="obs-primary-cta obs-success-continue"
-        onClick={onContinue}
-        data-testid="observation-continue-btn"
-      >
-        View Star Chart →
-      </button>
     </div>
   );
 }

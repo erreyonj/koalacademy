@@ -20,8 +20,8 @@ export interface WordValidationResult {
 
 /**
  * Return the Calibration reward for a word challenge on the given difficulty:
- * - Easy & Medium: 1x intervalValue (65 total across 16 records)
- * - Hard: 2x intervalValue (130 total across 16 records to fund 8-11 line Hard figures)
+ * - Easy & Medium: 1x intervalValue (primary sets total 66 across 4 sectors)
+ * - Hard: 2x intervalValue (132 from primary sets to fund 8-11 line Hard figures)
  */
 export function getChallengeReward(
   intervalValue: number,

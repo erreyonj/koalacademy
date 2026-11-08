@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { GameFullscreenShell } from "@/features/games/GameFullscreenShell";
 import { KoalastronomerApp } from "@/features/koalastronomer/components/KoalastronomerApp";
 
 export const metadata: Metadata = {
@@ -9,8 +10,15 @@ export const metadata: Metadata = {
 
 export default function KoalastronomerPage() {
   return (
-    <div className="koalastronomer-page">
-      <KoalastronomerApp />
-    </div>
+    <GameFullscreenShell
+      title="Koalastronomer"
+      bootLabel="Warming the observatory optics"
+      theme="observatory"
+      exitNote="Your observatory progress is saved on this device. Pick up where you left off from Games."
+    >
+      <div className="koalastronomer-page">
+        <KoalastronomerApp />
+      </div>
+    </GameFullscreenShell>
   );
 }

@@ -89,7 +89,7 @@ const DIFFICULTY_OPTIONS: ReadonlyArray<{
   {
     id: "easy",
     title: "Easy",
-    records: "16 Archive records · 1x interval rewards (65 Cal)",
+    records: "4 records per sector + 2 backup sets · 1x rewards",
     sectors: "4–6 line figures · 55 Cal total across 4 sectors",
     hintPolicy: "1 'Follow this line' hint on the very first dial only",
     rules: "Failed traces are free · Pay 1 Cal per line on solve",
@@ -97,7 +97,7 @@ const DIFFICULTY_OPTIONS: ReadonlyArray<{
   {
     id: "medium",
     title: "Medium",
-    records: "16 Archive records · 1x interval rewards (65 Cal)",
+    records: "4 records per sector + 1 backup set · 1x rewards",
     sectors: "6–9 line double-loop lattices · Capped 4–6 Cal per ring",
     hintPolicy: "No line hints · Count odd-degree crossroads",
     rules: "Failed traces are free · Fixed 55 Cal total sector cost",
@@ -105,7 +105,7 @@ const DIFFICULTY_OPTIONS: ReadonlyArray<{
   {
     id: "hard",
     title: "Hard",
-    records: "16 Archive records · 2x interval rewards (130 Cal)",
+    records: "4 records per sector · no backups · 2x rewards",
     sectors: "8–11 line multi-mesh optics · Unlabeled nodes",
     hintPolicy: "No hints or node labels · Pure graph analysis",
     rules: "Failed traces cost 1 Cal · Pay 1 Cal per line",

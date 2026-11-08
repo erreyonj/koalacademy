@@ -12,6 +12,7 @@ import {
   getDestinationTotalCost,
   RING_METADATA,
 } from "../../engine/telescope-engine";
+import { LensView } from "../Telescope/LensView";
 
 interface DestinationCardProps {
   destination: TelescopeDestination;
@@ -84,6 +85,11 @@ export function DestinationCard({
                 <span className="obs-sector-log-eyebrow">
                   Sector log · {destination.name}
                 </span>
+                <LensView
+                  sectorId={destination.id}
+                  sectorName={destination.name}
+                  solvedCount={3}
+                />
                 <p className="obs-sector-log-blurb">
                   {destination.profile.blurb}
                 </p>

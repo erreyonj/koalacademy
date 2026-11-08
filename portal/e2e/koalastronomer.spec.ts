@@ -20,6 +20,8 @@ test("Koalastronomer full UX loop: intro, touch toggle outside shell, circular b
   await gameLink.click();
 
   await expect(page).toHaveURL(/\/toolkit\/games\/koalastronomer\/?/);
+  await expect(page.getByTestId("game-initializing")).toBeVisible();
+  await expect(page.getByTestId("game-fullscreen")).toBeVisible();
 
   // 2. Verify Intro screen elements & Touch Screen toggle outside .obs-shell (default ON)
   const stage = page.getByTestId("koalastronomer-stage");
@@ -72,7 +74,19 @@ test("Koalastronomer full UX loop: intro, touch toggle outside shell, circular b
   // 4. Navigate to Archive; test touch-mode swipe on circular bearing and button mode stops
   await page.getByTestId("nav-archive").click();
   await expect(page.getByTestId("archive-screen")).toBeVisible();
+  // Records collapse into a control beside the music transport, Mercury only
+  await expect(page.getByTestId("records-count")).toHaveText("0 / 4");
+  await page.getByTestId("records-toggle").click();
+  const popover = page.getByTestId("records-popover");
+  await expect(popover).toContainText("Mercury");
+  await expect(popover.getByRole("option")).toHaveCount(4);
+  await expect(page.getByTestId("challenge-card-badge-1")).toHaveCount(0);
+  await page.screenshot({
+    path: path.join(SCREENSHOT_DIR, "02a-records-popover.png"),
+    animations: "disabled",
+  });
   await page.getByTestId("challenge-card-beef-1").click();
+  await expect(popover).toHaveCount(0);
 
   await expect(page.getByTestId("first-letter-B")).toHaveCount(0);
   const firstWheel = page.getByTestId("first-bearing-wheel");
@@ -224,6 +238,7 @@ test("Koalastronomer full UX loop: intro, touch toggle outside shell, circular b
   }
 
   await expect(page.getByTestId("observation-success")).toBeVisible();
+  await expect(page.getByTestId("observation-continue-btn")).toHaveCount(0);
   await expect(page.getByTestId("lens-view")).toHaveAttribute(
     "data-solved",
     "3",
@@ -247,8 +262,12 @@ test("Koalastronomer full UX loop: intro, touch toggle outside shell, circular b
   await expect(page.getByTestId("begin-observation")).toHaveCount(0);
   await page.getByTestId("view-sector-log-btn").click();
   await expect(page.getByTestId("sector-log")).toContainText("Mercury");
+  await expect(
+    page.getByTestId("sector-log").getByTestId("lens-view"),
+  ).toHaveAttribute("data-solved", "3");
   await page.screenshot({
     path: path.join(SCREENSHOT_DIR, "05-sector-log.png"),
+    animations: "disabled",
   });
 });
 
@@ -344,11 +363,7 @@ test("Hard mode soft lock shows Game Over and resets to the intro", async ({
         currentScreen: "atlas",
         difficulty: "hard",
         calibrationPoints: 2,
-        completedChallengeIds: [
-          "beef-1", "bed-1", "bead-1", "cafe-1", "feed-1", "badge-1",
-          "added-1", "edged-1", "caged-1", "faded-1", "facade-1",
-          "decade-1", "cabbage-1", "begged-1", "defaced-1", "accede-1",
-        ],
+        completedChallengeIds: ["beef-1", "bed-1", "cafe-1", "added-1"],
         completedDestinationIds: [],
         currentDestinationId: null,
         telescopeProgress: null,
@@ -373,30 +388,176 @@ test("Hard mode soft lock shows Game Over and resets to the intro", async ({
   );
 });
 
-test.describe("Mobile site header", () => {
-  test.use({ viewport: { width: 390, height: 844 } });
+test("Easy unlocks a backup record set once the primary set is recovered", async ({
+  page,
+}) => {
+  await page.goto("/toolkit/games/koalastronomer/");
+  await page.evaluate(() => {
+    window.localStorage.setItem(
+      "koalastronomer-save",
+      JSON.stringify({
+        currentScreen: "archive",
+        difficulty: "easy",
+        calibrationPoints: 4,
+        completedChallengeIds: ["beef-1", "bed-1", "cafe-1", "added-1"],
+        completedDestinationIds: [],
+        currentDestinationId: null,
+        telescopeProgress: null,
+      }),
+    );
+  });
+  await page.reload();
 
-  test("hides once Koalastronomer starts and returns on leaving", async ({
+  await expect(page.getByTestId("records-count")).toHaveText("4 / 7");
+  await page.getByTestId("records-toggle").click();
+  await expect(page.getByTestId("challenge-card-ace-1")).toBeVisible();
+  await expect(page.getByTestId("challenge-card-egg-1")).toHaveCount(0);
+});
+
+test("Touch mode traces a ring with one continuous slide", async ({ page }) => {
+  await page.goto("/toolkit/games/koalastronomer/");
+  await page.evaluate(() => {
+    window.localStorage.setItem(
+      "koalastronomer-save",
+      JSON.stringify({
+        currentScreen: "telescope",
+        difficulty: "medium",
+        calibrationPoints: 20,
+        completedChallengeIds: [],
+        completedDestinationIds: [],
+        currentDestinationId: "mercury-sector",
+        telescopeProgress: {
+          destinationId: "mercury-sector",
+          solved: { range: false, focus: false, alignment: false },
+          stuckCounts: { range: 0, focus: 0, alignment: 0 },
+        },
+      }),
+    );
+  });
+  await page.reload();
+
+  await expect(page.getByTestId("koalastronomer-stage")).toHaveAttribute(
+    "data-control-mode",
+    "touch",
+  );
+  await page.getByTestId("cog-ring-range").click();
+  await expect(page.getByTestId("trace-svg")).toHaveAttribute(
+    "data-control-mode",
+    "touch",
+  );
+
+  const centerOf = async (nodeId: string) => {
+    const box = (await page.getByTestId(`trace-node-${nodeId}`).boundingBox())!;
+    return { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+  };
+  const lineCount = await page.getByTestId("trace-line-counter").innerText();
+  const total = Number(lineCount.split("/")[1].trim().split(" ")[0]);
+  expect(total).toBeGreaterThan(4);
+
+  // Find an Eulerian path for this figure from the rendered edges
+  const edges = await page.$$eval('[data-testid^="trace-edge-"]', (lines) =>
+    lines.map((line) => ({
+      x1: Number(line.getAttribute("x1")),
+      y1: Number(line.getAttribute("y1")),
+      x2: Number(line.getAttribute("x2")),
+      y2: Number(line.getAttribute("y2")),
+    })),
+  );
+  const nodes = await page.$$eval('[data-testid^="trace-node-"]', (circles) =>
+    circles.map((c) => ({
+      id: c.getAttribute("data-testid")!.replace("trace-node-", ""),
+      x: Number(c.getAttribute("cx")),
+      y: Number(c.getAttribute("cy")),
+    })),
+  );
+  const idAt = (x: number, y: number) =>
+    nodes.find((n) => n.x === x && n.y === y)!.id;
+  const adj = edges.map((e) => [idAt(e.x1, e.y1), idAt(e.x2, e.y2)]);
+  const degree: Record<string, number> = {};
+  for (const [a, b] of adj) {
+    degree[a] = (degree[a] ?? 0) + 1;
+    degree[b] = (degree[b] ?? 0) + 1;
+  }
+  const odd = Object.keys(degree).filter((id) => degree[id] % 2 === 1);
+  const start = odd[0] ?? adj[0][0];
+  const used = new Set<number>();
+  const walk = (node: string, path: string[]): string[] | null => {
+    if (used.size === adj.length) return path;
+    for (let i = 0; i < adj.length; i += 1) {
+      if (used.has(i)) continue;
+      const [a, b] = adj[i];
+      const next = a === node ? b : b === node ? a : null;
+      if (!next) continue;
+      used.add(i);
+      const found = walk(next, [...path, next]);
+      if (found) return found;
+      used.delete(i);
+    }
+    return null;
+  };
+  const route = walk(start, [start])!;
+
+  const first = await centerOf(route[0]);
+  await page.mouse.move(first.x, first.y);
+  await page.mouse.down();
+  for (const nodeId of route.slice(1)) {
+    const point = await centerOf(nodeId);
+    await page.mouse.move(point.x, point.y, { steps: 12 });
+  }
+  await page.mouse.up();
+
+  await expect(page.getByTestId("cog-status-range")).toHaveText("Aligned ✓");
+});
+
+test.describe("Fullscreen game shell", () => {
+  test("Koalastronomer initializes, hides site chrome, and exits to Games", async ({
     page,
   }) => {
     await page.goto("/toolkit/games/koalastronomer/");
-    await page.evaluate(() => window.localStorage.clear());
-    await page.reload();
-    const header = page.locator(".site-header");
-    await expect(header).toBeVisible();
-    await page.getByTestId("enter-observatory-btn").click();
-    await expect(page.getByTestId("atlas-screen")).toBeVisible();
-    await expect(header).toBeHidden();
+    await expect(page.getByTestId("game-initializing")).toContainText(
+      "Initializing",
+    );
+    await expect(page.locator(".site-header")).toBeVisible();
+    await page.screenshot({
+      path: path.join(SCREENSHOT_DIR, "07-initializing.png"),
+    });
 
-    await page.goto("/toolkit/games/");
-    await expect(header).toBeVisible();
+    await expect(page.getByTestId("game-fullscreen")).toBeVisible();
+    await expect(page.locator("html")).toHaveAttribute(
+      "data-game-fullscreen",
+      "true",
+    );
+    await expect(page.locator(".site-header")).toBeHidden();
+    await expect(page.locator(".footer")).toBeHidden();
+    await expect(page.locator('[data-slot="sidebar"]')).toBeHidden();
+    await page.screenshot({
+      path: path.join(SCREENSHOT_DIR, "08-fullscreen.png"),
+    });
+
+    // The Next.js dev badge can sit over the bottom-left corner in dev
+    await page.addStyleTag({ content: "nextjs-portal { display: none; }" });
+    await page.getByTestId("game-exit-btn").click();
+    await expect(page.getByTestId("game-exit-modal")).toBeVisible();
+    await page.getByTestId("game-exit-cancel").click();
+    await expect(page.getByTestId("game-exit-modal")).toHaveCount(0);
+    await expect(page.getByTestId("game-fullscreen")).toBeVisible();
+
+    await page.getByTestId("game-exit-btn").click();
+    await page.getByTestId("game-exit-confirm").click();
+    await expect(page).toHaveURL(/\/toolkit\/games\/?$/);
+    await expect(page.locator(".site-header")).toBeVisible();
+    await expect(page.locator("html")).not.toHaveAttribute(
+      "data-game-fullscreen",
+      "true",
+    );
   });
 
-  test("hides once Staff DeCode starts", async ({ page }) => {
+  test("Staff DeCode initializes into fullscreen too", async ({ page }) => {
     await page.goto("/toolkit/games/staff-decode/");
-    const header = page.locator(".site-header");
-    await expect(header).toBeVisible();
-    await page.getByTestId("start-game-btn").click();
-    await expect(header).toBeHidden();
+    await expect(page.getByTestId("game-initializing")).toBeVisible();
+    await expect(page.getByTestId("game-fullscreen")).toBeVisible();
+    await expect(page.locator(".site-header")).toBeHidden();
+    await expect(page.getByTestId("start-game-btn")).toBeVisible();
+    await expect(page.getByTestId("game-exit-btn")).toBeVisible();
   });
 });

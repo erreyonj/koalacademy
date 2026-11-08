@@ -334,104 +334,140 @@
 }
 
 /* ==========================================================================
-   Screen 1: The Archive (Recovered Records sidebar + Parchment record)
+   Screen 1: The Archive (full-width parchment; records live in the transport row)
    ========================================================================== */
 
-.obs-archive-layout {
-  display: grid;
-  grid-template-columns: minmax(12.5rem, 15.5rem) minmax(0, 1fr);
-  gap: 1rem;
-  align-items: stretch;
-}
-
-.obs-records-sidebar {
-  background: var(--obs-cream);
-  border: 2px solid var(--obs-outline);
-  border-radius: 0.75rem;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 3px 0 #0d1117;
-}
-
-.obs-sidebar-header {
-  background: var(--obs-sage);
-  color: #ffffff;
-  padding: 0.75rem 1rem;
-  border-bottom: 2px solid var(--obs-outline);
+.obs-transport-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
 }
 
-.obs-sidebar-header h2 {
+.obs-transport-row .obs-music {
   margin: 0;
-  font-size: 1.05rem;
-  font-weight: 700;
 }
 
-.obs-sidebar-count {
-  font-size: 0.85rem;
-  font-weight: 700;
-  background: rgba(0, 0, 0, 0.22);
-  padding: 0.15rem 0.55rem;
+.obs-records-control {
+  position: relative;
+}
+
+.obs-records-toggle {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 3.1rem;
+  padding: 0.4rem 0.85rem;
+  background: var(--obs-cream);
+  border: 2px solid var(--obs-outline);
   border-radius: 999px;
+  box-shadow: 0 3px 0 #0d1117;
+  color: var(--obs-ink);
+  font-family: var(--font-display);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
 }
 
-.obs-record-list {
-  padding: 0.65rem;
+.obs-records-toggle svg {
+  transition: transform 160ms ease;
+}
+
+.obs-records-toggle.is-open svg {
+  transform: rotate(180deg);
+}
+
+.obs-records-count {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  background: var(--obs-sage);
+  color: #ffffff;
+  border-radius: 999px;
+  padding: 0.1rem 0.5rem;
+}
+
+.obs-records-popover {
+  position: absolute;
+  bottom: calc(100% + 0.6rem);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 40;
+  width: min(18rem, calc(100vw - 2rem));
+  max-height: 22rem;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 0.45rem;
-  max-height: 24rem;
-  overflow-y: auto;
+  gap: 0.4rem;
+  padding: 0.65rem;
+  background: #ffffff;
+  border: 2px solid var(--obs-outline);
+  border-radius: 0.75rem;
+  box-shadow: 0 3px 0 #0d1117;
+  animation: obs-records-pop 160ms ease-out;
 }
 
-.obs-record-card {
+@keyframes obs-records-pop {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 0.4rem);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+.obs-records-popover-title {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--obs-ink-muted);
+  padding: 0 0.2rem 0.2rem;
+}
+
+.obs-record-row {
   appearance: none;
   width: 100%;
   display: grid;
-  grid-template-columns: 1fr auto auto;
+  grid-template-columns: auto 1fr auto auto;
   align-items: center;
   gap: 0.5rem;
   text-align: left;
   background: #eef1f5;
   border: 2px solid #c5ccd6;
   border-radius: 0.65rem;
-  padding: 0.5rem 0.7rem;
+  padding: 0.45rem 0.65rem;
   color: var(--obs-ink);
   font-weight: 700;
   cursor: pointer;
   transition: border-color 120ms ease, background 120ms ease;
 }
 
-.obs-record-card:hover {
-  background: #efe0c2;
+.obs-record-row:hover {
+  background: #e3e8ef;
 }
 
-.obs-record-card.is-selected {
+.obs-record-row.is-selected {
   background: #e6f2ec;
-  border: 2px solid var(--obs-sage);
+  border-color: var(--obs-sage);
 }
 
-.obs-record-card.is-completed {
+.obs-record-row.is-completed {
   background: #e6f2eb;
   border-color: var(--obs-sage);
 }
 
 .obs-record-index {
-  font-size: 0.92rem;
+  font-size: 0.85rem;
 }
 
-.obs-record-meta {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  font-size: 0.75rem;
+.obs-record-set {
+  font-size: 0.72rem;
   color: var(--obs-ink-muted);
-}
-
-.obs-record-diff {
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -466,10 +502,6 @@
 .obs-record-status.is-active {
   background: var(--obs-pink);
   color: #ffffff;
-}
-
-.obs-return-atlas-btn {
-  margin: 0.5rem 0.65rem 0.7rem;
 }
 
 /* Torn Parchment Record Card */
@@ -2082,7 +2114,6 @@
     justify-self: center;
   }
 
-  .obs-archive-layout,
   .obs-atlas-layout,
   .obs-difficulty-grid,
   .obs-briefing-metrics {
@@ -2123,9 +2154,9 @@
    ========================================================================== */
 
 .obs-outer-badge,
-.obs-sidebar-count,
+.obs-records-count,
 .obs-record-index,
-.obs-record-diff,
+.obs-record-set,
 .obs-record-reward,
 .obs-record-status,
 .obs-parchment-eyebrow,
@@ -2193,7 +2224,6 @@
 .obs-title-plaque,
 .obs-screen-tabs,
 .obs-parchment-card,
-.obs-records-sidebar,
 .obs-dest-card,
 .obs-target-card,
 .obs-info-card,
@@ -2531,4 +2561,126 @@
 
 .obs-telescope-upper .obs-telescope-center-column {
   position: static;
+}
+
+/* Illustrated Observatory Record card backgrounds (titles stay live text) */
+.obs-parchment-card,
+.obs-info-card,
+.obs-trace-card,
+.obs-sector-log {
+  --obs-record-wash: rgba(255, 251, 243, 0.28);
+  background-color: #fbf4e6;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 100% 100%;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  color: #1f1a14;
+}
+
+.obs-parchment-card {
+  background-image:
+    linear-gradient(var(--obs-record-wash), var(--obs-record-wash)),
+    url("/assets/koalastronomer/record-card-field.jpg");
+  padding: 0.55rem clamp(1.75rem, 9%, 7rem) 1.75rem;
+}
+
+.obs-parchment-card .obs-doodle {
+  display: none;
+}
+
+.obs-parchment-card .obs-parchment-header {
+  flex-direction: column;
+  justify-content: center;
+  gap: 1.35rem;
+  border-bottom: 0;
+}
+
+.obs-parchment-card .obs-parchment-eyebrow {
+  color: #2a241c;
+  border-bottom: 0;
+  font-family: var(--font-display);
+  font-size: clamp(0.72rem, 1.3vw, 0.9rem);
+  letter-spacing: 0.14em;
+  line-height: 1.1;
+  margin-bottom: 0;
+  padding: 0 0.5rem;
+  background: #fbf4e6;
+}
+
+.obs-info-card {
+  background-image:
+    linear-gradient(var(--obs-record-wash), var(--obs-record-wash)),
+    url("/assets/koalastronomer/record-card-sketch.jpg");
+  background-size: cover;
+}
+
+.obs-trace-card {
+  background-image:
+    linear-gradient(rgba(255, 251, 243, 0.45), rgba(255, 251, 243, 0.45)),
+    url("/assets/koalastronomer/record-card-chart.jpg");
+  background-size: cover;
+}
+
+.obs-sector-log {
+  background-image:
+    linear-gradient(rgba(255, 251, 243, 0.4), rgba(255, 251, 243, 0.4)),
+    url("/assets/koalastronomer/record-card-chart.jpg");
+  background-size: cover;
+  border: 2px solid var(--obs-outline);
+  animation: obs-sector-log-open 260ms ease-out;
+}
+
+.obs-sector-log .obs-lens-view {
+  width: min(100%, 11rem);
+}
+
+.obs-sector-log-eyebrow {
+  text-align: center;
+  color: #2a241c;
+}
+
+@keyframes obs-sector-log-open {
+  from {
+    opacity: 0;
+    transform: translateY(0.4rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .obs-sector-log,
+  .obs-records-popover {
+    animation: none;
+  }
+}
+
+.obs-info-card .obs-target-card-header {
+  background: transparent;
+  color: #2a241c;
+  border-bottom: 1.5px solid rgba(42, 36, 28, 0.55);
+  font-family: var(--font-display);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-size: 0.82rem;
+  margin: 0 1.5rem;
+  padding: 0.35rem 0;
+}
+
+/* Touch mode: one continuous slide traces the figure */
+.obs-trace-svg.is-slide {
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.obs-trace-drag-line {
+  stroke: #e3b23c;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-dasharray: 2.4 2;
+  pointer-events: none;
 }

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import {
   createTelescopeProgress,
+  type ControlMode,
   type DialName,
   type GameState,
   type TelescopeDestination,
@@ -26,6 +27,7 @@ interface TelescopeScreenProps {
   availableDestinations: readonly TelescopeDestination[];
   unlimitedCalibration?: boolean;
   alwaysShowStartDots?: boolean;
+  controlMode?: ControlMode;
   onSwitchDestination: (destinationId: string) => void;
   onSolveComponent: (ring: DialName) => void;
   onRecordStuck: (ring: DialName) => void;
@@ -40,6 +42,7 @@ export function TelescopeScreen({
   availableDestinations,
   unlimitedCalibration = false,
   alwaysShowStartDots = false,
+  controlMode = "buttons",
   onSwitchDestination,
   onSolveComponent,
   onRecordStuck,
@@ -163,6 +166,7 @@ export function TelescopeScreen({
                 alwaysShowStartDots,
               )}
               failedTracePenalty={failedTracePenalty}
+              controlMode={controlMode}
               onSolve={handleSolveRing}
               onStuck={onRecordStuck}
               onClose={() => setActiveRing(null)}
@@ -254,7 +258,6 @@ export function TelescopeScreen({
         <ObservationSuccess
           destinationName={destination.name}
           regionName={destination.mapRevealRegion}
-          onContinue={onComplete}
         />
       )}
     </section>

@@ -570,10 +570,17 @@
   left: 0;
   right: 0;
   bottom: 0.75rem;
+  max-height: calc(100% - 1.5rem);
   display: flex;
   justify-content: center;
+  align-items: flex-end;
   pointer-events: none;
   transition: opacity 900ms ease;
+}
+
+.sd-solved-staff .sd-staff-card {
+  max-height: 100%;
+  overflow: hidden;
 }
 
 .sd-solved-staff.is-faded {
@@ -589,16 +596,47 @@
 
 /* Dial Close-Up Overlay */
 .sd-dial-layer {
+  --sd-staff-reserve: 8.5rem;
   position: absolute;
   inset: 0;
   display: grid;
-  grid-template-rows: auto 1fr auto;
-  padding: 0.85rem 1rem 0.75rem;
+  grid-template-rows: auto 1fr;
+  padding: 0.85rem 1rem var(--sd-staff-reserve);
   pointer-events: none;
 }
 
 .sd-dial-layer > * {
   pointer-events: auto;
+}
+
+.sd-dial-layer > .sd-code-row {
+  position: relative;
+  z-index: 3;
+}
+
+.sd-dial-layer > .sd-workbench {
+  position: relative;
+  z-index: 2;
+}
+
+/* Grows upward from the stage floor; extra lines slide behind the dial. */
+.sd-dial-layer > .sd-bottom-row {
+  position: absolute;
+  left: 1rem;
+  right: 1rem;
+  bottom: 0.75rem;
+  z-index: 1;
+  max-height: calc(100% - 4.5rem);
+  align-items: flex-end;
+  pointer-events: none;
+}
+
+.sd-dial-layer > .sd-bottom-row .sd-staff-card {
+  max-height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
 }
 
 /* Top-left CODE banner */

@@ -11,6 +11,9 @@
   margin: 0 auto;
   display: grid;
   gap: 0.9rem;
+  /* Always-light parchment chrome over the room art — do not follow flipped --ka-ink. */
+  --sd-panel: #f7f4ee;
+  --sd-panel-ink: var(--ka-edge);
 }
 
 .sd-topbar {
@@ -243,8 +246,8 @@
 .sd-steth-btn {
   appearance: none;
   border: 2px solid transparent;
-  background: rgba(255, 255, 255, 0.82);
-  color: var(--ka-ink);
+  background: var(--sd-panel);
+  color: var(--sd-panel-ink);
   border-radius: 0.45rem;
   padding: 0.15rem;
   cursor: pointer;
@@ -307,13 +310,12 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(6px);
+  background: var(--sd-panel);
   border: 2.5px solid var(--ka-edge);
   border-radius: 0.75rem;
   padding: 1.35rem 1.5rem;
   box-shadow: 0 5px 0 var(--ka-edge);
-  color: var(--ka-ink);
+  color: var(--sd-panel-ink);
   z-index: 10;
 }
 
@@ -355,13 +357,15 @@
 
 .sd-rules-slide {
   margin: 0;
-  min-height: 4.6rem;
+  min-height: 6.3rem;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: clamp(1.35rem, 1rem + 1.8vw, 2.15rem);
-  line-height: 1.2;
+  /* Midway between original (~1.35–2.15rem) and the 3× bump. */
+  font-size: clamp(2.7rem, 2rem + 3.6vw, 4.3rem);
+  line-height: 1.15;
   color: var(--ka-ink);
-  animation: sd-rules-slide 7000ms ease-in-out both;
+  /* Enter only — hold opaque. The old 7s out-fade left text at opacity 0. */
+  animation: sd-rules-slide 420ms ease-out both;
 }
 
 .sd-rules-nav {
@@ -397,10 +401,8 @@
 }
 
 @keyframes sd-rules-slide {
-  0% { transform: translateX(18%); opacity: 0; }
-  8% { transform: translateX(0); opacity: 1; }
-  92% { transform: translateX(0); opacity: 1; }
-  100% { transform: translateX(-18%); opacity: 0; }
+  0% { transform: translateX(12%); opacity: 0; }
+  100% { transform: translateX(0); opacity: 1; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -614,6 +616,15 @@
   z-index: 3;
 }
 
+/* Desktop / iPad: status stays top-right beside the CODE banner. */
+.sd-dial-layer > .sd-feedback-pill {
+  position: absolute;
+  top: 0.85rem;
+  right: 1rem;
+  z-index: 3;
+  max-width: min(18rem, calc(100% - 12rem));
+}
+
 .sd-dial-layer > .sd-workbench {
   position: relative;
   z-index: 2;
@@ -653,10 +664,25 @@
   align-items: baseline;
   gap: 0.55rem;
   padding: 0.42rem 0.85rem;
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--sd-panel);
   border: 2px solid var(--ka-edge);
   border-radius: 0.55rem;
   box-shadow: 0 3px 0 var(--ka-edge);
+  color: var(--sd-panel-ink);
+}
+
+/* Phone dial chrome: target duration (desktop keeps this in the dial center). */
+.sd-value-banner {
+  display: none;
+  align-items: center;
+}
+
+.sd-value-glyph {
+  display: inline-flex;
+  align-items: center;
+  color: var(--sd-panel-ink);
+  line-height: 0;
+  translate: 0 0.12rem;
 }
 
 .sd-code-prefix {
@@ -664,7 +690,7 @@
   font-size: clamp(1.2rem, 2.5vw, 1.55rem);
   font-weight: 800;
   letter-spacing: 0.04em;
-  color: var(--ka-ink);
+  color: var(--sd-panel-ink);
 }
 
 .sd-code-letters {
@@ -679,7 +705,7 @@
   font-family: var(--font-display);
   font-size: clamp(1.35rem, 2.8vw, 1.75rem);
   font-weight: 800;
-  color: var(--ka-ink);
+  color: var(--sd-panel-ink);
   padding: 0 0.14rem 0.12rem;
   border-bottom: 3.5px solid transparent;
   transition: transform 220ms ease, opacity 220ms ease, color 150ms ease;
@@ -698,7 +724,7 @@
 }
 
 .sd-code-letter.is-active {
-  border-bottom-color: var(--ka-ink);
+  border-bottom-color: var(--sd-panel-ink);
   color: var(--ka-canopy);
   animation: sd-active-letter-pulse 1.05s ease-in-out infinite alternate;
 }
@@ -714,8 +740,8 @@
   padding: 0.35rem 0.7rem;
   border-radius: 0.5rem;
   border: 1.5px solid var(--ka-edge);
-  background: rgba(255, 255, 255, 0.92);
-  color: var(--ka-ink);
+  background: var(--sd-panel);
+  color: var(--sd-panel-ink);
   box-shadow: 0 2px 0 var(--ka-edge);
 }
 
@@ -977,8 +1003,7 @@
   left: 1.25rem;
   right: 1.25rem;
   top: 1.1rem;
-  background: rgba(255, 255, 255, 0.94);
-  backdrop-filter: blur(6px);
+  background: var(--sd-panel);
   border: 2.5px solid var(--ka-edge);
   border-radius: 0.75rem;
   padding: 1rem 1.25rem;
@@ -986,6 +1011,7 @@
   display: grid;
   gap: 0.55rem;
   z-index: 8;
+  color: var(--sd-panel-ink);
 }
 
 .sd-end-title {
@@ -1066,16 +1092,295 @@
   }
 }
 
-@media (max-width: 680px) {
-  .sd-difficulty-grid {
+/* Desktop / iPad: full start panel. Phone start + thumbs stay hidden. */
+.sd-start-phone {
+  display: none;
+}
+
+.sd-start-desktop {
+  display: contents;
+}
+
+.sd-thumb-value,
+.sd-thumb-dial {
+  display: none;
+}
+
+.sd-steth-end {
+  position: relative;
+  display: grid;
+  place-items: center;
+  line-height: 0;
+}
+
+.sd-steth-end-glyph {
+  position: absolute;
+  left: 50%;
+  top: 58%;
+  translate: -50% -50%;
+  pointer-events: none;
+  display: grid;
+  place-items: center;
+}
+
+/* Phone portrait and short landscape: thumb layout */
+@media (max-width: 700px), (max-height: 500px) {
+  .sd-page {
+    padding: 0.5rem 0.5rem 4.5rem;
+  }
+
+  .sd-shell {
+    gap: 0.45rem;
+  }
+
+  .sd-stage {
+    aspect-ratio: auto;
+    height: min(78dvh, calc(100dvh - 9rem));
+    max-height: none;
+  }
+
+  .sd-room-svg {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  .sd-overlay-card {
+    inset: 0.55rem;
+    padding: 0.85rem 0.9rem;
+    justify-content: flex-start;
+    gap: 0.75rem;
+    overflow: auto;
+  }
+
+  .sd-start-desktop {
+    display: none;
+  }
+
+  .sd-start-phone {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .sd-phone-rules {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    flex: 1;
+  }
+
+  .sd-phone-rules .sd-primary-btn {
+    margin-top: auto;
+    width: 100%;
+  }
+
+  .sd-phone-pick {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    flex: 1;
+  }
+
+  .sd-phone-back {
+    align-self: flex-start;
+  }
+
+  .sd-phone-diff-stack {
+    display: grid;
     grid-template-columns: 1fr;
+    gap: 0.5rem;
+    flex: 1;
+    align-content: start;
+    overflow: auto;
+    min-height: 0;
+  }
+
+  .sd-phone-diff-stack .sd-diff-card {
+    padding: 0.65rem 0.75rem;
+  }
+
+  .sd-start-title {
+    font-size: clamp(1.2rem, 5.5vw, 1.55rem);
+  }
+
+  .sd-phone-rules .sd-rules-slide {
+    min-height: 6rem;
+    font-size: clamp(2.1rem, 8.8vw, 2.7rem);
   }
 
   .sd-workbench {
-    grid-template-columns: 4.8rem 1fr 4.4rem;
+    display: none;
   }
 
-  .sd-arrow-pair {
+  .sd-dial-layer {
+    --sd-staff-reserve: 0;
+    padding: 0.55rem 0.45rem 0.55rem;
+    grid-template-rows: auto 1fr;
+  }
+
+  .sd-dial-layer > .sd-bottom-row {
+    top: 50%;
+    bottom: auto;
+    left: 3.7rem;
+    right: 3.4rem;
+    transform: translateY(-50%);
+    max-height: min(62%, 18rem);
+    z-index: 1;
+  }
+
+  /* Scroll (don't clip) so Hard's wrapped systems can pin the live note. */
+  .sd-dial-layer > .sd-bottom-row .sd-staff-card {
+    overflow-x: hidden;
+    overflow-y: auto;
+    justify-content: flex-start;
+    scrollbar-width: none;
+    overscroll-behavior: contain;
+  }
+
+  .sd-dial-layer > .sd-bottom-row .sd-staff-card::-webkit-scrollbar {
+    display: none;
+  }
+
+  .sd-thumb-value,
+  .sd-thumb-dial {
+    display: flex;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 4;
+    align-items: center;
+    justify-content: center;
+    touch-action: none;
+    user-select: none;
+    pointer-events: auto;
+  }
+
+  .sd-thumb-value {
+    left: 0.15rem;
+    width: 3.35rem;
+    height: auto;
+    max-height: min(72%, 22rem);
     flex-direction: column;
+    gap: 0.28rem;
+  }
+
+  .sd-thumb-value-rail {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.22rem;
+    width: 100%;
+  }
+
+  .sd-thumb-value-square {
+    appearance: none;
+    width: 2.05rem;
+    height: 2.05rem;
+    padding: 0.12rem;
+    display: grid;
+    place-items: center;
+    border: 1.5px solid var(--ka-edge);
+    border-radius: 0.35rem;
+    background: var(--sd-panel);
+    color: var(--sd-panel-ink);
+    box-shadow: 0 2px 0 var(--ka-edge);
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+
+  .sd-thumb-value-square:active {
+    translate: 0 1px;
+    box-shadow: 0 1px 0 var(--ka-edge);
+  }
+
+  .sd-thumb-steth-end {
+    filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.28));
+    pointer-events: none;
+    flex-shrink: 0;
+  }
+
+  .sd-thumb-value.is-error-value .sd-thumb-steth-end {
+    animation: sd-shake 380ms cubic-bezier(0.36, 0.07, 0.19, 0.97);
+  }
+
+  .sd-thumb-dial {
+    right: 0.35rem;
+    width: 3.6rem;
+    height: 3.6rem;
+  }
+
+  .sd-thumb-dial-svg {
+    width: 2rem;
+    height: 2rem;
+    filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.28));
+  }
+
+  .sd-thumb-dial-hand {
+    position: absolute;
+    width: 1.85rem;
+    height: auto;
+    right: -0.15rem;
+    bottom: -0.2rem;
+    pointer-events: none;
+    transform-origin: 40% 47%;
+    filter: drop-shadow(0 3px 0 rgba(43, 34, 28, 0.18));
+  }
+
+  .sd-thumb-dial-hand.is-turning-up {
+    animation: sd-dial-twist-up 240ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .sd-thumb-dial-hand.is-turning-down {
+    animation: sd-dial-twist-down 240ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .sd-thumb-dial.is-error-pitch {
+    animation: sd-shake 380ms cubic-bezier(0.36, 0.07, 0.19, 0.97);
+  }
+
+  .sd-code-banner {
+    padding: 0.3rem 0.55rem;
+  }
+
+  .sd-code-letter {
+    font-size: 1.05rem;
+  }
+
+  .sd-code-prefix {
+    font-size: 1.05rem;
+  }
+
+  .sd-value-banner {
+    display: inline-flex;
+  }
+
+  .sd-value-glyph svg {
+    width: 1.35rem;
+    height: auto;
+  }
+
+  /* Status moves under the centered staff; VALUE takes the top-right slot. */
+  .sd-dial-layer > .sd-feedback-pill {
+    top: calc(50% + min(8rem, 29%) + 0.35rem);
+    right: 3.4rem;
+    left: 3.4rem;
+    max-width: none;
+    width: auto;
+    margin: 0;
+    text-align: center;
+    font-size: 0.68rem;
+  }
+
+  .sd-music {
+    margin-top: 0.15rem;
+    padding: 0.3rem 0.65rem 0.3rem 0.35rem;
+    gap: 0.45rem;
+  }
+
+  .sd-music-volume input {
+    width: 5rem;
   }
 }

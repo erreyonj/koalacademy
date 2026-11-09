@@ -15,6 +15,15 @@ const nextConfig: NextConfig = {
   // .mdx is included so content/lessons and content/newsletter compile when
   // imported, but those files live outside app/ so they do not become routes.
   pageExtensions: ["ts", "tsx", "mdx"],
+  // Bare hostnames only (no scheme/port) so LAN phones can load /_next in dev.
+  allowedDevOrigins: [
+    "localhost",
+    "127.0.0.1",
+    "0.0.0.0",
+    "::1",
+    "10.64.126.12",
+    "::ffff:127.0.0.1",
+  ],
   images: { unoptimized: true },
   trailingSlash: true,
   transpilePackages: ["vexflow"],

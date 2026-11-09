@@ -101,7 +101,16 @@ export const PITCH_STOP_BY_ID: Readonly<Record<PitchId, PitchStop>> =
 
 export const EASY_MEDIUM_DURATIONS: readonly NoteDuration[] = ["8", "q"];
 
-export const HARD_DURATIONS: readonly NoteDuration[] = ["16", "q", "h", "w"];
+/** Shorter above, longer below — phone thumb rail and desktop strip share this order. */
+export const DURATION_RAIL_ORDER: readonly NoteDuration[] = [
+  "16",
+  "8",
+  "q",
+  "h",
+  "w",
+];
+
+export const HARD_DURATIONS: readonly NoteDuration[] = ["16", "8", "q", "h", "w"];
 
 export const DURATION_LABELS: Readonly<Record<NoteDuration, string>> = {
   "16": "Sixteenth note",
@@ -129,6 +138,13 @@ export function durationsForDifficulty(
   difficulty: Difficulty,
 ): readonly NoteDuration[] {
   return difficulty === "hard" ? HARD_DURATIONS : EASY_MEDIUM_DURATIONS;
+}
+
+/** Active durations in rail order (shorter → longer) for phone neighbor squares. */
+export function durationRailFor(
+  durations: readonly NoteDuration[],
+): NoteDuration[] {
+  return DURATION_RAIL_ORDER.filter((dur) => durations.includes(dur));
 }
 
 /**

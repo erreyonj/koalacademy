@@ -31,12 +31,14 @@ import {
   type Difficulty,
   DURATION_LABELS,
   DURATION_SHORT_LABELS,
+  durationRailFor,
   durationsForDifficulty,
   type NoteDuration,
   PITCH_STOP_BY_ID,
   pitchesForDifficulty,
 } from "../pitches";
 import { NoteValueGlyph } from "./NoteGlyph";
+import { StethoscopeEnd } from "./StethoscopeEnd";
 import { MusicTransport, useThemeMusic } from "./ThemeMusic";
 import { staffProgress } from "../staffGuess";
 import {
@@ -109,6 +111,34 @@ const DIAL_SWIPE_PX = 36;
 const PLAYBACK_STEP_MS = 450;
 
 type ControlMode = "touch" | "buttons";
+type StartStep = "rules" | "pick";
+
+const DIFFICULTY_OPTIONS = [
+  {
+    id: "easy" as const,
+    title: "Easy",
+    words: "3–4 letter words",
+    range: "9 stops: E4 to F5",
+    values: "Quarter & Eighth notes",
+    rules: "No lose condition · Elapsed timer",
+  },
+  {
+    id: "medium" as const,
+    title: "Medium",
+    words: "3–6 letter words",
+    range: "9 stops: E4 to F5",
+    values: "Quarter & Eighth notes",
+    rules: "No lose condition · Elapsed timer",
+  },
+  {
+    id: "hard" as const,
+    title: "Hard",
+    words: "Up to 7 letters (5–7 weighted)",
+    range: "17 stops: A3 to C6 (ledger lines)",
+    values: "16th, Eighth, Quarter, Half & Whole notes",
+    rules: "15s per letter countdown timer",
+  },
+] as const;
 
 function soundHardPitch(prev: GameState, nextPitch: GameState["selectedPitch"]) {
   if (prev.difficulty !== "hard" || prev.phase !== "dial") return;
@@ -131,6 +161,7 @@ export function StaffDecodeApp() {
   const [droppedTarget, setDroppedTarget] = useState<CodeTarget | null>(null);
   const [isWalking, setIsWalking] = useState(false);
   const [controlMode, setControlMode] = useState<ControlMode>("touch");
+  const [startStep, setStartStep] = useState<StartStep>("rules");
   const [playbackDone, setPlaybackDone] = useState<{
     rooms: GameState["rooms"];
     roomIndex: number;
@@ -150,13 +181,17 @@ export function StaffDecodeApp() {
 
   const dialSvgRef = useRef<SVGSVGElement | null>(null);
   const stethStripRef = useRef<HTMLDivElement | null>(null);
+  const liveStaffCardRef = useRef<HTMLDivElement | null>(null);
   const dragActiveRef = useRef(false);
+  const [isPhoneLayout, setIsPhoneLayout] = useState(false);
   const dialGestureRef = useRef<{
     x: number;
     y: number;
     mode: "angle" | "swipe" | null;
     accum: number;
   }>({ x: 0, y: 0, mode: null, accum: 0 });
+  const thumbDialSwipeRef = useRef({ y: 0, accum: 0, active: false });
+  const thumbValueSwipeRef = useRef({ y: 0, accum: 0, active: false });
 
   const currentRoom = state.rooms[state.currentRoomIndex];
   const activeTarget = currentRoom?.targets[state.currentLetterIndex];
@@ -168,6 +203,15 @@ export function StaffDecodeApp() {
     () => durationsForDifficulty(state.difficulty),
     [state.difficulty],
   );
+  const durationRail = useMemo(
+    () => durationRailFor(activeDurations),
+    [activeDurations],
+  );
+  const selectedRailIdx = durationRail.indexOf(state.selectedDuration);
+  const durationsAbove =
+    selectedRailIdx > 0 ? durationRail.slice(0, selectedRailIdx) : [];
+  const durationsBelow =
+    selectedRailIdx >= 0 ? durationRail.slice(selectedRailIdx + 1) : [];
 
   const selectedStopIdx = activeStops.findIndex(
     (s) => s.id === state.selectedPitch,
@@ -175,6 +219,18 @@ export function StaffDecodeApp() {
   const canStepDown = selectedStopIdx > 0;
   const canStepUp =
     selectedStopIdx !== -1 && selectedStopIdx < activeStops.length - 1;
+
+  useEffect(() => {
+    if (state.phase === "start") setStartStep("rules");
+  }, [state.phase]);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 700px), (max-height: 500px)");
+    const sync = () => setIsPhoneLayout(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
 
   // Twist the grip hand toward each new detent.
   useEffect(() => {
@@ -309,6 +365,83 @@ export function StaffDecodeApp() {
     },
     [activeDurations, handleSelectDuration, state.selectedDuration],
   );
+
+  const beginRun = useCallback(
+    (difficulty: Difficulty) => {
+      music.start();
+      setStartStep("rules");
+      setState(startRun(difficulty));
+    },
+    [music.start],
+  );
+
+  const handleThumbDialPointerDown = (
+    e: ReactPointerEvent<HTMLDivElement>,
+  ) => {
+    e.preventDefault();
+    thumbDialSwipeRef.current = { y: e.clientY, accum: 0, active: true };
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+
+  const handleThumbDialPointerMove = (
+    e: ReactPointerEvent<HTMLDivElement>,
+  ) => {
+    const gesture = thumbDialSwipeRef.current;
+    if (!gesture.active) return;
+    gesture.accum += e.clientY - gesture.y;
+    gesture.y = e.clientY;
+    while (gesture.accum <= -DIAL_SWIPE_PX) {
+      gesture.accum += DIAL_SWIPE_PX;
+      handleStepDial(1);
+    }
+    while (gesture.accum >= DIAL_SWIPE_PX) {
+      gesture.accum -= DIAL_SWIPE_PX;
+      handleStepDial(-1);
+    }
+  };
+
+  const handleThumbDialPointerUp = (
+    e: ReactPointerEvent<HTMLDivElement>,
+  ) => {
+    thumbDialSwipeRef.current.active = false;
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    }
+  };
+
+  const handleThumbValuePointerDown = (
+    e: ReactPointerEvent<HTMLDivElement>,
+  ) => {
+    e.preventDefault();
+    thumbValueSwipeRef.current = { y: e.clientY, accum: 0, active: true };
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+
+  const handleThumbValuePointerMove = (
+    e: ReactPointerEvent<HTMLDivElement>,
+  ) => {
+    const gesture = thumbValueSwipeRef.current;
+    if (!gesture.active) return;
+    gesture.accum += e.clientY - gesture.y;
+    gesture.y = e.clientY;
+    while (gesture.accum <= -DIAL_SWIPE_PX) {
+      gesture.accum += DIAL_SWIPE_PX;
+      stepDuration(-1);
+    }
+    while (gesture.accum >= DIAL_SWIPE_PX) {
+      gesture.accum -= DIAL_SWIPE_PX;
+      stepDuration(1);
+    }
+  };
+
+  const handleThumbValuePointerUp = (
+    e: ReactPointerEvent<HTMLDivElement>,
+  ) => {
+    thumbValueSwipeRef.current.active = false;
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    }
+  };
 
   useEffect(() => {
     if (state.phase !== "dial") return;
@@ -463,8 +596,40 @@ export function StaffDecodeApp() {
     state.selectedPitch,
     state.selectedDuration,
   ]);
-  const wrapStaff = guessScore.measures.length > 2;
+  // Phone wraps as soon as a second measure appears so Hard's long codes
+  // stay readable; desktop keeps the first two measures on one system.
+  const wrapStaff = isPhoneLayout
+    ? guessScore.measures.length > 1
+    : guessScore.measures.length > 2;
   const showNoteNames = state.difficulty !== "hard";
+
+  // Keep the live (latest) note head in the phone staff viewport as systems grow.
+  useEffect(() => {
+    if (!isPhoneLayout || state.phase !== "dial") return;
+    const card = liveStaffCardRef.current;
+    if (!card) return;
+    let cancelled = false;
+    const pinLatest = () => {
+      if (cancelled) return;
+      card.scrollTop = card.scrollHeight;
+    };
+    pinLatest();
+    const frame = window.requestAnimationFrame(pinLatest);
+    const t1 = window.setTimeout(pinLatest, 60);
+    const t2 = window.setTimeout(pinLatest, 220);
+    const host = card.querySelector(".notation-staff-host");
+    const obs = host
+      ? new MutationObserver(() => pinLatest())
+      : null;
+    if (host && obs) obs.observe(host, { childList: true, subtree: true });
+    return () => {
+      cancelled = true;
+      window.cancelAnimationFrame(frame);
+      window.clearTimeout(t1);
+      window.clearTimeout(t2);
+      obs?.disconnect();
+    };
+  }, [guessScore, isPhoneLayout, state.phase]);
   const palette =
     ROOM_PALETTES[state.currentRoomIndex % ROOM_PALETTES.length];
   const nextPalette =
@@ -589,100 +754,136 @@ export function StaffDecodeApp() {
           <section
             className="sd-overlay-card"
             aria-label="Staff DeCode rules and setup"
+            data-start-step={startStep}
           >
-            <div className="sd-start-header">
-              <span className="sd-eyebrow">
-                Toolkit · Games · Treble Clef Safe Cracker
-              </span>
-              <h2 className="sd-start-title">Crack the staff combinations.</h2>
-              <RulesCarousel lines={START_RULES} />
+            {/* Desktop / iPad: full rules + detail cards */}
+            <div className="sd-start-desktop">
+              <div className="sd-start-header">
+                <span className="sd-eyebrow">
+                  Toolkit · Games · Treble Clef Safe Cracker
+                </span>
+                <h2 className="sd-start-title">Crack the staff combinations.</h2>
+                <RulesCarousel lines={START_RULES} />
+              </div>
+
+              <div
+                className="sd-difficulty-grid"
+                role="radiogroup"
+                aria-label="Difficulty"
+              >
+                {DIFFICULTY_OPTIONS.map((opt) => {
+                  const selected = state.difficulty === opt.id;
+                  return (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      role="radio"
+                      aria-checked={selected}
+                      data-testid={`difficulty-${opt.id}`}
+                      className={`sd-diff-card${selected ? " is-selected" : ""}`}
+                      onClick={() =>
+                        setState((prev) => ({
+                          ...prev,
+                          difficulty: opt.id as Difficulty,
+                        }))
+                      }
+                    >
+                      <span className="sd-diff-name">
+                        <span>{opt.title}</span>
+                        {selected && <span>●</span>}
+                      </span>
+                      <span className="sd-diff-meta">{opt.words}</span>
+                      <span className="sd-diff-meta">{opt.range}</span>
+                      <span className="sd-diff-meta">{opt.values}</span>
+                      <span className="sd-diff-meta">{opt.rules}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="sd-start-footer">
+                <button
+                  type="button"
+                  className="sd-lock-tools"
+                  aria-disabled="true"
+                  data-testid="advanced-tools-lock"
+                  title="Advanced tools coming soon: custom word difficulty and random code generation"
+                >
+                  <Lock size={15} aria-hidden="true" />
+                  <span>Advanced Tools · Locked</span>
+                </button>
+
+                <button
+                  type="button"
+                  className="sd-primary-btn"
+                  data-testid="start-game-btn"
+                  onClick={() => beginRun(state.difficulty)}
+                >
+                  Enter Room 1 →
+                </button>
+              </div>
             </div>
 
-            <div
-              className="sd-difficulty-grid"
-              role="radiogroup"
-              aria-label="Difficulty"
-            >
-              {(
-                [
-                  {
-                    id: "easy",
-                    title: "Easy",
-                    words: "3–4 letter words",
-                    range: "9 stops: E4 to F5",
-                    values: "Quarter & Eighth notes",
-                    rules: "No lose condition · Elapsed timer",
-                  },
-                  {
-                    id: "medium",
-                    title: "Medium",
-                    words: "3–6 letter words",
-                    range: "9 stops: E4 to F5",
-                    values: "Quarter & Eighth notes",
-                    rules: "No lose condition · Elapsed timer",
-                  },
-                  {
-                    id: "hard",
-                    title: "Hard",
-                    words: "Up to 7 letters (5–7 weighted)",
-                    range: "17 stops: A3 to C6 (ledger lines)",
-                    values: "16th, Quarter, Half & Whole notes",
-                    rules: "15s per letter countdown timer",
-                  },
-                ] as const
-              ).map((opt) => {
-                const selected = state.difficulty === opt.id;
-                return (
+            {/* Phone: carousel, then robber image cards */}
+            <div className="sd-start-phone">
+              {startStep === "rules" ? (
+                <div className="sd-phone-rules">
+                  <span className="sd-eyebrow">
+                    Toolkit · Games · Treble Clef Safe Cracker
+                  </span>
+                  <h2 className="sd-start-title">
+                    Crack the staff combinations.
+                  </h2>
+                  <RulesCarousel lines={START_RULES} />
                   <button
-                    key={opt.id}
                     type="button"
-                    role="radio"
-                    aria-checked={selected}
-                    data-testid={`difficulty-${opt.id}`}
-                    className={`sd-diff-card${selected ? " is-selected" : ""}`}
-                    onClick={() =>
-                      setState((prev) => ({
-                        ...prev,
-                        difficulty: opt.id as Difficulty,
-                      }))
-                    }
+                    className="sd-primary-btn"
+                    data-testid="choose-difficulty-btn"
+                    onClick={() => setStartStep("pick")}
                   >
-                    <span className="sd-diff-name">
-                      <span>{opt.title}</span>
-                      {selected && <span>●</span>}
-                    </span>
-                    <span className="sd-diff-meta">{opt.words}</span>
-                    <span className="sd-diff-meta">{opt.range}</span>
-                    <span className="sd-diff-meta">{opt.values}</span>
-                    <span className="sd-diff-meta">{opt.rules}</span>
+                    Choose difficulty
                   </button>
-                );
-              })}
-            </div>
-
-            <div className="sd-start-footer">
-              <button
-                type="button"
-                className="sd-lock-tools"
-                aria-disabled="true"
-                data-testid="advanced-tools-lock"
-                title="Advanced tools coming soon: custom word difficulty and random code generation"
-              >
-                <Lock size={15} aria-hidden="true" />
-                <span>Advanced Tools · Locked</span>
-              </button>
-
-              <button
-                type="button"
-                className="sd-primary-btn"
-                data-testid="start-game-btn"
-                onClick={() => {
-                  music.start();
-                  setState(startRun(state.difficulty));
-                }}
-              >
-                Enter Room 1 →
-              </button>
+                </div>
+              ) : (
+                <div className="sd-phone-pick">
+                  <button
+                    type="button"
+                    className="sd-ghost-btn sd-phone-back"
+                    data-testid="difficulty-back-btn"
+                    onClick={() => setStartStep("rules")}
+                  >
+                    ← Rules
+                  </button>
+                  <div
+                    className="sd-phone-diff-stack"
+                    role="radiogroup"
+                    aria-label="Difficulty"
+                  >
+                    {DIFFICULTY_OPTIONS.map((opt) => (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        role="radio"
+                        aria-checked={state.difficulty === opt.id}
+                        data-testid={`phone-difficulty-${opt.id}`}
+                        className={`sd-diff-card${
+                          state.difficulty === opt.id ? " is-selected" : ""
+                        }`}
+                        onClick={() => beginRun(opt.id)}
+                      >
+                        <span className="sd-diff-name">
+                          <span>{opt.title}</span>
+                          {state.difficulty === opt.id && <span>●</span>}
+                        </span>
+                        <span className="sd-diff-meta">{opt.words}</span>
+                        <span className="sd-diff-meta">{opt.range}</span>
+                        <span className="sd-diff-meta">{opt.values}</span>
+                        <span className="sd-diff-meta">{opt.rules}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </section>
         )}
@@ -705,7 +906,7 @@ export function StaffDecodeApp() {
         {/* PHASE 3: DIAL SAFE-CRACKING VIEW */}
         {state.phase === "dial" && currentRoom && (
           <div className="sd-dial-layer">
-            {/* Top row: CODE cipher banner + live status pill */}
+            {/* Top row: CODE cipher + (phone) VALUE target + (desktop) status pill */}
             <div className="sd-code-row">
               <div
                 className="sd-code-banner"
@@ -756,38 +957,158 @@ export function StaffDecodeApp() {
               </div>
 
               <div
-                className={`sd-feedback-pill${
-                  state.lastError
-                    ? " is-error"
-                    : shouldScheduleSmartTimer
-                      ? " is-listening"
-                      : ""
+                className="sd-code-banner sd-value-banner"
+                data-testid="value-banner"
+                aria-label={`Target note value ${
+                  activeTarget
+                    ? DURATION_LABELS[activeTarget.duration]
+                    : DURATION_LABELS[state.selectedDuration]
                 }`}
-                data-testid="dial-status-pill"
-                role="status"
               >
-                {!state.cipherRevealed && "Decoding safe cipher…"}
-                {state.cipherRevealed &&
-                  state.lastError === "pitch" &&
-                  (showNoteNames
-                    ? `Wrong pitch (${state.selectedPitch}) — aim for ${activeTarget?.pitch}`
-                    : "Wrong pitch — check the staff")}
-                {state.cipherRevealed &&
-                  state.lastError === "value" &&
-                  `Right pitch! Match ${
-                    activeTarget ? DURATION_LABELS[activeTarget.duration] : ""
-                  } with stethoscope`}
-                {state.cipherRevealed &&
-                  !state.lastError &&
-                  shouldScheduleSmartTimer &&
-                  "Listening to tumbler… hold still to lock in"}
-                {state.cipherRevealed &&
-                  !state.lastError &&
-                  !shouldScheduleSmartTimer &&
-                  (showNoteNames
-                    ? `Dial on ${state.selectedPitch} · ${DURATION_SHORT_LABELS[state.selectedDuration]}`
-                    : `${DURATION_SHORT_LABELS[state.selectedDuration]} selected`)}
+                <span className="sd-code-prefix">VALUE:</span>
+                <span className="sd-value-glyph" aria-hidden="true">
+                  <NoteValueGlyph
+                    duration={activeTarget?.duration ?? state.selectedDuration}
+                    size={28}
+                  />
+                </span>
               </div>
+            </div>
+
+            <div
+              className={`sd-feedback-pill${
+                state.lastError
+                  ? " is-error"
+                  : shouldScheduleSmartTimer
+                    ? " is-listening"
+                    : ""
+              }`}
+              data-testid="dial-status-pill"
+              role="status"
+            >
+              {!state.cipherRevealed && "Decoding safe cipher…"}
+              {state.cipherRevealed &&
+                state.lastError === "pitch" &&
+                (showNoteNames
+                  ? `Wrong pitch (${state.selectedPitch}) — aim for ${activeTarget?.pitch}`
+                  : "Wrong pitch — check the staff")}
+              {state.cipherRevealed &&
+                state.lastError === "value" &&
+                `Right pitch! Match ${
+                  activeTarget ? DURATION_LABELS[activeTarget.duration] : ""
+                } with stethoscope`}
+              {state.cipherRevealed &&
+                !state.lastError &&
+                shouldScheduleSmartTimer &&
+                "Listening to tumbler… hold still to lock in"}
+              {state.cipherRevealed &&
+                !state.lastError &&
+                !shouldScheduleSmartTimer &&
+                (showNoteNames
+                  ? `Dial on ${state.selectedPitch} · ${DURATION_SHORT_LABELS[state.selectedDuration]}`
+                  : `${DURATION_SHORT_LABELS[state.selectedDuration]} selected`)}
+            </div>
+
+            {/* Phone thumbs: value rail on the left, mini dial on the right */}
+            <div
+              className={`sd-thumb-value${
+                state.lastError === "value" ? " is-error-value" : ""
+              }`}
+              data-testid="thumb-value"
+              aria-label={`Note value ${DURATION_LABELS[state.selectedDuration]}`}
+              onPointerDown={handleThumbValuePointerDown}
+              onPointerMove={handleThumbValuePointerMove}
+              onPointerUp={handleThumbValuePointerUp}
+              onClick={(event) => {
+                if ((event.target as HTMLElement).closest("button")) return;
+                if (controlMode === "buttons") stepDuration(1);
+              }}
+            >
+              <div className="sd-thumb-value-rail">
+                {durationsAbove.map((dur) => (
+                  <button
+                    key={`above-${dur}`}
+                    type="button"
+                    className="sd-thumb-value-square"
+                    data-testid={`thumb-steth-option-${dur}`}
+                    aria-label={DURATION_LABELS[dur]}
+                    title={DURATION_LABELS[dur]}
+                    onPointerDown={(event) => event.stopPropagation()}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      handleSelectDuration(dur);
+                    }}
+                  >
+                    <NoteValueGlyph duration={dur} size={18} />
+                  </button>
+                ))}
+              </div>
+              <StethoscopeEnd
+                duration={state.selectedDuration}
+                size={52}
+                className="sd-thumb-steth-end"
+              />
+              <div className="sd-thumb-value-rail">
+                {durationsBelow.map((dur) => (
+                  <button
+                    key={`below-${dur}`}
+                    type="button"
+                    className="sd-thumb-value-square"
+                    data-testid={`thumb-steth-option-${dur}`}
+                    aria-label={DURATION_LABELS[dur]}
+                    title={DURATION_LABELS[dur]}
+                    onPointerDown={(event) => event.stopPropagation()}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      handleSelectDuration(dur);
+                    }}
+                  >
+                    <NoteValueGlyph duration={dur} size={18} />
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div
+              className={`sd-thumb-dial${
+                state.lastError === "pitch" ? " is-error-pitch" : ""
+              }`}
+              data-testid="thumb-dial"
+              data-selected-pitch={state.selectedPitch}
+              aria-label="Pitch dial"
+              onPointerDown={handleThumbDialPointerDown}
+              onPointerMove={handleThumbDialPointerMove}
+              onPointerUp={handleThumbDialPointerUp}
+              onClick={() => {
+                if (controlMode === "buttons") handleStepDial(1);
+              }}
+            >
+              <svg viewBox="0 0 64 64" className="sd-thumb-dial-svg" aria-hidden="true">
+                <circle cx="32" cy="32" r="28" fill="#8d99a6" stroke="#2b333b" strokeWidth="3" />
+                <circle cx="32" cy="32" r="18" fill="#5e6973" stroke="#2b333b" strokeWidth="2" />
+                <circle cx="32" cy="32" r="8" fill="#8d99a6" stroke="#45505b" strokeWidth="1.5" />
+                {Array.from({ length: 12 }).map((_, idx) => (
+                  <line
+                    key={idx}
+                    x1="32"
+                    y1="6"
+                    x2="32"
+                    y2="11"
+                    stroke="#2a323b"
+                    strokeWidth="2"
+                    transform={`rotate(${idx * 30} 32 32)`}
+                  />
+                ))}
+              </svg>
+              <img
+                key={dialTurn.n}
+                className={`sd-thumb-dial-hand${
+                  dialTurn.dir ? ` is-turning-${dialTurn.dir}` : ""
+                }`}
+                src="/assets/staff-decode/dial-hand.png"
+                alt=""
+                draggable={false}
+              />
             </div>
 
             {/* Middle row: Stethoscope (left) · Combination Dial (center) · Turn Arrows (right) */}
@@ -1129,6 +1450,7 @@ export function StaffDecodeApp() {
             {/* Bottom row: Live Treble Staff Card */}
             <div className="sd-bottom-row">
               <div
+                ref={liveStaffCardRef}
                 className={`sd-staff-card${
                   state.lastError === "pitch" ? " is-error-pitch" : ""
                 }${state.lastError === "value" ? " is-error-value" : ""}`}

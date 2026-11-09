@@ -228,6 +228,7 @@ test("Staff DeCode full game loop: start, cipher, wrong pitch, wrong value, clea
   await expect(page.getByTestId("dial-stop-A3")).toHaveText("");
   await expect(page.getByTestId("dial-stop-C6")).toBeVisible();
   await expect(page.getByTestId("steth-option-16")).toBeVisible();
+  await expect(page.getByTestId("steth-option-8")).toBeVisible();
   await expect(page.getByTestId("steth-option-w")).toBeVisible();
   await expect(page.getByTestId("game-clock")).toContainText("LOCK IN");
 
@@ -284,5 +285,77 @@ test("Staff DeCode full game loop: start, cipher, wrong pitch, wrong value, clea
   }
   await page.screenshot({
     path: path.join(SCREENSHOT_DIR, "08-hard-long-staff.png"),
+  });
+});
+
+test("Staff DeCode phone thumb layout: rules, robber pick, mini dial swipe", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/toolkit/games/staff-decode/");
+
+  const stage = page.getByTestId("staff-decode-stage");
+  await expect(stage).toHaveAttribute("data-phase", "start");
+  await expect(page.getByTestId("choose-difficulty-btn")).toBeVisible();
+  await expect(page.getByTestId("difficulty-easy")).toBeHidden();
+  await expect(page.getByTestId("start-game-btn")).toBeHidden();
+  await page.screenshot({
+    path: path.join(SCREENSHOT_DIR, "09-phone-rules.png"),
+  });
+
+  await page.getByTestId("choose-difficulty-btn").click();
+  await expect(page.getByTestId("phone-difficulty-hard")).toBeVisible();
+  await page.screenshot({
+    path: path.join(SCREENSHOT_DIR, "10-phone-difficulty.png"),
+  });
+
+  await page.getByTestId("phone-difficulty-hard").click();
+  await expect(stage).toHaveAttribute("data-phase", "room");
+  await page.getByTestId("safe-door-hotspot").click();
+  await expect(stage).toHaveAttribute("data-phase", "dial");
+  await page.waitForTimeout(750);
+
+  await expect(page.getByTestId("thumb-dial")).toBeVisible();
+  await expect(page.getByTestId("thumb-value")).toBeVisible();
+  await expect(page.getByTestId("safe-dial-wheel")).toBeHidden();
+  // Hard rail around default quarter: 16 + 8 above, half + whole below
+  await expect(page.getByTestId("thumb-steth-option-16")).toBeVisible();
+  await expect(page.getByTestId("thumb-steth-option-8")).toBeVisible();
+  await expect(page.getByTestId("thumb-steth-option-h")).toBeVisible();
+  await expect(page.getByTestId("thumb-steth-option-w")).toBeVisible();
+
+  const thumb = page.getByTestId("thumb-dial");
+  await expect(thumb).toHaveAttribute("data-selected-pitch", "E4");
+  const box = (await thumb.boundingBox())!;
+  const cx = box.x + box.width / 2;
+  const startY = box.y + box.height - 4;
+  const endY = box.y + 4;
+  await page.dispatchEvent('[data-testid="thumb-dial"]', "pointerdown", {
+    clientX: cx,
+    clientY: startY,
+    pointerId: 1,
+    pointerType: "touch",
+    buttons: 1,
+  });
+  for (let y = startY; y >= endY; y -= 12) {
+    await page.dispatchEvent('[data-testid="thumb-dial"]', "pointermove", {
+      clientX: cx,
+      clientY: y,
+      pointerId: 1,
+      pointerType: "touch",
+      buttons: 1,
+    });
+  }
+  await page.dispatchEvent('[data-testid="thumb-dial"]', "pointerup", {
+    clientX: cx,
+    clientY: endY,
+    pointerId: 1,
+    pointerType: "touch",
+    buttons: 0,
+  });
+  await expect(thumb).toHaveAttribute("data-selected-pitch", "F4");
+
+  await page.screenshot({
+    path: path.join(SCREENSHOT_DIR, "11-phone-dial.png"),
   });
 });

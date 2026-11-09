@@ -8,6 +8,7 @@
     "predev": "node scripts/copy-vexflow-fonts.mjs",
     "prebuild": "node scripts/copy-vexflow-fonts.mjs",
     "dev": "next dev",
+    "dev:host": "next dev --port 3773",
     "build": "next build",
     "start": "next start",
     "lint": "tsc --noEmit",

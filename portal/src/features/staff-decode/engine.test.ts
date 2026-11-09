@@ -100,7 +100,7 @@ describe("Pitch ranges and durations", () => {
   it("uses eighth/quarter for easy/medium and 16th/quarter/half/whole for hard", () => {
     expect(durationsForDifficulty("easy")).toEqual(["8", "q"]);
     expect(durationsForDifficulty("medium")).toEqual(["8", "q"]);
-    expect(durationsForDifficulty("hard")).toEqual(["16", "q", "h", "w"]);
+    expect(durationsForDifficulty("hard")).toEqual(["16", "8", "q", "h", "w"]);
   });
 
   it("computes ledger lines and stem directions across A3–C6", () => {

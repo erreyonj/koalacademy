@@ -140,8 +140,8 @@ const DIFFICULTY_OPTIONS = [
   },
 ] as const;
 
-function soundHardPitch(prev: GameState, nextPitch: GameState["selectedPitch"]) {
-  if (prev.difficulty !== "hard" || prev.phase !== "dial") return;
+function soundDialPitch(prev: GameState, nextPitch: GameState["selectedPitch"]) {
+  if (prev.phase !== "dial") return;
   if (nextPitch === prev.selectedPitch) return;
   resumePiano();
   playNote(nextPitch);
@@ -334,7 +334,7 @@ export function StaffDecodeApp() {
   const handleStepDial = useCallback((delta: -1 | 1) => {
     setState((prev) => {
       const next = stepDial(prev, delta);
-      soundHardPitch(prev, next.selectedPitch);
+      soundDialPitch(prev, next.selectedPitch);
       return next;
     });
   }, []);
@@ -343,7 +343,7 @@ export function StaffDecodeApp() {
     (pitch: (typeof activeStops)[number]["id"]) => {
       setState((prev) => {
         const next = selectDialPitch(prev, pitch);
-        soundHardPitch(prev, next.selectedPitch);
+        soundDialPitch(prev, next.selectedPitch);
         return next;
       });
     },

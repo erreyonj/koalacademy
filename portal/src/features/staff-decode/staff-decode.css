@@ -46,8 +46,8 @@
   padding: 0.2rem 0.55rem;
   border-radius: 999px;
   border: 1.5px solid var(--ka-edge);
-  background: var(--ka-pith);
-  color: var(--ka-ink);
+  background: var(--sd-panel);
+  color: var(--sd-panel-ink);
   font-family: var(--font-mono);
   font-size: 0.74rem;
   font-weight: 600;
@@ -87,8 +87,8 @@
 .sd-ghost-btn {
   appearance: none;
   border: 1.5px solid var(--ka-edge);
-  background: var(--ka-snow);
-  color: var(--ka-ink);
+  background: var(--sd-panel);
+  color: var(--sd-panel-ink);
   font-family: var(--font-mono);
   font-size: 0.76rem;
   font-weight: 600;
@@ -105,7 +105,7 @@
 }
 
 .sd-ghost-btn:hover {
-  background: var(--ka-pith);
+  background: color-mix(in srgb, var(--sd-panel) 70%, var(--ka-canopy));
 }
 
 .sd-music {
@@ -115,14 +115,14 @@
   width: fit-content;
   margin: 0.35rem auto 0;
   padding: 0.4rem 0.85rem 0.4rem 0.45rem;
-  background: var(--ka-snow);
+  background: var(--sd-panel);
   border: 1.5px solid var(--ka-edge);
   border-radius: 999px;
   box-shadow: 0 3px 0 var(--ka-edge);
   font-family: var(--font-mono);
   font-size: 0.76rem;
   font-weight: 600;
-  color: var(--ka-ink);
+  color: var(--sd-panel-ink);
 }
 
 .sd-music-play {
@@ -134,7 +134,7 @@
   border: 1.5px solid var(--ka-edge);
   border-radius: 999px;
   background: var(--ka-canopy);
-  color: var(--ka-snow);
+  color: var(--ka-on-dark);
   cursor: pointer;
 }
 
@@ -363,7 +363,7 @@
   /* Midway between original (~1.35–2.15rem) and the 3× bump. */
   font-size: clamp(2.7rem, 2rem + 3.6vw, 4.3rem);
   line-height: 1.15;
-  color: var(--ka-ink);
+  color: var(--sd-panel-ink);
   /* Enter only — hold opaque. The old 7s out-fade left text at opacity 0. */
   animation: sd-rules-slide 420ms ease-out both;
 }
@@ -384,12 +384,12 @@
   border: 1.5px solid var(--ka-edge);
   border-radius: 999px;
   background: transparent;
-  color: var(--ka-ink);
+  color: var(--sd-panel-ink);
   cursor: pointer;
 }
 
 .sd-rules-arrow:hover {
-  background: var(--ka-pith);
+  background: color-mix(in srgb, var(--sd-panel) 55%, var(--ka-canopy));
 }
 
 .sd-rules-count {
@@ -397,7 +397,7 @@
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.04em;
-  color: var(--ka-charcoal);
+  color: color-mix(in srgb, var(--sd-panel-ink) 68%, transparent);
 }
 
 @keyframes sd-rules-slide {
@@ -422,8 +422,8 @@
   padding: 0.8rem 0.85rem;
   border-radius: 0.6rem;
   border: 2px solid var(--ka-edge);
-  background: var(--ka-snow);
-  color: var(--ka-ink);
+  background: var(--sd-panel);
+  color: var(--sd-panel-ink);
   cursor: pointer;
   display: grid;
   gap: 0.3rem;
@@ -431,7 +431,7 @@
 }
 
 .sd-diff-card:hover {
-  background: var(--ka-pith);
+  background: color-mix(in srgb, var(--sd-panel) 70%, var(--ka-canopy));
 }
 
 .sd-diff-card.is-selected {
@@ -453,7 +453,7 @@
 .sd-diff-meta {
   font-family: var(--font-mono);
   font-size: 0.72rem;
-  color: #3a3f49;
+  color: color-mix(in srgb, var(--sd-panel-ink) 72%, transparent);
   line-height: 1.35;
 }
 
@@ -473,9 +473,9 @@
   gap: 0.45rem;
   padding: 0.42rem 0.7rem;
   border-radius: 0.5rem;
-  border: 1.5px dashed var(--ka-charcoal);
-  background: #f1f4f9;
-  color: #4a505c;
+  border: 1.5px dashed var(--ka-edge);
+  background: color-mix(in srgb, var(--sd-panel) 82%, var(--ka-slate));
+  color: color-mix(in srgb, var(--sd-panel-ink) 72%, transparent);
   font-family: var(--font-mono);
   font-size: 0.74rem;
   cursor: not-allowed;
@@ -716,7 +716,7 @@
   font-size: 0.62em;
   font-weight: 700;
   margin-left: 0.04rem;
-  color: #3a3f49;
+  color: color-mix(in srgb, var(--sd-panel-ink) 72%, transparent);
 }
 
 .sd-code-letter.is-scrambling {
@@ -773,7 +773,8 @@
   align-items: center;
   gap: 0.35rem;
   padding: 0.45rem 0.35rem;
-  background: rgba(255, 255, 255, 0.78);
+  background: var(--sd-panel);
+  color: var(--sd-panel-ink);
   border: 2px solid var(--ka-edge);
   border-radius: 0.65rem;
   box-shadow: 0 3px 0 var(--ka-edge);
@@ -791,7 +792,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: #3a3f49;
+  color: color-mix(in srgb, var(--sd-panel-ink) 72%, transparent);
   text-align: center;
 }
 
@@ -804,28 +805,12 @@
 
 .sd-steth-btn {
   position: relative;
-  appearance: none;
-  border: 1.5px solid transparent;
-  background: rgba(255, 255, 255, 0.7);
-  color: var(--ka-ink);
-  border-radius: 0.5rem;
-  padding: 0.22rem 0.35rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   gap: 0.25rem;
   transition: background-color 120ms ease, border-color 120ms ease, transform 120ms ease;
 }
 
 .sd-steth-btn:hover {
-  background: var(--ka-pith);
-}
-
-.sd-steth-btn.is-selected {
-  background: #d8ebff;
-  border-color: #2468b1;
-  box-shadow: 0 0 0 2px rgba(52, 134, 224, 0.25);
+  background: color-mix(in srgb, var(--sd-panel) 70%, var(--ka-canopy));
 }
 
 .sd-steth-badge {
@@ -914,7 +899,8 @@
   align-items: center;
   gap: 0.4rem;
   padding: 0.5rem 0.35rem;
-  background: rgba(255, 255, 255, 0.78);
+  background: var(--sd-panel);
+  color: var(--sd-panel-ink);
   border: 2px solid var(--ka-edge);
   border-radius: 0.65rem;
   box-shadow: 0 3px 0 var(--ka-edge);
@@ -931,8 +917,8 @@
   height: 2.65rem;
   border-radius: 0.5rem;
   border: 2px solid var(--ka-edge);
-  background: var(--ka-snow);
-  color: var(--ka-ink);
+  background: var(--sd-panel);
+  color: var(--sd-panel-ink);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -942,7 +928,7 @@
 }
 
 .sd-arrow-btn:hover:not(:disabled) {
-  background: var(--ka-pith);
+  background: color-mix(in srgb, var(--sd-panel) 70%, var(--ka-canopy));
   transform: translateY(-1px);
 }
 
@@ -960,7 +946,7 @@
   font-family: var(--font-mono);
   font-size: 0.66rem;
   font-weight: 700;
-  color: #2b221c;
+  color: color-mix(in srgb, var(--sd-panel-ink) 78%, transparent);
   text-align: center;
 }
 

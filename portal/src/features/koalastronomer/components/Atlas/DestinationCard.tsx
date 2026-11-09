@@ -18,6 +18,9 @@ import { RestartConfirmModal } from "./RestartConfirmModal";
 interface DestinationCardProps {
   destination: TelescopeDestination;
   difficulty?: Difficulty;
+  calibrationPoints: number;
+  /** Rings already aligned on an in-progress observation for this sector. */
+  solvedRings?: Partial<Record<(typeof DIAL_NAMES)[number], boolean>>;
   isCompleted: boolean;
   isUnlocked: boolean;
   isInProgress: boolean;
@@ -31,6 +34,8 @@ interface DestinationCardProps {
 export function DestinationCard({
   destination,
   difficulty = "easy",
+  calibrationPoints,
+  solvedRings,
   isCompleted,
   isUnlocked,
   isInProgress,
@@ -43,6 +48,12 @@ export function DestinationCard({
   const [confirmRestart, setConfirmRestart] = useState(false);
   const atlasLabel = getAtlasLabel(destination, isCompleted);
   const totalCost = getDestinationTotalCost(destination, difficulty);
+  const remainingCost = DIAL_NAMES.reduce((sum, ring) => {
+    if (solvedRings?.[ring]) return sum;
+    return sum + getComponentCost(destination, ring, difficulty);
+  }, 0);
+  const canAfford = calibrationPoints >= remainingCost;
+  const canObserve = isUnlocked && canAfford;
   const showNewGame =
     Boolean(onNewGame) && isCompleted && destination.id === "the-new-body";
 
@@ -168,14 +179,22 @@ export function DestinationCard({
               type="button"
               className="obs-primary-cta obs-observe-btn"
               onClick={onObserve}
-              disabled={!isUnlocked}
+              disabled={!canObserve}
+              aria-disabled={!canObserve}
               data-testid="begin-observation"
+              title={
+                isUnlocked && !canAfford
+                  ? `Need ${remainingCost} Calibration (have ${calibrationPoints})`
+                  : undefined
+              }
             >
               {!isUnlocked
                 ? "Locked Sector"
-                : isInProgress
-                  ? "Resume Observation"
-                  : "Observe"}
+                : !canAfford
+                  ? `Observe`
+                  : isInProgress
+                    ? "Resume Observation"
+                    : "Observe"}
             </button>
           </>
         )}

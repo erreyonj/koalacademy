@@ -65,6 +65,10 @@ export function AtlasScreen({
   const isInProgress =
     state.currentDestinationId === selectedDest.id &&
     state.telescopeProgress !== null;
+  const solvedRings =
+    state.telescopeProgress?.destinationId === selectedDest.id
+      ? state.telescopeProgress.solved
+      : undefined;
 
   return (
     <section
@@ -98,6 +102,8 @@ export function AtlasScreen({
         <DestinationCard
           destination={selectedDest}
           difficulty={state.difficulty}
+          calibrationPoints={state.calibrationPoints}
+          solvedRings={solvedRings}
           isCompleted={isCompleted}
           isUnlocked={isUnlocked}
           isInProgress={isInProgress}

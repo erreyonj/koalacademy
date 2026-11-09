@@ -62,6 +62,11 @@ test("Koalastronomer full UX loop: intro, touch toggle outside shell, circular b
     "Cost 12 Calibration",
   );
   await expect(page.getByTestId("points-display")).toHaveText("0");
+  // Observe stays grayed out until Calibration covers the sector cost
+  await expect(page.getByTestId("begin-observation")).toBeDisabled();
+  await expect(page.getByTestId("begin-observation")).toHaveText(
+    "Need 12 Calibration",
+  );
   await expect(page.getByTestId("music-toggle")).toHaveAttribute(
     "aria-pressed",
     "true",
@@ -158,6 +163,8 @@ test("Koalastronomer full UX loop: intro, touch toggle outside shell, circular b
 
   await expect(page.getByTestId("points-display")).toHaveText("20");
   await page.getByTestId("destination-mercury-sector").click();
+  await expect(page.getByTestId("begin-observation")).toBeEnabled();
+  await expect(page.getByTestId("begin-observation")).toHaveText("Observe");
   await page.getByTestId("begin-observation").click();
 
   // Lands on Telescope Briefing first

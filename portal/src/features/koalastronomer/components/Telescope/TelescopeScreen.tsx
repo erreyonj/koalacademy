@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   createTelescopeProgress,
+  type ControlMode,
   type DialName,
   type GameState,
   type TelescopeDestination,
@@ -15,9 +16,13 @@ import {
   getFirstDialLineHint,
   isObservationSolved,
 } from "../../engine/telescope-engine";
+import { CampaignWinScreen } from "./CampaignWinScreen";
 import { LensView } from "./LensView";
 import { ObservationSuccess } from "./ObservationSuccess";
-import { TelescopeBody } from "./TelescopeBody";
+import {
+  TelescopeBody,
+  type CollarTraceProgress,
+} from "./TelescopeBody";
 import { TracePuzzle } from "./TracePuzzle";
 
 interface TelescopeScreenProps {
@@ -26,6 +31,7 @@ interface TelescopeScreenProps {
   availableDestinations: readonly TelescopeDestination[];
   unlimitedCalibration?: boolean;
   alwaysShowStartDots?: boolean;
+  controlMode?: ControlMode;
   onSwitchDestination: (destinationId: string) => void;
   onSolveComponent: (ring: DialName) => void;
   onRecordStuck: (ring: DialName) => void;
@@ -40,6 +46,7 @@ export function TelescopeScreen({
   availableDestinations,
   unlimitedCalibration = false,
   alwaysShowStartDots = false,
+  controlMode = "buttons",
   onSwitchDestination,
   onSolveComponent,
   onRecordStuck,
@@ -53,8 +60,11 @@ export function TelescopeScreen({
       : createTelescopeProgress(destination.id);
 
   const [activeRing, setActiveRing] = useState<DialName | null>(null);
+  const [traceProgress, setTraceProgress] =
+    useState<CollarTraceProgress | null>(null);
 
   const isMatched = isObservationSolved(progress);
+  const isFinale = destination.id === "the-new-body";
   const solvedCount = DIAL_NAMES.filter((ring) => progress.solved[ring]).length;
   const failedTracePenalty = unlimitedCalibration
     ? 0
@@ -75,16 +85,26 @@ export function TelescopeScreen({
   // Close active ring puzzle when observation completes or sector changes
   useEffect(() => {
     setActiveRing(null);
+    setTraceProgress(null);
   }, [destination.id]);
 
   useEffect(() => {
-    if (!isMatched) return;
-    setActiveRing(null);
-    const timer = window.setTimeout(() => {
-      onComplete();
-    }, 1400);
-    return () => window.clearTimeout(timer);
-  }, [isMatched, onComplete]);
+    if (isMatched) {
+      setActiveRing(null);
+      setTraceProgress(null);
+    }
+  }, [isMatched]);
+
+  useEffect(() => {
+    if (!activeRing) setTraceProgress(null);
+  }, [activeRing]);
+
+  const handleTraceChange = useCallback(
+    (used: number, total: number, stuck: boolean) => {
+      setTraceProgress({ used, total, stuck });
+    },
+    [],
+  );
 
   const currentIdx = availableDestinations.findIndex(
     (d) => d.id === destination.id,
@@ -111,6 +131,12 @@ export function TelescopeScreen({
     alignment: getComponentCost(destination, "alignment", state.difficulty),
   };
 
+  const ringLineCounts = {
+    range: figures.range.edges.length,
+    focus: figures.focus.edges.length,
+    alignment: figures.alignment.edges.length,
+  };
+
   const handleSelectRing = (ring: DialName) => {
     if (progress.solved[ring]) return;
     setActiveRing((curr) => (curr === ring ? null : ring));
@@ -118,6 +144,7 @@ export function TelescopeScreen({
 
   const handleSolveRing = (ring: DialName) => {
     onSolveComponent(ring);
+    setTraceProgress(null);
     setActiveRing(null);
   };
 
@@ -128,18 +155,31 @@ export function TelescopeScreen({
       data-testid="telescope-screen"
     >
       <div className="obs-telescope-upper">
-        <LensView
-          sectorId={destination.id}
-          sectorName={destination.name}
-          solvedCount={solvedCount}
-        />
+        <div className="obs-telescope-lens-col">
+          <LensView
+            sectorId={destination.id}
+            sectorName={destination.name}
+            revealName={destination.revealName}
+            lensImage={destination.lensImage}
+            lensClipGlobe={destination.lensClipGlobe}
+            solvedCount={solvedCount}
+          />
+          {isMatched && !isFinale && (
+            <ObservationSuccess
+              revealName={destination.revealName}
+              onContinue={onComplete}
+            />
+          )}
+        </div>
 
         {/* Telescope body + anchored TracePuzzle card */}
         <div className="obs-telescope-center-column">
           <TelescopeBody
             costs={costs}
+            ringLineCounts={ringLineCounts}
             solved={progress.solved}
             activeRing={activeRing}
+            traceProgress={traceProgress}
             calibrationPoints={state.calibrationPoints}
             unlimitedCalibration={unlimitedCalibration}
             onSelectRing={handleSelectRing}
@@ -163,8 +203,10 @@ export function TelescopeScreen({
                 alwaysShowStartDots,
               )}
               failedTracePenalty={failedTracePenalty}
+              controlMode={controlMode}
               onSolve={handleSolveRing}
               onStuck={onRecordStuck}
+              onTraceChange={handleTraceChange}
               onClose={() => setActiveRing(null)}
               onNavigateArchive={onNavigateArchive}
             />
@@ -250,12 +292,8 @@ export function TelescopeScreen({
         </button>
       </div>
 
-      {isMatched && (
-        <ObservationSuccess
-          destinationName={destination.name}
-          regionName={destination.mapRevealRegion}
-          onContinue={onComplete}
-        />
+      {isMatched && isFinale && (
+        <CampaignWinScreen onContinue={onComplete} />
       )}
     </section>
   );

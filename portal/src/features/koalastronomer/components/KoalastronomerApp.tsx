@@ -5,11 +5,17 @@ import { useCallback, useEffect, useState } from "react";
 import { DESTINATIONS } from "../data/destinations";
 import { WORD_CHALLENGES } from "../data/word-challenges";
 import { getAvailableDestinations } from "../engine/atlas-engine";
-import { isGameOver } from "../engine/telescope-engine";
+import {
+  getArchiveSector,
+  getAvailableChallenges,
+  getRecordTotal,
+  isGameOver,
+} from "../engine/sector-archive";
 import type { ControlMode, DialName, Screen } from "../engine/game-state";
 import { useGameState } from "../hooks/useGameState";
 import "../koalastronomer.css";
 import { ArchiveScreen } from "./Archive/ArchiveScreen";
+import { RecordsControl } from "./Archive/RecordsControl";
 import { AtlasScreen } from "./Atlas/AtlasScreen";
 import { CalibrationPill } from "./CalibrationPill";
 import { DevPanel } from "./DevPanel";
@@ -32,6 +38,9 @@ export function KoalastronomerApp() {
   const [ducked, setDucked] = useState(false);
   const [unlimitedCalibration, setUnlimitedCalibration] = useState(false);
   const [alwaysShowStartDots, setAlwaysShowStartDots] = useState(false);
+  const [selectedRecordId, setSelectedRecordId] = useState<string | null>(
+    null,
+  );
   const music = useThemeMusic(ducked);
   const { start: startMusic } = music;
 
@@ -39,9 +48,37 @@ export function KoalastronomerApp() {
     (d) => d.id === state.currentDestinationId,
   );
   const availableDestinations = getAvailableDestinations(DESTINATIONS, state);
+  const archiveSector = getArchiveSector(state, DESTINATIONS);
+  const availableChallenges = getAvailableChallenges(
+    state,
+    WORD_CHALLENGES,
+    DESTINATIONS,
+  );
+  const recordTotal = getRecordTotal(
+    state,
+    WORD_CHALLENGES,
+    availableChallenges,
+  );
   const gameOver =
     !unlimitedCalibration &&
-    isGameOver(state, DESTINATIONS, WORD_CHALLENGES.length);
+    isGameOver(state, DESTINATIONS, WORD_CHALLENGES);
+  const availableRecordIds = availableChallenges.map((c) => c.id).join(",");
+
+  useEffect(() => {
+    const ids = availableRecordIds.split(",").filter(Boolean);
+    if (selectedRecordId && ids.includes(selectedRecordId)) return;
+    // Stay on a recovered record so Next Record / Calibrate Telescope can show.
+    setSelectedRecordId(
+      ids.find((id) => !state.completedChallengeIds.includes(id)) ??
+        ids[0] ??
+        null,
+    );
+  }, [
+    archiveSector.id,
+    availableRecordIds,
+    selectedRecordId,
+    state.completedChallengeIds,
+  ]);
 
   useEffect(() => {
     if (!ducked) return;
@@ -98,10 +135,10 @@ export function KoalastronomerApp() {
   );
 
   const handleChallengeComplete = useCallback(
-    (challengeId: string, intervalValue: number) => {
+    (challengeId: string, reward: number) => {
       startMusic();
       setDucked(true);
-      actions.challengeComplete(challengeId, intervalValue);
+      actions.challengeComplete(challengeId, reward);
     },
     [actions, startMusic],
   );
@@ -143,7 +180,7 @@ export function KoalastronomerApp() {
             >
               Sectors {state.completedDestinationIds.length} /{" "}
               {DESTINATIONS.length} · Records{" "}
-              {state.completedChallengeIds.length} / {WORD_CHALLENGES.length}
+              {state.completedChallengeIds.length} / {recordTotal}
             </span>
           )}
         </div>
@@ -233,8 +270,11 @@ export function KoalastronomerApp() {
             <ArchiveScreen
               state={state}
               controlMode={controlMode}
-              challenges={WORD_CHALLENGES}
+              challenges={availableChallenges}
+              selectedChallengeId={selectedRecordId}
+              onSelectChallenge={setSelectedRecordId}
               onChallengeComplete={handleChallengeComplete}
+              onCalibrate={() => handleSelectObservation(archiveSector.id)}
             />
           )}
 
@@ -244,6 +284,7 @@ export function KoalastronomerApp() {
               destinations={DESTINATIONS}
               onSelectDestination={handleSelectObservation}
               onNavigateArchive={() => handleNavigate("archive")}
+              onNewGame={actions.resetGame}
             />
           )}
 
@@ -267,6 +308,7 @@ export function KoalastronomerApp() {
               availableDestinations={availableDestinations}
               unlimitedCalibration={unlimitedCalibration}
               alwaysShowStartDots={alwaysShowStartDots}
+              controlMode={controlMode}
               onSwitchDestination={handleSelectObservation}
               onSolveComponent={handleSolveComponent}
               onRecordStuck={handleRecordStuck}
@@ -291,30 +333,24 @@ export function KoalastronomerApp() {
           />
         )}
 
-        <MusicTransport
-          playing={music.playing}
-          volume={music.volume}
-          onToggle={music.toggle}
-          onVolume={music.setVolume}
-        />
-
-        {!isIntro && (
-          <footer className="obs-shell-footer">
-            <span className="obs-footer-progress">
-              Sectors Charted: {state.completedDestinationIds.length} /{" "}
-              {DESTINATIONS.length} · Records Recovered:{" "}
-              {state.completedChallengeIds.length} / {WORD_CHALLENGES.length}
-            </span>
-            <button
-              type="button"
-              className="obs-reset-game-btn"
-              onClick={actions.resetGame}
-              data-testid="reset-game-btn"
-            >
-              Reset Progress
-            </button>
-          </footer>
-        )}
+        <div className="obs-transport-row">
+          {state.currentScreen === "archive" && (
+            <RecordsControl
+              sectorName={archiveSector.name}
+              challenges={availableChallenges}
+              completedChallengeIds={state.completedChallengeIds}
+              selectedChallengeId={selectedRecordId}
+              difficulty={state.difficulty}
+              onSelect={setSelectedRecordId}
+            />
+          )}
+          <MusicTransport
+            playing={music.playing}
+            volume={music.volume}
+            onToggle={music.toggle}
+            onVolume={music.setVolume}
+          />
+        </div>
       </div>
 
       <DevPanel

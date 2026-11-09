@@ -11,7 +11,7 @@ import type { TraceFigure } from "../engine/trace-engine";
  *    ring Calibration cost stays capped at the base 4–6 Cal per ring = 55 total).
  * - Hard (8–11 lines, 6–8 nodes): dense multi-mesh prism and reticle graphs with multiple degree-4 hubs
  *   (Mercury: 8+8+9=25, Outer Belt: 9+9+9=27, Distant Region: 9+10+10=29, New Body: 10+11+11=32; Total = 113 lines;
- *    ring cost = 1 Cal per line = 113 total, paired with 2x Archive rewards = 130 total).
+ *    ring cost = 1 Cal per line = 113 total, funded by Hard's cumulative-interval records).
  */
 
 export const EASY_TRACE_FIGURES: readonly TraceFigure[] = [

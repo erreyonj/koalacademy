@@ -12,14 +12,18 @@ export type Screen =
   | "telescope-briefing"
   | "telescope";
 
+export type RecordSet = "primary" | "backup-1" | "backup-2";
+
 export interface WordChallenge {
   id: string;
+  destinationId: string;
+  set: RecordSet;
+  /** Hard-only bonus record, served in the primary set on Hard. */
+  hardOnly?: boolean;
   title: string;
   answer: string;
-  missingPositions: [number, number];
-  difficulty: Difficulty;
-  intervalValue: number;
-  category: string;
+  /** Ascending blank positions per difficulty; each contains the easier one's. */
+  blanks: Record<Difficulty, readonly number[]>;
   hint: string;
 }
 
@@ -35,6 +39,12 @@ export interface TelescopeDestination {
   name: string;
   description: string;
   profile: DestinationProfile;
+  /** Photo shown in the telescope eyepiece as collars come into focus. */
+  lensImage: string;
+  /** Name used in the in-view caption (may differ from the Atlas sector name). */
+  revealName: string;
+  /** Studio globe on a light fill; clip to the disc so the fill does not show. */
+  lensClipGlobe?: boolean;
   components: DestinationComponents;
   requiredCompletedDestinations: string[];
   mapRevealRegion: string;
@@ -185,17 +195,22 @@ export function parseSavedGameState(raw: string | null): GameState {
       : [];
 
     const currentDestinationId =
-      typeof parsed.currentDestinationId === "string" &&
-      !completedDestinationIds.includes(parsed.currentDestinationId)
+      typeof parsed.currentDestinationId === "string"
         ? parsed.currentDestinationId
         : null;
+    const currentDestComplete =
+      currentDestinationId !== null &&
+      completedDestinationIds.includes(currentDestinationId);
 
     // Migrate old saves that had telescopeDialState/telescopeSpentPoints by
     // dropping the legacy fields and initializing fresh telescopeProgress when needed.
-    const parsedProgress = parseTelescopeProgress(
-      parsed.telescopeProgress,
-      currentDestinationId,
-    );
+    // A charted sector can stay selected on the Atlas, but never resumes the tube.
+    const parsedProgress = currentDestComplete
+      ? null
+      : parseTelescopeProgress(
+          parsed.telescopeProgress,
+          currentDestinationId,
+        );
     const hadLegacyDialState =
       parsed.telescopeDialState !== null &&
       typeof parsed.telescopeDialState === "object";
@@ -203,6 +218,7 @@ export function parseSavedGameState(raw: string | null): GameState {
     const telescopeProgress =
       parsedProgress ??
       (currentDestinationId &&
+      !currentDestComplete &&
       (hadLegacyDialState ||
         currentScreen === "telescope" ||
         currentScreen === "telescope-briefing")
@@ -212,12 +228,12 @@ export function parseSavedGameState(raw: string | null): GameState {
     let resolvedScreen: Screen = currentScreen;
     if (
       resolvedScreen === "telescope" &&
-      (!currentDestinationId || !telescopeProgress)
+      (!currentDestinationId || !telescopeProgress || currentDestComplete)
     ) {
       resolvedScreen = "atlas";
     } else if (
       resolvedScreen === "telescope-briefing" &&
-      !currentDestinationId
+      (!currentDestinationId || currentDestComplete)
     ) {
       resolvedScreen = "atlas";
     }

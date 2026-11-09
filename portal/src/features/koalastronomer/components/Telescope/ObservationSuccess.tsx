@@ -1,14 +1,12 @@
 "use client";
 
 interface ObservationSuccessProps {
-  destinationName: string;
-  regionName: string;
+  revealName: string;
   onContinue: () => void;
 }
 
 export function ObservationSuccess({
-  destinationName,
-  regionName,
+  revealName,
   onContinue,
 }: ObservationSuccessProps) {
   return (
@@ -17,20 +15,14 @@ export function ObservationSuccess({
       data-testid="observation-success"
       role="status"
     >
-      <div className="obs-success-star" aria-hidden="true">
-        ✦
-      </div>
-      <div className="obs-success-title">Observation Complete!</div>
-      <div className="obs-success-subtitle">
-        {destinationName} locked in — revealing {regionName} on the Atlas.
-      </div>
+      <div className="obs-success-title">{revealName} is now in view!</div>
       <button
         type="button"
-        className="obs-primary-cta obs-success-continue"
+        className="obs-primary-cta"
         onClick={onContinue}
         data-testid="observation-continue-btn"
       >
-        View Star Chart →
+        Return to Atlas
       </button>
     </div>
   );

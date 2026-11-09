@@ -18,6 +18,8 @@ const nextConfig: NextConfig = {
   images: { unoptimized: true },
   trailingSlash: true,
   transpilePackages: ["vexflow"],
+  // Fullscreen games pin their exit control to the bottom-left corner.
+  devIndicators: { position: "top-right" },
 };
 
 const withMDX = createMDX({

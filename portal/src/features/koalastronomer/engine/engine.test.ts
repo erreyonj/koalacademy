@@ -12,11 +12,14 @@ import {
 import {
   completeChallenge,
   getChallengeReward,
+  getCumulativeInterval,
   validateWordChallenge,
 } from "./archive-engine";
 import {
+  getAtlasLabel,
   getAvailableDestinations,
   getRevealedRegions,
+  isCampaignWon,
   isDestinationUnlocked,
 } from "./atlas-engine";
 import {
@@ -27,6 +30,7 @@ import {
 } from "./game-state";
 import {
   ascendingIntervalPitches,
+  ascendingSequencePitches,
   calculateInterval,
   isValidNoteLetter,
   stepNoteLetter,
@@ -40,13 +44,20 @@ import {
   getFailedTracePenalty,
   getFirstDialLineHint,
   getRemainingDestinationCost,
-  isGameOver,
+  isCalibrationShort,
   isObservationSolved,
   openTelescopeBriefing,
   recordComponentStuck,
   solveComponent,
   startObservation,
 } from "./telescope-engine";
+import {
+  getArchiveSector,
+  getAvailableChallenges,
+  getDifficultyChallenges,
+  getRecordTotal,
+  isGameOver,
+} from "./sector-archive";
 import {
   createTraceState,
   degrees,
@@ -100,35 +111,56 @@ describe("calculateInterval & ascendingIntervalPitches", () => {
 
 describe("Archive engine & curated word bank", () => {
   const sampleChallenge: WordChallenge = {
-    id: "beef-1",
+    id: "andromeda-1",
+    destinationId: "new-body",
+    set: "primary",
     title: "Record 01",
-    answer: "BEEF",
-    missingPositions: [0, 3],
-    difficulty: "easy",
-    intervalValue: 5,
-    category: "Celestial Designation",
-    hint: "Provision",
+    answer: "ANDROMEDA",
+    blanks: { easy: [0, 2], medium: [0, 2, 6], hard: [0, 2, 6, 8] },
+    hint: "Nearest large galaxy",
   };
 
-  it("validates correct first and second letters and returns the interval", () => {
-    const result = validateWordChallenge(sampleChallenge, "B", "F");
+  it("sums ascending intervals between consecutive blanks (A→D 4th + D→E 2nd = 6)", () => {
+    expect(getCumulativeInterval(["A", "D", "E"])).toBe(6);
+    expect(getCumulativeInterval(["A", "D"])).toBe(4);
+    expect(getCumulativeInterval(["F", "E"])).toBe(7);
+    expect(getChallengeReward(sampleChallenge, "easy")).toBe(4);
+    expect(getChallengeReward(sampleChallenge, "medium")).toBe(6);
+    expect(getChallengeReward(sampleChallenge, "hard")).toBe(10);
+
+    const real = WORD_CHALLENGES.find((c) => c.answer === "ANDROMEDA")!;
+    expect(real.blanks.medium).toEqual([0, 2, 6]);
+    expect(getChallengeReward(real, "medium")).toBe(6);
+  });
+
+  it("validates every bearing and returns the interval chain", () => {
+    const result = validateWordChallenge(sampleChallenge, "medium", [
+      "A",
+      "D",
+      "E",
+    ]);
     expect(result.valid).toBe(true);
-    expect(result.firstNote).toBe("B");
-    expect(result.secondNote).toBe("F");
-    expect(result.intervalValue).toBe(5);
-    expect(result.error).toBeNull();
+    expect(result.wrongIndex).toBeNull();
+    expect(result.notes).toEqual(["A", "D", "E"]);
+    expect(result.steps.map((step) => step.interval)).toEqual([4, 2]);
+    expect(result.total).toBe(6);
   });
 
-  it("flags wrong first letter without spending points", () => {
-    const result = validateWordChallenge(sampleChallenge, "A", "F");
-    expect(result.valid).toBe(false);
-    expect(result.error).toBe("first-letter-wrong");
+  it("flags the first wrong bearing without spending points", () => {
+    const first = validateWordChallenge(sampleChallenge, "medium", ["B", "D", "E"]);
+    expect(first.valid).toBe(false);
+    expect(first.wrongIndex).toBe(0);
+    expect(first.total).toBe(0);
+
+    const third = validateWordChallenge(sampleChallenge, "medium", ["A", "D", "F"]);
+    expect(third.wrongIndex).toBe(2);
   });
 
-  it("flags wrong second letter", () => {
-    const result = validateWordChallenge(sampleChallenge, "B", "E");
-    expect(result.valid).toBe(false);
-    expect(result.error).toBe("second-letter-wrong");
+  it("plays a multi-note record as one ascending run", () => {
+    expect(ascendingSequencePitches(["A", "D", "E"])).toEqual(["A4", "D5", "E5"]);
+    expect(ascendingSequencePitches(["C", "C", "E"])).toEqual(["C4", "C4", "E4"]);
+    const long = ascendingSequencePitches(["G", "F", "E", "D", "C"]);
+    expect(Number(long[long.length - 1].slice(1))).toBeLessThanOrEqual(6);
   });
 
   it("awards calibration points once per completed challenge", () => {
@@ -143,10 +175,68 @@ describe("Archive engine & curated word bank", () => {
     expect(afterDuplicate.completedChallengeIds).toEqual(["beef-1"]);
   });
 
-  it("has 16 valid A-G word challenges whose stored intervals match calculateInterval", () => {
-    expect(WORD_CHALLENGES.length).toBe(16);
+  it("has 48 valid records with nested, note-only blanks per difficulty", () => {
+    expect(WORD_CHALLENGES.length).toBe(48);
     for (const challenge of WORD_CHALLENGES) {
-      expect(validateChallengeDefinition(challenge)).toBe(true);
+      expect(validateChallengeDefinition(challenge), challenge.id).toBe(true);
+    }
+    expect(new Set(WORD_CHALLENGES.map((c) => c.id)).size).toBe(48);
+    expect(new Set(WORD_CHALLENGES.map((c) => c.answer)).size).toBe(48);
+    expect(
+      validateChallengeDefinition({
+        ...sampleChallenge,
+        blanks: { easy: [0, 2], medium: [0, 6], hard: [0, 2, 6] },
+      }),
+    ).toBe(false);
+  });
+
+  it("keeps astronomy words Hard-only: Easy and Medium records are spelled with A-G", () => {
+    for (const challenge of getDifficultyChallenges(WORD_CHALLENGES, "medium")) {
+      expect(challenge.answer, challenge.id).toMatch(/^[A-G]+$/);
+    }
+    for (const challenge of WORD_CHALLENGES.filter((c) => c.hardOnly)) {
+      expect(challenge.answer, challenge.id).not.toMatch(/^[A-G]+$/);
+    }
+  });
+
+  it("gives every sector a primary set that funds its calibration within 6 Cal on every difficulty", () => {
+    for (const dest of DESTINATIONS) {
+      const sector = WORD_CHALLENGES.filter((c) => c.destinationId === dest.id);
+      expect(sector.filter((c) => c.set === "primary" && !c.hardOnly).length).toBe(4);
+      expect(sector.filter((c) => c.hardOnly).length).toBe(2);
+      expect(sector.filter((c) => c.set === "backup-1").length).toBe(3);
+      expect(sector.filter((c) => c.set === "backup-2").length).toBe(3);
+
+      for (const difficulty of ["easy", "medium", "hard"] as const) {
+        const primary = getDifficultyChallenges(sector, difficulty).filter(
+          (c) => c.set === "primary",
+        );
+        expect(primary.length).toBe(difficulty === "hard" ? 6 : 4);
+        const sum = primary.reduce(
+          (total, c) => total + getChallengeReward(c, difficulty),
+          0,
+        );
+        const cost = getDestinationTotalCost(dest, difficulty);
+        expect(sum, `${dest.id} ${difficulty}`).toBeGreaterThanOrEqual(cost);
+        expect(sum, `${dest.id} ${difficulty}`).toBeLessThanOrEqual(cost + 6);
+      }
+    }
+  });
+
+  it("gives every backup set enough Calibration to fund at least one ring", () => {
+    for (const dest of DESTINATIONS) {
+      for (const difficulty of ["easy", "medium", "hard"] as const) {
+        const ring = Math.max(
+          ...DIAL_NAMES.map((dial) => getComponentCost(dest, dial, difficulty)),
+        );
+        for (const set of ["backup-1", "backup-2"] as const) {
+          if (difficulty === "hard" && set === "backup-2") continue;
+          const sum = WORD_CHALLENGES.filter(
+            (c) => c.destinationId === dest.id && c.set === set,
+          ).reduce((total, c) => total + getChallengeReward(c, difficulty), 0);
+          expect(sum, `${dest.id} ${difficulty} ${set}`).toBeGreaterThanOrEqual(ring);
+        }
+      }
     }
   });
 });
@@ -177,13 +267,7 @@ describe("One-line Eulerian trace engine & figure bank economy", () => {
     }
   });
 
-  it("keeps every difficulty's total ring cost at least 10 below its Archive total", () => {
-    const archiveTotal = WORD_CHALLENGES.reduce(
-      (sum, c) => sum + c.intervalValue,
-      0,
-    );
-    expect(archiveTotal).toBe(65);
-
+  it("caps Medium's ring cost at Easy's and keeps Hard's at 113", () => {
     const totalCost = (difficulty: "easy" | "medium" | "hard") =>
       DESTINATIONS.reduce(
         (sum, dest) => sum + getDestinationTotalCost(dest, difficulty),
@@ -191,19 +275,7 @@ describe("One-line Eulerian trace engine & figure bank economy", () => {
       );
     expect(totalCost("easy")).toBeLessThanOrEqual(55);
     expect(totalCost("medium")).toBe(totalCost("easy"));
-
-    const hardArchiveTotal = WORD_CHALLENGES.reduce(
-      (sum, c) => sum + getChallengeReward(c.intervalValue, "hard"),
-      0,
-    );
-    expect(hardArchiveTotal).toBe(130);
-    expect(hardArchiveTotal - totalCost("hard")).toBeGreaterThanOrEqual(10);
-  });
-
-  it("doubles Archive rewards on Hard only", () => {
-    expect(getChallengeReward(5, "easy")).toBe(5);
-    expect(getChallengeReward(5, "medium")).toBe(5);
-    expect(getChallengeReward(5, "hard")).toBe(10);
+    expect(totalCost("hard")).toBe(113);
   });
 
   it("shows the follow-this-line hint only on Easy's first dial before the first step", () => {
@@ -309,7 +381,12 @@ describe("One-line Eulerian trace engine & figure bank economy", () => {
 
 describe("Hard-mode failed traces & Game Over", () => {
   const mercury = DESTINATIONS[0];
-  const allChallengeIds = WORD_CHALLENGES.map((c) => c.id);
+  const mercuryPrimaryIds = WORD_CHALLENGES.filter(
+    (c) => c.destinationId === mercury.id && c.set === "primary",
+  ).map((c) => c.id);
+  const mercuryBackupIds = WORD_CHALLENGES.filter(
+    (c) => c.destinationId === mercury.id && c.set === "backup-1",
+  ).map((c) => c.id);
 
   it("charges 1 Calibration per failed trace only on Hard, never below 0", () => {
     expect(getFailedTracePenalty("easy")).toBe(0);
@@ -341,28 +418,32 @@ describe("Hard-mode failed traces & Game Over", () => {
     expect(free.calibrationPoints).toBe(3);
   });
 
-  it("detects Game Over only on Hard once the Archive is exhausted and no ring is affordable", () => {
+  it("detects Game Over only on Hard after backup-1 is exhausted and no ring is affordable", () => {
     const base = {
       ...createInitialState("hard"),
       currentScreen: "atlas" as const,
-      completedChallengeIds: allChallengeIds,
+      completedChallengeIds: [...mercuryPrimaryIds, ...mercuryBackupIds],
       calibrationPoints: 2,
     };
-    const total = WORD_CHALLENGES.length;
-    expect(isGameOver(base, DESTINATIONS, total)).toBe(true);
+    const all = WORD_CHALLENGES;
+    expect(isGameOver(base, DESTINATIONS, all)).toBe(true);
 
-    expect(
-      isGameOver({ ...base, difficulty: "easy" }, DESTINATIONS, total),
-    ).toBe(false);
+    // Primary spent but backup-1 still open: not over yet
     expect(
       isGameOver(
-        { ...base, completedChallengeIds: allChallengeIds.slice(1) },
+        { ...base, completedChallengeIds: mercuryPrimaryIds },
         DESTINATIONS,
-        total,
+        all,
       ),
     ).toBe(false);
     expect(
-      isGameOver({ ...base, calibrationPoints: 8 }, DESTINATIONS, total),
+      isGameOver({ ...base, difficulty: "easy" }, DESTINATIONS, all),
+    ).toBe(false);
+    expect(
+      isGameOver({ ...base, difficulty: "medium" }, DESTINATIONS, all),
+    ).toBe(false);
+    expect(
+      isGameOver({ ...base, calibrationPoints: 8 }, DESTINATIONS, all),
     ).toBe(false);
     expect(
       isGameOver(
@@ -371,16 +452,125 @@ describe("Hard-mode failed traces & Game Over", () => {
           completedDestinationIds: DESTINATIONS.map((d) => d.id),
         },
         DESTINATIONS,
-        total,
+        all,
       ),
     ).toBe(false);
   });
 
-  it("gives every destination a sector log profile", () => {
+  it("gives every destination a sector log profile and a lens reveal photo", () => {
     for (const dest of DESTINATIONS) {
       expect(dest.profile.blurb.length).toBeGreaterThan(20);
       expect(dest.profile.facts.length).toBeGreaterThanOrEqual(2);
+      expect(dest.lensImage).toMatch(/^\/assets\/koalastronomer\//);
+      expect(dest.revealName.length).toBeGreaterThan(2);
     }
+    expect(DESTINATIONS.map((d) => d.revealName)).toEqual([
+      "Mercury",
+      "Ceres",
+      "Pluto",
+      "Unknown world",
+    ]);
+  });
+});
+
+describe("Per-sector Archive record sets", () => {
+  const [mercury, outerBelt] = DESTINATIONS;
+  const idsFor = (destinationId: string, set: string) =>
+    WORD_CHALLENGES.filter(
+      (c) => c.destinationId === destinationId && c.set === set,
+    ).map((c) => c.id);
+
+  it("serves only the current uncharted sector's records, with bonus records on Hard only", () => {
+    const state = createInitialState("easy");
+    expect(getArchiveSector(state, DESTINATIONS).id).toBe(mercury.id);
+    const easy = getAvailableChallenges(state, WORD_CHALLENGES, DESTINATIONS);
+    expect(easy).toHaveLength(4);
+    expect(easy.some((c) => c.hardOnly)).toBe(false);
+    expect(
+      getAvailableChallenges(
+        createInitialState("hard"),
+        WORD_CHALLENGES,
+        DESTINATIONS,
+      ).map((c) => c.id),
+    ).toEqual(idsFor(mercury.id, "primary"));
+
+    const charted = completeObservation(state, mercury.id);
+    expect(getArchiveSector(charted, DESTINATIONS).id).toBe(outerBelt.id);
+    expect(
+      getAvailableChallenges(charted, WORD_CHALLENGES, DESTINATIONS).every(
+        (c) => c.destinationId === outerBelt.id,
+      ),
+    ).toBe(true);
+  });
+
+  it("opens Easy 2 / Medium 2 / Hard 1 backup sets only when Calibration runs dry", () => {
+    const primary = WORD_CHALLENGES.filter(
+      (c) => c.destinationId === mercury.id && c.set === "primary" && !c.hardOnly,
+    ).map((c) => c.id);
+    const hardPrimary = idsFor(mercury.id, "primary");
+    const backup1 = idsFor(mercury.id, "backup-1");
+    const visibleSets = (
+      difficulty: "easy" | "medium" | "hard",
+      completed: string[],
+      calibrationPoints = 0,
+    ) => [
+      ...new Set(
+        getAvailableChallenges(
+          {
+            ...createInitialState(difficulty),
+            completedChallengeIds: completed,
+            calibrationPoints,
+          },
+          WORD_CHALLENGES,
+          DESTINATIONS,
+        ).map((c) => c.set),
+      ),
+    ];
+
+    // Cheapest Easy Mercury ring costs 4: with enough Calibration, no backups
+    expect(isCalibrationShort({ ...createInitialState("easy"), calibrationPoints: 4 }, DESTINATIONS)).toBe(false);
+    expect(visibleSets("easy", primary, 4)).toEqual(["primary"]);
+    expect(visibleSets("easy", primary.slice(1), 0)).toEqual(["primary"]);
+
+    // Out of Calibration with the primary set spent opens the next backup
+    expect(visibleSets("easy", primary, 3)).toEqual(["primary", "backup-1"]);
+    expect(visibleSets("easy", [...primary, ...backup1], 0)).toEqual([
+      "primary",
+      "backup-1",
+      "backup-2",
+    ]);
+    expect(visibleSets("medium", [...primary, ...backup1], 0)).toEqual([
+      "primary",
+      "backup-1",
+      "backup-2",
+    ]);
+    // Hard's bonus record must be recovered before its single backup opens
+    expect(visibleSets("hard", primary, 0)).toEqual(["primary"]);
+    expect(visibleSets("hard", [...hardPrimary, ...backup1], 0)).toEqual([
+      "primary",
+      "backup-1",
+    ]);
+
+    // A backup set stays open once any of its records is recovered
+    expect(visibleSets("easy", [...primary, backup1[0]], 20)).toEqual([
+      "primary",
+      "backup-1",
+    ]);
+  });
+
+  it("counts primary records plus any open or recovered backups toward progress", () => {
+    const primary = idsFor(mercury.id, "primary");
+    const flush = { ...createInitialState("easy"), completedChallengeIds: primary, calibrationPoints: 4 };
+    const dry = { ...flush, calibrationPoints: 0 };
+    const total = (state: typeof flush) =>
+      getRecordTotal(
+        state,
+        WORD_CHALLENGES,
+        getAvailableChallenges(state, WORD_CHALLENGES, DESTINATIONS),
+      );
+    expect(total(flush)).toBe(16);
+    expect(total(dry)).toBe(19);
+    expect(total({ ...createInitialState("hard"), calibrationPoints: 20 })).toBe(24);
   });
 });
 
@@ -392,6 +582,8 @@ describe("Atlas unlock progression & persistence migration", () => {
     ).toEqual(["mercury-sector"]);
 
     state = completeObservation(state, "mercury-sector");
+    expect(state.currentDestinationId).toBe("mercury-sector");
+    expect(state.telescopeProgress).toBeNull();
     expect(
       getRevealedRegions(DESTINATIONS, state.completedDestinationIds),
     ).toEqual(["mercury-sector"]);
@@ -401,6 +593,33 @@ describe("Atlas unlock progression & persistence migration", () => {
     expect(
       getAvailableDestinations(DESTINATIONS, state).map((d) => d.id),
     ).toEqual(["outer-belt"]);
+  });
+
+  it("renames charted Atlas sectors to the identified body, except the New Body", () => {
+    const [mercury, outerBelt, distant, newBody] = DESTINATIONS;
+    expect(getAtlasLabel(mercury, false)).toBe("Mercury Sector");
+    expect(getAtlasLabel(mercury, true)).toBe("Mercury");
+    expect(getAtlasLabel(outerBelt, false)).toBe("Outer Belt");
+    expect(getAtlasLabel(outerBelt, true)).toBe("Ceres");
+    expect(getAtlasLabel(distant, false)).toBe("Distant Region");
+    expect(getAtlasLabel(distant, true)).toBe("Pluto");
+    expect(getAtlasLabel(newBody, false)).toBe("The New Body");
+    expect(getAtlasLabel(newBody, true)).toBe("The New Body");
+  });
+
+  it("treats the campaign as won only once every sector is charted", () => {
+    const none = createInitialState();
+    expect(isCampaignWon(none.completedDestinationIds, DESTINATIONS)).toBe(
+      false,
+    );
+    const almost = DESTINATIONS.slice(0, 3).map((d) => d.id);
+    expect(isCampaignWon(almost, DESTINATIONS)).toBe(false);
+    expect(
+      isCampaignWon(
+        DESTINATIONS.map((d) => d.id),
+        DESTINATIONS,
+      ),
+    ).toBe(true);
   });
 
   it("round-trips valid saved state and migrates legacy dial saves cleanly", () => {

@@ -3,10 +3,21 @@
 import type { DialName } from "../../engine/game-state";
 import { RING_METADATA } from "../../engine/telescope-engine";
 
+/** Live path progress for the active collar's turn animation. */
+export interface CollarTraceProgress {
+  used: number;
+  total: number;
+  stuck: boolean;
+}
+
 interface TelescopeBodyProps {
   costs: Record<DialName, number>;
+  /** Edge counts per ring; used for solved-collar data-turn. */
+  ringLineCounts: Record<DialName, number>;
   solved: Record<DialName, boolean>;
   activeRing: DialName | null;
+  /** Progress of the open trace puzzle; drives the active collar turn. */
+  traceProgress?: CollarTraceProgress | null;
   calibrationPoints: number;
   unlimitedCalibration?: boolean;
   onSelectRing: (ring: DialName) => void;
@@ -15,6 +26,8 @@ interface TelescopeBodyProps {
 
 const TUBE_VIEWBOX_WIDTH = 880;
 const COLLAR_CENTER_OFFSET = 62;
+/** Rib scroll when a collar is fully aligned (negative = turn "up"). */
+const LOCKED_PHASE = -24;
 
 const RINGS: readonly {
   ring: DialName;
@@ -26,20 +39,46 @@ const RINGS: readonly {
   { ring: "alignment", collarX: 646, baseDeg: 75 },
 ];
 
+function collarTurnAmount(
+  isSolved: boolean,
+  isActive: boolean,
+  lineCount: number,
+  progress: CollarTraceProgress | null | undefined,
+): number {
+  if (isSolved) return lineCount;
+  if (!isActive || !progress || progress.total <= 0 || progress.stuck) return 0;
+  return progress.used;
+}
+
+function collarPhaseShift(
+  isSolved: boolean,
+  isActive: boolean,
+  progress: CollarTraceProgress | null | undefined,
+): number {
+  if (isSolved) return LOCKED_PHASE;
+  if (!isActive || !progress || progress.total <= 0 || progress.stuck) return 0;
+  return (progress.used / progress.total) * LOCKED_PHASE;
+}
+
 /**
  * Renders one flush rotating collar dial inside the unified cylindrical
- * telescope barrel. Unlike static stripes, each collar features precision
- * degree ticks, diagonal knurled grip bands, an index Vernier window, and
- * a smooth vertical-scroll rotation offset when active or aligned.
+ * telescope barrel. Knurled ribs scroll with live trace progress so each
+ * drawn line turns the collar; a stuck or cleared path winds it home.
  */
 function RotatingCollarDialSvg({
+  ring,
   collarX,
   isSolved,
   isActive,
+  lineCount,
+  progress,
 }: {
+  ring: DialName;
   collarX: number;
   isSolved: boolean;
   isActive: boolean;
+  lineCount: number;
+  progress: CollarTraceProgress | null | undefined;
 }) {
   const collarFill = isSolved
     ? "#365f4f"
@@ -57,17 +96,30 @@ function RotatingCollarDialSvg({
       ? "#e3b23c"
       : "#bdd7ee";
 
-  // Simulated vertical rotation shift on the curved collar ribs
-  const phaseShift = isSolved ? -10 : isActive ? 7 : 0;
+  const phaseShift = collarPhaseShift(isSolved, isActive, progress);
+  const turnAmount = collarTurnAmount(isSolved, isActive, lineCount, progress);
+  const isRewinding =
+    isActive && Boolean(progress?.stuck || (progress && progress.used === 0));
+  // Extra ribs beyond the window so a turn still looks continuous under the clip.
   const ribIndices = [
-    -96, -82, -68, -54, -40, -26, -12, 2, 16, 30, 44, 58, 72, 86, 100,
+    -124, -110, -96, -82, -68, -54, -40, -26, -12, 2, 16, 30, 44, 58, 72, 86,
+    100, 114, 128,
   ];
+  const clipId = `obs-collar-clip-${ring}`;
 
   return (
     <g
       transform={`translate(${collarX}, 0)`}
       className={`obs-collar-svg-group${isSolved ? " is-solved" : ""}${isActive ? " is-active" : ""}`}
+      data-testid={`collar-${ring}`}
+      data-turn={turnAmount}
     >
+      <defs>
+        <clipPath id={clipId}>
+          <path d="M 52 18 C 22 70, 22 190, 52 242 L 92 242 C 62 190, 62 70, 92 18 Z" />
+        </clipPath>
+      </defs>
+
       {/* Left and right machined retaining grooves */}
       <path
         d="M 24 14 C -8 68, -8 192, 24 246 L 40 246 C 8 192, 8 68, 40 14 Z"
@@ -95,30 +147,36 @@ function RotatingCollarDialSvg({
       />
 
       {/* Rotating knurled grip ribs + degree ticks */}
-      {ribIndices.map((offset) => {
-        const y = 130 + offset + phaseShift;
-        if (y < 24 || y > 236) return null;
-        const norm = (y - 130) / 112;
-        const curveX = Math.round((1 - norm * norm) * -22);
-        const x1 = 53 + curveX;
-        const x2 = 90 + curveX;
-        const isMajor = Math.abs(offset) % 28 === 12;
+      <g clipPath={`url(#${clipId})`}>
+        <g
+          className={`obs-collar-ribs${isRewinding ? " is-rewinding" : ""}`}
+          style={{ transform: `translateY(${phaseShift}px)` }}
+        >
+          {ribIndices.map((offset) => {
+            const y = 130 + offset;
+            const norm = (y - 130) / 112;
+            const curveX = Math.round((1 - norm * norm) * -22);
+            const x1 = 53 + curveX;
+            const x2 = 90 + curveX;
+            const isMajor = Math.abs(offset) % 28 === 12;
 
-        return (
-          <g key={offset}>
-            <line
-              x1={x1}
-              y1={y}
-              x2={x2}
-              y2={y - 3}
-              stroke={isMajor ? accentColor : "#c87a42"}
-              strokeWidth={isMajor ? "3" : "2"}
-              strokeOpacity={isMajor ? "0.95" : "0.68"}
-              strokeLinecap="round"
-            />
-          </g>
-        );
-      })}
+            return (
+              <g key={offset}>
+                <line
+                  x1={x1}
+                  y1={y}
+                  x2={x2}
+                  y2={y - 3}
+                  stroke={isMajor ? accentColor : "#c87a42"}
+                  strokeWidth={isMajor ? "3" : "2"}
+                  strokeOpacity={isMajor ? "0.95" : "0.68"}
+                  strokeLinecap="round"
+                />
+              </g>
+            );
+          })}
+        </g>
+      </g>
 
       {/* Top status LED on the collar rim */}
       <circle
@@ -135,8 +193,10 @@ function RotatingCollarDialSvg({
 
 export function TelescopeBody({
   costs,
+  ringLineCounts,
   solved,
   activeRing,
+  traceProgress = null,
   calibrationPoints,
   unlimitedCalibration = false,
   onSelectRing,
@@ -280,9 +340,12 @@ export function TelescopeBody({
           {RINGS.map(({ ring, collarX }) => (
             <RotatingCollarDialSvg
               key={ring}
+              ring={ring}
               collarX={collarX}
               isSolved={solved[ring]}
               isActive={activeRing === ring}
+              lineCount={ringLineCounts[ring]}
+              progress={activeRing === ring ? traceProgress : null}
             />
           ))}
 

@@ -11,8 +11,11 @@ import {
 
 const BEARING_SWIPE_PX = 28;
 
+const ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII"];
+
 interface LetterSelectorProps {
-  position: "first" | "second";
+  /** Zero-based bearing index, left to right. */
+  index: number;
   value: NoteLetter;
   controlMode: ControlMode;
   onChange: (letter: NoteLetter) => void;
@@ -21,7 +24,7 @@ interface LetterSelectorProps {
 }
 
 export function LetterSelector({
-  position,
+  index,
   value,
   controlMode,
   onChange,
@@ -38,6 +41,8 @@ export function LetterSelector({
     startY: 0,
   });
 
+  const id = `bearing-${index + 1}`;
+  const label = `Bearing ${ROMAN[index] ?? index + 1}`;
   const noteIndex = NOTE_SEQUENCE.indexOf(value);
   const rotationDeg = (noteIndex / NOTE_SEQUENCE.length) * 360;
 
@@ -79,19 +84,19 @@ export function LetterSelector({
   return (
     <div
       className={`obs-bearing-selector${error ? " is-error" : ""}${controlMode === "touch" ? " is-touch" : " is-buttons"}`}
-      data-testid={`${position}-letter-selector`}
+      data-testid={`${id}-selector`}
       data-value={value}
     >
       <div
         className="obs-bearing-wheel"
-        data-testid={`${position}-bearing-wheel`}
+        data-testid={`${id}-wheel`}
         data-value={value}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
         role="slider"
-        aria-label={`${position === "first" ? "First" : "Second"} missing letter bearing`}
+        aria-label={`${label} missing letter`}
         aria-valuemin={0}
         aria-valuemax={6}
         aria-valuenow={noteIndex}
@@ -157,7 +162,7 @@ export function LetterSelector({
 
         <div
           className={`obs-bearing-hub${error ? " is-error" : ""}`}
-          data-testid={`${position}-bearing-value`}
+          data-testid={`${id}-value`}
         >
           {value}
         </div>
@@ -167,7 +172,7 @@ export function LetterSelector({
       <div className="obs-bearing-pedestal" aria-hidden="true">
         <span className="obs-pedestal-collar" />
         <span className="obs-pedestal-label">
-          {position === "first" ? "Bearing I" : "Bearing II"}
+          {label}
         </span>
       </div>
 
@@ -181,8 +186,8 @@ export function LetterSelector({
               className="obs-bearing-step-btn"
               onClick={() => stepBy(-1)}
               disabled={disabled}
-              data-testid={`${position}-bearing-prev`}
-              aria-label={`Previous ${position} letter`}
+              data-testid={`${id}-prev`}
+              aria-label={`${label}: previous letter`}
             >
               −
             </button>
@@ -191,8 +196,8 @@ export function LetterSelector({
               className="obs-bearing-step-btn"
               onClick={() => stepBy(1)}
               disabled={disabled}
-              data-testid={`${position}-bearing-next`}
-              aria-label={`Next ${position} letter`}
+              data-testid={`${id}-next`}
+              aria-label={`${label}: next letter`}
             >
               +
             </button>
@@ -200,7 +205,7 @@ export function LetterSelector({
           <div
             className="obs-bearing-stops"
             role="group"
-            aria-label={`${position} letter stops`}
+            aria-label={`${label} letter stops`}
           >
             {NOTE_SEQUENCE.map((letter) => {
               const isSelected = value === letter;
@@ -212,7 +217,7 @@ export function LetterSelector({
                   className={`obs-bearing-stop-btn${isSelected ? " is-selected" : ""}${hasError ? " is-error" : ""}`}
                   onClick={() => onChange(letter)}
                   disabled={disabled}
-                  data-testid={`${position}-letter-${letter}`}
+                  data-testid={`${id}-letter-${letter}`}
                   aria-pressed={isSelected}
                 >
                   {letter}

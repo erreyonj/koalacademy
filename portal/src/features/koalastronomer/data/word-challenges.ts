@@ -1,198 +1,482 @@
-import type { WordChallenge } from "../engine/game-state";
-import {
-  calculateInterval,
-  isValidNoteLetter,
-  type NoteLetter,
-} from "../engine/intervals";
+import type { Difficulty, WordChallenge } from "../engine/game-state";
+import { isValidNoteLetter } from "../engine/intervals";
 
 /**
- * 16 curated A–G word challenges (all characters strictly A–G),
- * including all nine Staff DeCode reference words.
+ * Sector word banks. Shared records are spelled only with A-G, so every letter
+ * can be a blank; Hard blanks more of them and adds two astronomy bonus records
+ * per sector. A record pays the sum of ascending intervals between consecutive
+ * blanks. Every sector has a primary set that covers its calibration on each
+ * difficulty, plus backup sets that open only when Calibration runs dry.
+ *
+ * Primary totals (Hard includes its bonus records):
+ *   Mercury: Easy 12, Medium 16, Hard 31
+ *   Outer Belt: Easy 13, Medium 19, Hard 33
+ *   Distant Region: Easy 14, Medium 20, Hard 34
+ *   The New Body: Easy 16, Medium 20, Hard 38
  */
 export const WORD_CHALLENGES: readonly WordChallenge[] = [
   {
-    id: "beef-1",
-    title: "Record 01 · Taurus Supply",
-    answer: "BEEF",
-    missingPositions: [0, 3], // B -> F = 5th
-    difficulty: "easy",
-    intervalValue: 5,
-    category: "Celestial Designation",
-    hint: "Four-letter provision logged under the Bull constellation.",
-  },
-  {
-    id: "bed-1",
-    title: "Record 02 · Base Cradle",
-    answer: "BED",
-    missingPositions: [0, 2], // B -> D = 3rd
-    difficulty: "easy",
-    intervalValue: 3,
-    category: "Celestial Designation",
-    hint: "Three-letter resting mount where the brass tube settles.",
-  },
-  {
-    id: "bead-1",
-    title: "Record 03 · Baily's Drop",
-    answer: "BEAD",
-    missingPositions: [0, 3], // B -> D = 3rd
-    difficulty: "easy",
-    intervalValue: 3,
-    category: "Celestial Designation",
-    hint: "A tiny pearl of sunlight glimpsed at the lunar limb.",
-  },
-  {
-    id: "cafe-1",
-    title: "Record 04 · Night Watch",
-    answer: "CAFE",
-    missingPositions: [0, 3], // C -> E = 3rd
-    difficulty: "easy",
-    intervalValue: 3,
-    category: "Celestial Designation",
-    hint: "Warm canteen stop for late-shift astronomers.",
-  },
-  {
-    id: "feed-1",
-    title: "Record 05 · Signal Relay",
-    answer: "FEED",
-    missingPositions: [0, 3], // F -> D = 6th
-    difficulty: "easy",
-    intervalValue: 6,
-    category: "Celestial Designation",
-    hint: "Continuous stream of telemetry from the dome receiver.",
-  },
-  {
-    id: "badge-1",
-    title: "Record 06 · Guild Crest",
-    answer: "BADGE",
-    missingPositions: [1, 4], // A -> E = 5th
-    difficulty: "easy",
-    intervalValue: 5,
-    category: "Celestial Designation",
-    hint: "Five-letter emblem worn on the observatory cloak.",
-  },
-  {
-    id: "added-1",
-    title: "Record 07 · Star Tally",
-    answer: "ADDED",
-    missingPositions: [0, 4], // A -> D = 4th
-    difficulty: "easy",
-    intervalValue: 4,
-    category: "Celestial Designation",
-    hint: "Summed into the ledger when a new body is cataloged.",
-  },
-  {
-    id: "edged-1",
-    title: "Record 08 · Bevel Lens",
-    answer: "EDGED",
-    missingPositions: [0, 2], // E -> G = 3rd
-    difficulty: "medium",
-    intervalValue: 3,
-    category: "Celestial Designation",
-    hint: "Ground with a sharp rim around the glass mirror.",
-  },
-  {
-    id: "caged-1",
-    title: "Record 09 · Lantern Frame",
-    answer: "CAGED",
-    missingPositions: [0, 4], // C -> D = 2nd
-    difficulty: "medium",
-    intervalValue: 2,
-    category: "Celestial Designation",
-    hint: "Enclosed in brass ribs to protect the warm desk flame.",
-  },
-  {
-    id: "faded-1",
-    title: "Record 10 · Dim Nebula",
-    answer: "FADED",
-    missingPositions: [0, 4], // F -> D = 6th
-    difficulty: "medium",
-    intervalValue: 6,
-    category: "Celestial Designation",
-    hint: "Grew faint on the parchment after centuries in the vault.",
-  },
-  {
-    id: "facade-1",
-    title: "Record 11 · Dome Front",
-    answer: "FACADE",
-    missingPositions: [1, 3], // A -> A = 1st (unison)
-    difficulty: "medium",
-    intervalValue: 1,
-    category: "Celestial Designation",
-    hint: "The outer stone face of the observatory building.",
-  },
-  {
-    id: "decade-1",
-    title: "Record 12 · Ten-Orbit Span",
-    answer: "DECADE",
-    missingPositions: [0, 2], // D -> C = 7th
-    difficulty: "medium",
-    intervalValue: 7,
-    category: "Celestial Designation",
-    hint: "Ten full Earth years of nightly sky logs.",
-  },
-  {
     id: "cabbage-1",
-    title: "Record 13 · Rosette Leaf",
+    destinationId: "mercury-sector",
+    set: "primary",
+    title: "Record 01 · Rosette Leaf",
     answer: "CABBAGE",
-    missingPositions: [1, 5], // A -> G = 7th
-    difficulty: "medium",
-    intervalValue: 7,
-    category: "Celestial Designation",
+    blanks: { easy: [1, 6], medium: [1, 2, 6], hard: [1, 2, 3, 6] },
     hint: "Seven-letter leafy garden staple stored in the cellar.",
   },
   {
-    id: "begged-1",
-    title: "Record 14 · Clear-Sky Plea",
-    answer: "BEGGED",
-    missingPositions: [0, 5], // B -> D = 3rd
-    difficulty: "hard",
-    intervalValue: 3,
-    category: "Celestial Designation",
-    hint: "Asked earnestly for the clouds to part before midnight.",
+    id: "accede-1",
+    destinationId: "mercury-sector",
+    set: "primary",
+    title: "Record 02 · Council Accord",
+    answer: "ACCEDE",
+    blanks: { easy: [1, 5], medium: [1, 2, 5], hard: [1, 2, 3, 5] },
+    hint: "Formally agree to open the upper shutter at dusk.",
+  },
+  {
+    id: "beef-1",
+    destinationId: "mercury-sector",
+    set: "primary",
+    title: "Record 03 · Taurus Supply",
+    answer: "BEEF",
+    blanks: { easy: [1, 3], medium: [1, 2, 3], hard: [1, 2, 3] },
+    hint: "Four-letter provision logged under the Bull constellation.",
+  },
+  {
+    id: "acceded-1",
+    destinationId: "mercury-sector",
+    set: "primary",
+    title: "Record 04 · Signed Treaty",
+    answer: "ACCEDED",
+    blanks: { easy: [1, 6], medium: [1, 2, 6], hard: [1, 2, 4, 6] },
+    hint: "Agreed at last, and the rival observatory shared its charts.",
+  },
+  {
+    id: "ebbed-1",
+    destinationId: "mercury-sector",
+    set: "backup-1",
+    title: "Record 05 · Low Tide",
+    answer: "EBBED",
+    blanks: { easy: [1, 2], medium: [1, 2, 4], hard: [0, 1, 2, 4] },
+    hint: "What the sea did as the Moon pulled the water away.",
+  },
+  {
+    id: "effaced-1",
+    destinationId: "mercury-sector",
+    set: "backup-1",
+    title: "Record 06 · Worn Away",
+    answer: "EFFACED",
+    blanks: { easy: [1, 2], medium: [0, 1, 2], hard: [0, 1, 2, 3] },
+    hint: "Erased by time, like old craters smoothed by lava.",
+  },
+  {
+    id: "facade-1",
+    destinationId: "mercury-sector",
+    set: "backup-1",
+    title: "Record 07 · Dome Front",
+    answer: "FACADE",
+    blanks: { easy: [1, 2], medium: [1, 2, 4], hard: [1, 2, 4, 5] },
+    hint: "The outer stone face of the observatory building.",
+  },
+  {
+    id: "egged-1",
+    destinationId: "mercury-sector",
+    set: "backup-2",
+    title: "Record 08 · Crew Cheer",
+    answer: "EGGED",
+    blanks: { easy: [0, 2], medium: [0, 1, 2], hard: [0, 1, 2, 4] },
+    hint: "The crew ___ the night-shift astronomer on to finish the chart.",
+  },
+  {
+    id: "badge-1",
+    destinationId: "mercury-sector",
+    set: "backup-2",
+    title: "Record 09 · Guild Crest",
+    answer: "BADGE",
+    blanks: { easy: [0, 2], medium: [0, 2, 4], hard: [0, 1, 2, 4] },
+    hint: "Five-letter emblem worn on the observatory cloak.",
   },
   {
     id: "defaced-1",
-    title: "Record 15 · Scratched Plate",
+    destinationId: "mercury-sector",
+    set: "backup-2",
+    title: "Record 10 · Scratched Plate",
     answer: "DEFACED",
-    missingPositions: [0, 5], // D -> E = 2nd
-    difficulty: "hard",
-    intervalValue: 2,
-    category: "Celestial Designation",
+    blanks: { easy: [0, 5], medium: [0, 1, 5], hard: [0, 1, 5, 6] },
     hint: "Marred on the surface so the original inscription blurred.",
   },
   {
-    id: "accede-1",
-    title: "Record 16 · Council Accord",
-    answer: "ACCEDE",
-    missingPositions: [0, 5], // A -> E = 5th
-    difficulty: "hard",
-    intervalValue: 5,
-    category: "Celestial Designation",
-    hint: "Formally agree to open the upper shutter at dusk.",
+    id: "bade-1",
+    destinationId: "outer-belt",
+    set: "primary",
+    title: "Record 11 · Last Order",
+    answer: "BADE",
+    blanks: { easy: [0, 2], medium: [0, 2, 3], hard: [0, 2, 3] },
+    hint: "The director ___ the crew to open the shutter.",
+  },
+  {
+    id: "beefed-1",
+    destinationId: "outer-belt",
+    set: "primary",
+    title: "Record 12 · Reinforced Mount",
+    answer: "BEEFED",
+    blanks: { easy: [1, 4], medium: [1, 2, 4], hard: [0, 1, 2, 4] },
+    hint: "The telescope mount was ___ up to hold the bigger lens.",
+  },
+  {
+    id: "face-1",
+    destinationId: "outer-belt",
+    set: "primary",
+    title: "Record 13 · Moon Side",
+    answer: "FACE",
+    blanks: { easy: [0, 2], medium: [0, 1, 2], hard: [0, 1, 2] },
+    hint: "The side of the Moon that always turns toward Earth.",
+  },
+  {
+    id: "fade-1",
+    destinationId: "outer-belt",
+    set: "primary",
+    title: "Record 14 · Dusk Sky",
+    answer: "FADE",
+    blanks: { easy: [1, 2], medium: [1, 2, 3], hard: [1, 2, 3] },
+    hint: "What daylight does as the first stars appear.",
+  },
+  {
+    id: "bagged-1",
+    destinationId: "outer-belt",
+    set: "backup-1",
+    title: "Record 15 · Packed Samples",
+    answer: "BAGGED",
+    blanks: { easy: [0, 3], medium: [0, 2, 3], hard: [0, 2, 3, 5] },
+    hint: "Meteor fragments sealed up for the lab.",
+  },
+  {
+    id: "efface-1",
+    destinationId: "outer-belt",
+    set: "backup-1",
+    title: "Record 16 · Erase Smudge",
+    answer: "EFFACE",
+    blanks: { easy: [0, 2], medium: [0, 1, 2], hard: [0, 1, 2, 3] },
+    hint: "Wipe out a mark so no trace is left on the plate.",
+  },
+  {
+    id: "cede-1",
+    destinationId: "outer-belt",
+    set: "backup-1",
+    title: "Record 17 · Yield Orbit",
+    answer: "CEDE",
+    blanks: { easy: [0, 3], medium: [0, 1, 3], hard: [0, 1, 3] },
+    hint: "To give up ground, as Pluto did its planet title.",
+  },
+  {
+    id: "decade-1",
+    destinationId: "outer-belt",
+    set: "backup-2",
+    title: "Record 18 · Ten-Orbit Span",
+    answer: "DECADE",
+    blanks: { easy: [0, 5], medium: [0, 1, 5], hard: [0, 1, 2, 5] },
+    hint: "Ten full Earth years of nightly sky logs.",
+  },
+  {
+    id: "decaf-1",
+    destinationId: "outer-belt",
+    set: "backup-2",
+    title: "Record 19 · Late-Shift Mug",
+    answer: "DECAF",
+    blanks: { easy: [0, 4], medium: [0, 1, 4], hard: [0, 1, 2, 4] },
+    hint: "Coffee without the buzz, for astronomers who still want to sleep.",
+  },
+  {
+    id: "gaffe-1",
+    destinationId: "outer-belt",
+    set: "backup-2",
+    title: "Record 20 · Logbook Slip",
+    answer: "GAFFE",
+    blanks: { easy: [2, 3], medium: [1, 2, 3], hard: [0, 1, 2, 3] },
+    hint: "An embarrassing mistake, like labeling Mars as a star.",
+  },
+  {
+    id: "beaded-1",
+    destinationId: "distant-region",
+    set: "primary",
+    title: "Record 21 · Dew Drops",
+    answer: "BEADED",
+    blanks: { easy: [1, 5], medium: [1, 2, 5], hard: [1, 2, 3, 5] },
+    hint: "How the cold lens looked, covered in tiny water drops.",
+  },
+  {
+    id: "aced-1",
+    destinationId: "distant-region",
+    set: "primary",
+    title: "Record 22 · Perfect Score",
+    answer: "ACED",
+    blanks: { easy: [0, 3], medium: [0, 1, 3], hard: [0, 1, 3] },
+    hint: "Nailed the star-chart exam without a single miss.",
+  },
+  {
+    id: "bedded-1",
+    destinationId: "distant-region",
+    set: "primary",
+    title: "Record 23 · Settled Lens",
+    answer: "BEDDED",
+    blanks: { easy: [2, 3], medium: [2, 3, 4], hard: [0, 2, 3, 4] },
+    hint: "The new mirror was ___ into its cradle with care.",
+  },
+  {
+    id: "deaf-1",
+    destinationId: "distant-region",
+    set: "primary",
+    title: "Record 24 · Silent Space",
+    answer: "DEAF",
+    blanks: { easy: [1, 3], medium: [0, 1, 3], hard: [0, 1, 3] },
+    hint: "Space is silent, so even loud explosions leave you this.",
+  },
+  {
+    id: "cadge-1",
+    destinationId: "distant-region",
+    set: "backup-1",
+    title: "Record 25 · Borrowed Time",
+    answer: "CADGE",
+    blanks: { easy: [0, 2], medium: [0, 2, 4], hard: [0, 1, 2, 4] },
+    hint: "To beg a few extra minutes on the big telescope.",
+  },
+  {
+    id: "dead-1",
+    destinationId: "distant-region",
+    set: "backup-1",
+    title: "Record 26 · Cold Star",
+    answer: "DEAD",
+    blanks: { easy: [0, 1], medium: [0, 1, 2], hard: [0, 1, 2] },
+    hint: "A star that has burned out its fuel.",
+  },
+  {
+    id: "gabbed-1",
+    destinationId: "distant-region",
+    set: "backup-1",
+    title: "Record 27 · Night Chatter",
+    answer: "GABBED",
+    blanks: { easy: [1, 3], medium: [0, 1, 3], hard: [0, 1, 2, 3] },
+    hint: "Talked on and on while waiting for the clouds to clear.",
+  },
+  {
+    id: "feedbag-1",
+    destinationId: "distant-region",
+    set: "backup-2",
+    title: "Record 28 · Ration Pack",
+    answer: "FEEDBAG",
+    blanks: { easy: [1, 2], medium: [1, 2, 6], hard: [0, 1, 2, 6] },
+    hint: "The sack of snacks hung by the telescope for long nights.",
+  },
+  {
+    id: "adage-1",
+    destinationId: "distant-region",
+    set: "backup-2",
+    title: "Record 29 · Old Saying",
+    answer: "ADAGE",
+    blanks: { easy: [0, 1], medium: [0, 1, 4], hard: [0, 1, 2, 4] },
+    hint: "A wise old proverb, like 'red sky at night'.",
+  },
+  {
+    id: "begged-1",
+    destinationId: "distant-region",
+    set: "backup-2",
+    title: "Record 30 · Clear Skies",
+    answer: "BEGGED",
+    blanks: { easy: [1, 3], medium: [1, 2, 3], hard: [0, 1, 2, 3] },
+    hint: "The crew ___ the clouds to part before the eclipse.",
+  },
+  {
+    id: "baggage-1",
+    destinationId: "the-new-body",
+    set: "primary",
+    title: "Record 31 · Cargo Hold",
+    answer: "BAGGAGE",
+    blanks: { easy: [0, 4], medium: [0, 2, 4], hard: [0, 2, 3, 4] },
+    hint: "Everything packed for the long trip to the far dome.",
+  },
+  {
+    id: "deeded-1",
+    destinationId: "the-new-body",
+    set: "primary",
+    title: "Record 32 · Land Grant",
+    answer: "DEEDED",
+    blanks: { easy: [0, 4], medium: [0, 1, 4], hard: [0, 1, 2, 4] },
+    hint: "Formally handed over, as the hilltop was to the observatory.",
+  },
+  {
+    id: "deed-1",
+    destinationId: "the-new-body",
+    set: "primary",
+    title: "Record 33 · Charter Scroll",
+    answer: "DEED",
+    blanks: { easy: [0, 2], medium: [0, 1, 2], hard: [0, 1, 2] },
+    hint: "The document granting the observatory its hilltop.",
+  },
+  {
+    id: "deface-1",
+    destinationId: "the-new-body",
+    set: "primary",
+    title: "Record 34 · Graffiti Ban",
+    answer: "DEFACE",
+    blanks: { easy: [0, 3], medium: [0, 1, 3], hard: [0, 1, 2, 3] },
+    hint: "Never ___ the observatory's star maps.",
+  },
+  {
+    id: "ceded-1",
+    destinationId: "the-new-body",
+    set: "backup-1",
+    title: "Record 35 · Yielded Title",
+    answer: "CEDED",
+    blanks: { easy: [0, 3], medium: [0, 1, 3], hard: [0, 1, 3, 4] },
+    hint: "Gave up, as Pluto did its title of planet.",
+  },
+  {
+    id: "added-1",
+    destinationId: "the-new-body",
+    set: "backup-1",
+    title: "Record 36 · Star Tally",
+    answer: "ADDED",
+    blanks: { easy: [0, 4], medium: [0, 1, 4], hard: [0, 1, 2, 4] },
+    hint: "Summed into the ledger when a new body is cataloged.",
+  },
+  {
+    id: "faded-1",
+    destinationId: "the-new-body",
+    set: "backup-1",
+    title: "Record 37 · Dim Nebula",
+    answer: "FADED",
+    blanks: { easy: [0, 1], medium: [0, 1, 2], hard: [0, 1, 2, 4] },
+    hint: "Grew faint on the parchment after centuries in the vault.",
+  },
+  {
+    id: "faced-1",
+    destinationId: "the-new-body",
+    set: "backup-2",
+    title: "Record 38 · Turned Dome",
+    answer: "FACED",
+    blanks: { easy: [0, 4], medium: [0, 1, 4], hard: [0, 1, 2, 4] },
+    hint: "The shutter ___ north toward the pole star all night.",
+  },
+  {
+    id: "abbe-1",
+    destinationId: "the-new-body",
+    set: "backup-2",
+    title: "Record 39 · Monk Astronomer",
+    answer: "ABBE",
+    blanks: { easy: [0, 2], medium: [0, 1, 2], hard: [0, 1, 2] },
+    hint: "A French church title held by several early astronomers.",
+  },
+  {
+    id: "dabbed-1",
+    destinationId: "the-new-body",
+    set: "backup-2",
+    title: "Record 40 · Lens Cleaning",
+    answer: "DABBED",
+    blanks: { easy: [1, 3], medium: [1, 3, 4], hard: [1, 2, 3, 4] },
+    hint: "Gently patted the lens dry with a soft cloth.",
+  },
+  {
+    id: "celestial-1",
+    destinationId: "mercury-sector",
+    set: "primary",
+    hardOnly: true,
+    title: "Bonus Record · Sky Sphere",
+    answer: "CELESTIAL",
+    blanks: { easy: [0, 3], medium: [0, 1, 3], hard: [0, 1, 3, 7] },
+    hint: "Belonging to the sky, like the sphere astronomers map.",
+  },
+  {
+    id: "cepheus-1",
+    destinationId: "mercury-sector",
+    set: "primary",
+    hardOnly: true,
+    title: "Bonus Record · Northern King",
+    answer: "CEPHEUS",
+    blanks: { easy: [0, 4], medium: [0, 1, 4], hard: [0, 1, 4] },
+    hint: "Constellation of the king, beside his queen Cassiopeia.",
+  },
+  {
+    id: "aldebaran-1",
+    destinationId: "outer-belt",
+    set: "primary",
+    hardOnly: true,
+    title: "Bonus Record · Bull's Eye",
+    answer: "ALDEBARAN",
+    blanks: { easy: [2, 3], medium: [2, 3, 5], hard: [2, 3, 5, 7] },
+    hint: "The red giant that marks the eye of Taurus.",
+  },
+  {
+    id: "galaxy-1",
+    destinationId: "outer-belt",
+    set: "primary",
+    hardOnly: true,
+    title: "Bonus Record · Island Universe",
+    answer: "GALAXY",
+    blanks: { easy: [0, 3], medium: [0, 1, 3], hard: [0, 1, 3] },
+    hint: "A vast system of billions of stars, gas, and dust.",
+  },
+  {
+    id: "galactic-1",
+    destinationId: "distant-region",
+    set: "primary",
+    hardOnly: true,
+    title: "Bonus Record · Disk Plane",
+    answer: "GALACTIC",
+    blanks: { easy: [4, 7], medium: [1, 4, 7], hard: [1, 3, 4, 7] },
+    hint: "Relating to the Milky Way or any galaxy.",
+  },
+  {
+    id: "pegasus-1",
+    destinationId: "distant-region",
+    set: "primary",
+    hardOnly: true,
+    title: "Bonus Record · Winged Horse",
+    answer: "PEGASUS",
+    blanks: { easy: [1, 2], medium: [1, 2, 3], hard: [1, 2, 3] },
+    hint: "Constellation of the winged horse, marked by a great square.",
+  },
+  {
+    id: "andromeda-1",
+    destinationId: "the-new-body",
+    set: "primary",
+    hardOnly: true,
+    title: "Bonus Record · Nearest Spiral",
+    answer: "ANDROMEDA",
+    blanks: { easy: [0, 2], medium: [0, 2, 6], hard: [0, 2, 6, 8] },
+    hint: "The great spiral galaxy nearest the Milky Way.",
+  },
+  {
+    id: "vega-1",
+    destinationId: "the-new-body",
+    set: "primary",
+    hardOnly: true,
+    title: "Bonus Record · Lyre Star",
+    answer: "VEGA",
+    blanks: { easy: [1, 2], medium: [1, 2, 3], hard: [1, 2, 3] },
+    hint: "Bright blue-white star in Lyra, once our pole star.",
   },
 ];
 
+const DIFFICULTIES: readonly Difficulty[] = ["easy", "medium", "hard"];
+
+/**
+ * Blanks must be ascending A-G positions, and each difficulty's blanks must
+ * contain the easier difficulty's blanks.
+ */
 export function validateChallengeDefinition(challenge: WordChallenge): boolean {
-  const [pos1, pos2] = challenge.missingPositions;
-  if (
-    pos1 < 0 ||
-    pos2 < 0 ||
-    pos1 >= challenge.answer.length ||
-    pos2 >= challenge.answer.length ||
-    pos1 >= pos2
-  ) {
-    return false;
-  }
-
-  for (const ch of challenge.answer.toUpperCase()) {
-    if (!isValidNoteLetter(ch)) {
-      return false;
+  const answer = challenge.answer.toUpperCase();
+  let previous: readonly number[] = [];
+  for (const difficulty of DIFFICULTIES) {
+    const positions = challenge.blanks[difficulty];
+    if (positions.length < 2) return false;
+    for (let i = 0; i < positions.length; i += 1) {
+      const pos = positions[i];
+      if (pos < 0 || pos >= answer.length) return false;
+      if (i > 0 && positions[i - 1] >= pos) return false;
+      if (!isValidNoteLetter(answer[pos])) return false;
     }
+    if (!previous.every((pos) => positions.includes(pos))) return false;
+    previous = positions;
   }
-
-  const letter1 = challenge.answer[pos1].toUpperCase() as NoteLetter;
-  const letter2 = challenge.answer[pos2].toUpperCase() as NoteLetter;
-  const calculatedInterval = calculateInterval(letter1, letter2);
-
-  return calculatedInterval === challenge.intervalValue;
+  return true;
 }

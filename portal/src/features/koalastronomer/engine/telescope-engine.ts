@@ -59,7 +59,7 @@ export function getComponentFigure(
  * - Medium (Option A): capped at the sector's base Easy component cost (4-6 Cal, 55 total)
  *   regardless of the Medium figure's higher line count (6-9 lines)
  * - Hard (Option B): 1 Cal per line in the Hard figure (8-11 Cal, 113 total across all 4 sectors,
- *   paired with 2x Archive rewards = 130 total)
+ *   funded by Hard's extra record blanks, which pay larger cumulative intervals)
  */
 export function getComponentCost(
   destination: TelescopeDestination,
@@ -284,31 +284,24 @@ export function completeObservation(
     ...state,
     currentScreen: "atlas",
     completedDestinationIds,
-    currentDestinationId: null,
+    currentDestinationId: destinationId,
     telescopeProgress: null,
   };
 }
 
 /**
- * Hard-mode soft lock: every Archive record is recovered, a sector is still
- * uncharted, and Calibration can't fund the cheapest unsolved ring left in
- * any unlocked sector. Easy and Medium can't soft lock (failed traces are free).
+ * True when Calibration can't fund the cheapest unsolved ring in any unlocked,
+ * uncharted sector, i.e. the player needs more records to keep calibrating.
  */
-export function isGameOver(
+export function isCalibrationShort(
   state: GameState,
   destinations: readonly TelescopeDestination[],
-  totalChallenges: number,
 ): boolean {
-  if (state.difficulty !== "hard") return false;
-  if (state.currentScreen === "intro") return false;
-  if (state.completedChallengeIds.length < totalChallenges) return false;
-
   const open = destinations.filter(
     (dest) =>
       !state.completedDestinationIds.includes(dest.id) &&
       isDestinationUnlocked(dest, state.completedDestinationIds),
   );
-  if (open.length === 0) return false;
 
   let cheapest = Number.POSITIVE_INFINITY;
   for (const dest of open) {

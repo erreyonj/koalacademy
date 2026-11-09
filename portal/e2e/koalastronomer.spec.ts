@@ -10,6 +10,8 @@ const SCREENSHOT_DIR = path.resolve(
 
 fs.mkdirSync(SCREENSHOT_DIR, { recursive: true });
 
+const MERCURY_PRIMARY = ["cabbage-1", "accede-1", "beef-1", "acceded-1"];
+
 test("Koalastronomer full UX loop: intro, touch toggle outside shell, circular bearings, ascending interval, copper telescope body, free stuck retry, and 3-ring trace solve", async ({
   page,
 }) => {
@@ -20,6 +22,8 @@ test("Koalastronomer full UX loop: intro, touch toggle outside shell, circular b
   await gameLink.click();
 
   await expect(page).toHaveURL(/\/toolkit\/games\/koalastronomer\/?/);
+  await expect(page.getByTestId("game-initializing")).toBeVisible();
+  await expect(page.getByTestId("game-fullscreen")).toBeVisible();
 
   // 2. Verify Intro screen elements & Touch Screen toggle outside .obs-shell (default ON)
   const stage = page.getByTestId("koalastronomer-stage");
@@ -72,10 +76,25 @@ test("Koalastronomer full UX loop: intro, touch toggle outside shell, circular b
   // 4. Navigate to Archive; test touch-mode swipe on circular bearing and button mode stops
   await page.getByTestId("nav-archive").click();
   await expect(page.getByTestId("archive-screen")).toBeVisible();
+  // Records collapse into a control beside the music transport, Mercury only
+  await expect(page.getByTestId("records-count")).toHaveText("0 / 4");
+  await page.getByTestId("records-toggle").click();
+  const popover = page.getByTestId("records-popover");
+  await expect(popover).toContainText("Mercury");
+  await expect(popover.getByRole("option")).toHaveCount(4);
+  await expect(page.getByTestId("challenge-card-badge-1")).toHaveCount(0);
+  await page.screenshot({
+    path: path.join(SCREENSHOT_DIR, "02a-records-popover.png"),
+    animations: "disabled",
+  });
   await page.getByTestId("challenge-card-beef-1").click();
+  await expect(popover).toHaveCount(0);
+  await expect(page.getByTestId("word-challenge-card")).not.toContainText(
+    "Celestial Designation",
+  );
 
-  await expect(page.getByTestId("first-letter-B")).toHaveCount(0);
-  const firstWheel = page.getByTestId("first-bearing-wheel");
+  await expect(page.getByTestId("bearing-1-letter-B")).toHaveCount(0);
+  const firstWheel = page.getByTestId("bearing-1-wheel");
   await expect(firstWheel).toHaveAttribute("data-value", "A");
   const wheelBox = (await firstWheel.boundingBox())!;
   const wcx = wheelBox.x + wheelBox.width / 2;
@@ -86,34 +105,36 @@ test("Koalastronomer full UX loop: intro, touch toggle outside shell, circular b
   await page.mouse.up();
   await expect(firstWheel).toHaveAttribute("data-value", "B");
 
-  // Switch to button mode via outer toggle to test wrong first letter then solve BEEF
+  // Switch to button mode via outer toggle to test wrong first letter then solve CEPHEUS
   await touchToggle.click();
   await expect(touchToggle).toHaveAttribute("aria-pressed", "false");
   await expect(stage).toHaveAttribute("data-control-mode", "buttons");
 
-  await page.getByTestId("first-letter-A").click();
-  await page.getByTestId("second-letter-F").click();
+  await page.getByTestId("bearing-1-letter-A").click();
+  await page.getByTestId("bearing-2-letter-F").click();
   await page.getByTestId("submit-guess").click();
 
   await expect(page.getByTestId("error-message")).toContainText(
     "First letter is incorrect",
   );
-  await expect(page.getByTestId("first-letter-A")).toHaveClass(/is-error/);
+  await expect(page.getByTestId("bearing-1-letter-A")).toHaveClass(/is-error/);
   await expect(page.getByTestId("points-display")).toHaveText("0");
 
-  // Solve BEEF (missing B and F -> ascending B4 -> F5, interval 5)
-  await page.getByTestId("first-letter-B").click();
-  await page.getByTestId("second-letter-F").click();
+  // Solve BEEF (missing E and F -> ascending E4 -> F4, a 2nd)
+  await page.getByTestId("bearing-1-letter-E").click();
+  await page.getByTestId("bearing-2-letter-F").click();
   await page.getByTestId("submit-guess").click();
 
-  await expect(page.getByTestId("interval-reward")).toContainText("5");
+  await expect(page.getByTestId("interval-reward-total")).toContainText("+2");
+  await expect(page.getByTestId("interval-reward-steps")).toContainText("E→F 2nd");
   await expect(page.getByTestId("interval-reward-pitches")).toContainText(
-    "B4",
+    "E4",
   );
   await expect(page.getByTestId("interval-reward-pitches")).toContainText(
-    "F5",
+    "F4",
   );
-  await expect(page.getByTestId("points-display")).toHaveText("5");
+  await expect(page.getByTestId("points-display")).toHaveText("2");
+  await expect(page.getByTestId("next-record-btn")).toBeVisible();
   await page.screenshot({
     path: path.join(SCREENSHOT_DIR, "02-archive-bearings-solved.png"),
   });
@@ -154,6 +175,11 @@ test("Koalastronomer full UX loop: intro, touch toggle outside shell, circular b
     "data-solved",
     "0",
   );
+  await expect(page.getByTestId("lens-photo")).toHaveAttribute(
+    "src",
+    /koalastronomer-MERCURY/,
+  );
+  await expect(page.getByTestId("lens-caption")).toHaveText("Signal 0 / 3");
   await expect(page.getByTestId("movement-budget-status")).toHaveCount(0);
   await expect(page.getByTestId("trace-cost-rule")).toContainText(
     "Failed traces are free",
@@ -192,20 +218,41 @@ test("Koalastronomer full UX loop: intro, touch toggle outside shell, circular b
     "Stuck - try a different start",
   );
   await expect(page.getByTestId("points-display")).toHaveText("20");
+  // Stuck path winds the Range collar home
+  await expect(page.getByTestId("collar-range")).toHaveAttribute(
+    "data-turn",
+    "0",
+  );
   await page.screenshot({
     path: path.join(SCREENSHOT_DIR, "04-telescope-trace-puzzle.png"),
   });
 
   // Clear and solve Range: a -> b -> c -> d -> b (4 lines, -4 Calibration -> 16)
   await page.getByTestId("trace-clear-btn").click();
-  for (const nodeId of ["a", "b", "c", "d", "b"]) {
+  await page.getByTestId("trace-node-a").click();
+  await page.getByTestId("trace-node-b").click();
+  // First successful line turns the collar off home
+  await expect(page.getByTestId("collar-range")).not.toHaveAttribute(
+    "data-turn",
+    "0",
+  );
+  for (const nodeId of ["c", "d", "b"]) {
     await page.getByTestId(`trace-node-${nodeId}`).click();
   }
   await expect(page.getByTestId("points-display")).toHaveText("16");
   await expect(page.getByTestId("cog-status-range")).toHaveText("Aligned ✓");
+  // Aligned collar locks at the full line count
+  await expect(page.getByTestId("collar-range")).toHaveAttribute(
+    "data-turn",
+    "4",
+  );
   await expect(page.getByTestId("rings-solved-pill")).toHaveText(
     "1 / 3 Rings Aligned",
   );
+  await expect(page.getByTestId("lens-view")).toHaveAttribute("data-solved", "1");
+  await page.screenshot({
+    path: path.join(SCREENSHOT_DIR, "04-telescope-one-ring.png"),
+  });
 
   // Solve Focus: d -> c -> a -> b -> c (4 lines, -4 Calibration -> 12)
   await page.getByTestId("cog-ring-focus").click();
@@ -224,14 +271,34 @@ test("Koalastronomer full UX loop: intro, touch toggle outside shell, circular b
   }
 
   await expect(page.getByTestId("observation-success")).toBeVisible();
+  await expect(page.getByTestId("observation-success")).toContainText(
+    "Mercury is now in view",
+  );
   await expect(page.getByTestId("lens-view")).toHaveAttribute(
     "data-solved",
     "3",
   );
+  await expect(page.getByTestId("lens-caption")).toHaveText("Mercury · In view");
   await expect(page.getByTestId("points-display")).toHaveText("8");
   await page.screenshot({
     path: path.join(SCREENSHOT_DIR, "04-telescope-success.png"),
   });
+  await page.getByTestId("observation-continue-btn").click();
+  await expect(page.getByTestId("atlas-screen")).toBeVisible();
+  await expect(page.getByTestId("destination-detail-card")).toContainText(
+    "Mercury",
+  );
+  await expect(page.getByTestId("destination-mercury-sector")).toContainText(
+    "Mercury",
+  );
+  await expect(page.getByTestId("destination-outer-belt")).toContainText(
+    "Outer Belt",
+  );
+  await expect(page.getByTestId("destination-outer-belt")).toHaveClass(/is-next/);
+  await expect(page.getByTestId("destination-outer-belt")).toHaveAttribute(
+    "data-status",
+    "next",
+  );
 
   // 7. Reload and verify region stays revealed and Calibration spend persisted
   await page.reload();
@@ -241,14 +308,35 @@ test("Koalastronomer full UX loop: intro, touch toggle outside shell, circular b
     "data-revealed",
     /mercury-sector/,
   );
+  await expect(page.getByTestId("destination-detail-card")).toContainText(
+    "Mercury",
+  );
+  await expect(page.getByTestId("destination-outer-belt")).toHaveClass(/is-next/);
 
   // 8. A charted sector can be revisited for its sector log
   await page.getByTestId("destination-mercury-sector").click();
   await expect(page.getByTestId("begin-observation")).toHaveCount(0);
   await page.getByTestId("view-sector-log-btn").click();
   await expect(page.getByTestId("sector-log")).toContainText("Mercury");
+  // The Atlas blurb isn't repeated alongside the log
+  await expect(page.locator(".obs-dest-desc")).toHaveCount(0);
+  // The charted sector's lens takes the star chart's place while the log is open
+  await expect(page.getByTestId("star-map")).toHaveCount(0);
+  await expect(
+    page.getByTestId("atlas-sector-lens").getByTestId("lens-view"),
+  ).toHaveAttribute("data-solved", "3");
+  await expect(
+    page.getByTestId("atlas-sector-lens").getByTestId("lens-caption"),
+  ).toHaveText("Mercury · In view");
+  await expect(
+    page.getByTestId("atlas-sector-lens").getByTestId("lens-photo"),
+  ).toBeVisible();
+  await expect(page.getByTestId("sector-log")).toContainText(
+    "closest planet to the Sun",
+  );
   await page.screenshot({
     path: path.join(SCREENSHOT_DIR, "05-sector-log.png"),
+    animations: "disabled",
   });
 });
 
@@ -345,9 +433,15 @@ test("Hard mode soft lock shows Game Over and resets to the intro", async ({
         difficulty: "hard",
         calibrationPoints: 2,
         completedChallengeIds: [
-          "beef-1", "bed-1", "bead-1", "cafe-1", "feed-1", "badge-1",
-          "added-1", "edged-1", "caged-1", "faded-1", "facade-1",
-          "decade-1", "cabbage-1", "begged-1", "defaced-1", "accede-1",
+          "cabbage-1",
+          "accede-1",
+          "beef-1",
+          "acceded-1",
+          "celestial-1",
+          "cepheus-1",
+          "ebbed-1",
+          "effaced-1",
+          "facade-1",
         ],
         completedDestinationIds: [],
         currentDestinationId: null,
@@ -373,30 +467,362 @@ test("Hard mode soft lock shows Game Over and resets to the intro", async ({
   );
 });
 
-test.describe("Mobile site header", () => {
-  test.use({ viewport: { width: 390, height: 844 } });
+test("Easy opens a backup record set only once Calibration runs dry", async ({
+  page,
+}) => {
+  const seed = (calibrationPoints: number) =>
+    page.evaluate(
+      ({ points, ids }) => {
+        window.localStorage.setItem(
+          "koalastronomer-save",
+          JSON.stringify({
+            currentScreen: "archive",
+            difficulty: "easy",
+            calibrationPoints: points,
+            completedChallengeIds: ids,
+            completedDestinationIds: [],
+            currentDestinationId: null,
+            telescopeProgress: null,
+          }),
+        );
+      },
+      { points: calibrationPoints, ids: MERCURY_PRIMARY },
+    );
 
-  test("hides once Koalastronomer starts and returns on leaving", async ({
+  await page.goto("/toolkit/games/koalastronomer/");
+  // Enough Calibration for the cheapest ring: backups stay hidden
+  await seed(4);
+  await page.reload();
+  await expect(page.getByTestId("records-count")).toHaveText("4 / 4");
+  await expect(page.getByTestId("records-toggle")).toHaveClass(/is-complete/);
+  await expect(page.getByTestId("sector-progress-badge")).toContainText(
+    "Records 4 / 16",
+  );
+
+  await seed(3);
+  await page.reload();
+
+  await expect(page.getByTestId("records-count")).toHaveText("4 / 7");
+  await expect(page.getByTestId("records-toggle")).not.toHaveClass(/is-complete/);
+  await expect(page.getByTestId("sector-progress-badge")).toContainText(
+    "Records 4 / 19",
+  );
+  await page.getByTestId("records-toggle").click();
+  await expect(page.getByTestId("challenge-card-ebbed-1")).toBeVisible();
+  await expect(page.getByTestId("challenge-card-egged-1")).toHaveCount(0);
+});
+
+test("Finishing Easy's primary records leads to Calibrate Telescope", async ({
+  page,
+}) => {
+  await page.goto("/toolkit/games/koalastronomer/");
+  await page.evaluate(() => {
+    window.localStorage.setItem(
+      "koalastronomer-save",
+      JSON.stringify({
+        currentScreen: "archive",
+        difficulty: "easy",
+        calibrationPoints: 0,
+        completedChallengeIds: [],
+        completedDestinationIds: [],
+        currentDestinationId: null,
+        telescopeProgress: null,
+      }),
+    );
+  });
+  await page.reload();
+  await page.getByTestId("touch-screen-toggle").click();
+
+  const solutions = [
+    ["A", "E"],
+    ["C", "E"],
+    ["E", "F"],
+    ["C", "D"],
+  ];
+  for (const [i, [first, second]] of solutions.entries()) {
+    await page.getByTestId("bearing-1-letter-" + first).click();
+    await page.getByTestId("bearing-2-letter-" + second).click();
+    await page.getByTestId("submit-guess").click();
+    await expect(page.getByTestId("interval-reward")).toBeVisible();
+    if (i < solutions.length - 1) {
+      await expect(page.getByTestId("calibrate-telescope-btn")).toHaveCount(0);
+      await page.getByTestId("next-record-btn").click();
+    }
+  }
+
+  await expect(page.getByTestId("points-display")).toHaveText("12");
+  await expect(page.getByTestId("records-count")).toHaveText("4 / 4");
+  await expect(page.getByTestId("records-toggle")).toHaveClass(/is-complete/);
+  await expect(page.getByTestId("next-record-btn")).toHaveCount(0);
+  await page.getByTestId("calibrate-telescope-btn").click();
+  await expect(page.getByTestId("telescope-briefing-screen")).toBeVisible();
+});
+
+test("Medium records chain 3 bearings, and the last record points to the telescope", async ({
+  page,
+}) => {
+  await page.goto("/toolkit/games/koalastronomer/");
+  await page.evaluate(() => {
+    window.localStorage.setItem(
+      "koalastronomer-save",
+      JSON.stringify({
+        currentScreen: "archive",
+        difficulty: "medium",
+        calibrationPoints: 20,
+        completedChallengeIds: ["accede-1", "beef-1", "acceded-1"],
+        completedDestinationIds: [],
+        currentDestinationId: null,
+        telescopeProgress: null,
+      }),
+    );
+  });
+  await page.reload();
+
+  // CABBAGE on Medium: C _ _ BAG _ -> A B E = 2nd + 4th = 6
+  await expect(page.getByTestId("challenge-word-display")).toHaveAttribute(
+    "data-bearings",
+    "3",
+  );
+  await page.getByTestId("touch-screen-toggle").click();
+  await page.getByTestId("bearing-1-letter-A").click();
+  await page.getByTestId("bearing-2-letter-B").click();
+  await page.getByTestId("bearing-3-letter-G").click();
+  await page.getByTestId("submit-guess").click();
+  await expect(page.getByTestId("error-message")).toContainText(
+    "Third letter is incorrect",
+  );
+
+  await page.getByTestId("bearing-3-letter-E").click();
+  await page.getByTestId("submit-guess").click();
+  await expect(page.getByTestId("interval-reward-steps")).toContainText("A→B 2nd");
+  await expect(page.getByTestId("interval-reward-steps")).toContainText("B→E 4th");
+  await expect(page.getByTestId("interval-reward-total")).toContainText("+6");
+  await expect(page.getByTestId("points-display")).toHaveText("26");
+
+  await expect(page.getByTestId("next-record-btn")).toHaveCount(0);
+  await page.screenshot({
+    path: path.join(SCREENSHOT_DIR, "09-medium-calibrate-cta.png"),
+  });
+  await expect(page.getByTestId("calibrate-telescope-btn")).toBeVisible();
+
+  // Coming back to a finished set still offers the telescope
+  await page.reload();
+  await expect(page.getByTestId("submit-guess")).toHaveText("Record Recovered ✓");
+  await page.getByTestId("calibrate-telescope-btn").click();
+  await expect(page.getByTestId("telescope-briefing-screen")).toBeVisible();
+});
+
+test("Touch mode traces a ring with one continuous slide", async ({ page }) => {
+  await page.goto("/toolkit/games/koalastronomer/");
+  await page.evaluate(() => {
+    window.localStorage.setItem(
+      "koalastronomer-save",
+      JSON.stringify({
+        currentScreen: "telescope",
+        difficulty: "medium",
+        calibrationPoints: 20,
+        completedChallengeIds: [],
+        completedDestinationIds: [],
+        currentDestinationId: "mercury-sector",
+        telescopeProgress: {
+          destinationId: "mercury-sector",
+          solved: { range: false, focus: false, alignment: false },
+          stuckCounts: { range: 0, focus: 0, alignment: 0 },
+        },
+      }),
+    );
+  });
+  await page.reload();
+
+  await expect(page.getByTestId("koalastronomer-stage")).toHaveAttribute(
+    "data-control-mode",
+    "touch",
+  );
+  await page.getByTestId("cog-ring-range").click();
+  await expect(page.getByTestId("trace-svg")).toHaveAttribute(
+    "data-control-mode",
+    "touch",
+  );
+
+  const centerOf = async (nodeId: string) => {
+    const box = (await page.getByTestId(`trace-node-${nodeId}`).boundingBox())!;
+    return { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+  };
+  const lineCount = await page.getByTestId("trace-line-counter").innerText();
+  const total = Number(lineCount.split("/")[1].trim().split(" ")[0]);
+  expect(total).toBeGreaterThan(4);
+
+  // Find an Eulerian path for this figure from the rendered edges
+  const edges = await page.$$eval('[data-testid^="trace-edge-"]', (lines) =>
+    lines.map((line) => ({
+      x1: Number(line.getAttribute("x1")),
+      y1: Number(line.getAttribute("y1")),
+      x2: Number(line.getAttribute("x2")),
+      y2: Number(line.getAttribute("y2")),
+    })),
+  );
+  const nodes = await page.$$eval('[data-testid^="trace-node-"]', (circles) =>
+    circles.map((c) => ({
+      id: c.getAttribute("data-testid")!.replace("trace-node-", ""),
+      x: Number(c.getAttribute("cx")),
+      y: Number(c.getAttribute("cy")),
+    })),
+  );
+  const idAt = (x: number, y: number) =>
+    nodes.find((n) => n.x === x && n.y === y)!.id;
+  const adj = edges.map((e) => [idAt(e.x1, e.y1), idAt(e.x2, e.y2)]);
+  const degree: Record<string, number> = {};
+  for (const [a, b] of adj) {
+    degree[a] = (degree[a] ?? 0) + 1;
+    degree[b] = (degree[b] ?? 0) + 1;
+  }
+  const odd = Object.keys(degree).filter((id) => degree[id] % 2 === 1);
+  const start = odd[0] ?? adj[0][0];
+  const used = new Set<number>();
+  const walk = (node: string, path: string[]): string[] | null => {
+    if (used.size === adj.length) return path;
+    for (let i = 0; i < adj.length; i += 1) {
+      if (used.has(i)) continue;
+      const [a, b] = adj[i];
+      const next = a === node ? b : b === node ? a : null;
+      if (!next) continue;
+      used.add(i);
+      const found = walk(next, [...path, next]);
+      if (found) return found;
+      used.delete(i);
+    }
+    return null;
+  };
+  const route = walk(start, [start])!;
+
+  const first = await centerOf(route[0]);
+  await page.mouse.move(first.x, first.y);
+  await page.mouse.down();
+  for (const nodeId of route.slice(1)) {
+    const point = await centerOf(nodeId);
+    await page.mouse.move(point.x, point.y, { steps: 12 });
+  }
+  await page.mouse.up();
+
+  await expect(page.getByTestId("cog-status-range")).toHaveText("Aligned ✓");
+});
+
+test("New Body finale shows a win screen, then New Game on that sector", async ({
+  page,
+}) => {
+  await page.goto("/toolkit/games/koalastronomer/");
+  await page.evaluate(() => {
+    window.localStorage.setItem(
+      "koalastronomer-save",
+      JSON.stringify({
+        currentScreen: "telescope",
+        difficulty: "easy",
+        calibrationPoints: 4,
+        completedChallengeIds: [],
+        completedDestinationIds: [
+          "mercury-sector",
+          "outer-belt",
+          "distant-region",
+        ],
+        currentDestinationId: "the-new-body",
+        telescopeProgress: {
+          destinationId: "the-new-body",
+          solved: { range: true, focus: true, alignment: true },
+          stuckCounts: { range: 0, focus: 0, alignment: 0 },
+        },
+      }),
+    );
+  });
+  await page.reload();
+
+  await expect(page.getByTestId("campaign-win-screen")).toBeVisible();
+  await expect(page.getByTestId("lens-caption")).toHaveText(
+    "Unknown world · In view",
+  );
+  await page.screenshot({
+    path: path.join(SCREENSHOT_DIR, "10-campaign-win.png"),
+  });
+  await page.getByTestId("campaign-win-continue-btn").click();
+
+  await expect(page.getByTestId("atlas-screen")).toBeVisible();
+  await expect(page.getByTestId("campaign-win-screen")).toHaveCount(0);
+  await expect(page.getByTestId("destination-detail-card")).toContainText(
+    "The New Body",
+  );
+  await expect(page.getByTestId("destination-the-new-body")).toContainText(
+    "The New Body",
+  );
+  await expect(page.getByTestId("visit-archive-btn")).toHaveCount(0);
+  const newGame = page.getByTestId("new-game-btn");
+  await expect(newGame).toBeVisible();
+  await expect(newGame).toHaveClass(/obs-new-game-btn/);
+
+  await page.getByTestId("view-sector-log-btn").click();
+  await expect(page.getByTestId("sector-log")).toContainText("Earth-like");
+  await expect(page.getByTestId("lens-caption")).toHaveText(
+    "Unknown world · In view",
+  );
+
+  await newGame.click();
+  await expect(page.getByTestId("restart-confirm-modal")).toBeVisible();
+  await page.getByTestId("restart-cancel-btn").click();
+  await expect(page.getByTestId("restart-confirm-modal")).toHaveCount(0);
+  await expect(page.getByTestId("atlas-screen")).toBeVisible();
+
+  await newGame.click();
+  await page.getByTestId("restart-confirm-btn").click();
+  await expect(page.getByTestId("intro-screen")).toBeVisible();
+});
+
+test.describe("Fullscreen game shell", () => {
+  test("Koalastronomer initializes, hides site chrome, and exits to Games", async ({
     page,
   }) => {
     await page.goto("/toolkit/games/koalastronomer/");
-    await page.evaluate(() => window.localStorage.clear());
-    await page.reload();
-    const header = page.locator(".site-header");
-    await expect(header).toBeVisible();
-    await page.getByTestId("enter-observatory-btn").click();
-    await expect(page.getByTestId("atlas-screen")).toBeVisible();
-    await expect(header).toBeHidden();
+    await expect(page.getByTestId("game-initializing")).toContainText(
+      "Initializing",
+    );
+    await expect(page.locator(".site-header")).toBeVisible();
+    await page.screenshot({
+      path: path.join(SCREENSHOT_DIR, "07-initializing.png"),
+    });
 
-    await page.goto("/toolkit/games/");
-    await expect(header).toBeVisible();
+    await expect(page.getByTestId("game-fullscreen")).toBeVisible();
+    await expect(page.locator("html")).toHaveAttribute(
+      "data-game-fullscreen",
+      "true",
+    );
+    await expect(page.locator(".site-header")).toBeHidden();
+    await expect(page.locator(".footer")).toBeHidden();
+    await expect(page.locator('[data-slot="sidebar"]')).toBeHidden();
+    await page.screenshot({
+      path: path.join(SCREENSHOT_DIR, "08-fullscreen.png"),
+    });
+
+    // The Next.js dev badge can sit over the bottom-left corner in dev
+    await page.addStyleTag({ content: "nextjs-portal { display: none; }" });
+    await page.getByTestId("game-exit-btn").click();
+    await expect(page.getByTestId("game-exit-modal")).toBeVisible();
+    await page.getByTestId("game-exit-cancel").click();
+    await expect(page.getByTestId("game-exit-modal")).toHaveCount(0);
+    await expect(page.getByTestId("game-fullscreen")).toBeVisible();
+
+    await page.getByTestId("game-exit-btn").click();
+    await page.getByTestId("game-exit-confirm").click();
+    await expect(page).toHaveURL(/\/toolkit\/games\/?$/);
+    await expect(page.locator(".site-header")).toBeVisible();
+    await expect(page.locator("html")).not.toHaveAttribute(
+      "data-game-fullscreen",
+      "true",
+    );
   });
 
-  test("hides once Staff DeCode starts", async ({ page }) => {
+  test("Staff DeCode initializes into fullscreen too", async ({ page }) => {
     await page.goto("/toolkit/games/staff-decode/");
-    const header = page.locator(".site-header");
-    await expect(header).toBeVisible();
-    await page.getByTestId("start-game-btn").click();
-    await expect(header).toBeHidden();
+    await expect(page.getByTestId("game-initializing")).toBeVisible();
+    await expect(page.getByTestId("game-fullscreen")).toBeVisible();
+    await expect(page.locator(".site-header")).toBeHidden();
+    await expect(page.getByTestId("start-game-btn")).toBeVisible();
+    await expect(page.getByTestId("game-exit-btn")).toBeVisible();
   });
 });

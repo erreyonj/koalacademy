@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { getAtlasLabel } from "../../engine/atlas-engine";
 import type {
   Difficulty,
   TelescopeDestination,
@@ -12,6 +13,7 @@ import {
   getDestinationTotalCost,
   RING_METADATA,
 } from "../../engine/telescope-engine";
+import { RestartConfirmModal } from "./RestartConfirmModal";
 
 interface DestinationCardProps {
   destination: TelescopeDestination;
@@ -19,8 +21,11 @@ interface DestinationCardProps {
   isCompleted: boolean;
   isUnlocked: boolean;
   isInProgress: boolean;
+  showLog: boolean;
+  onShowLogChange: (open: boolean) => void;
   onObserve: () => void;
   onNavigateArchive: () => void;
+  onNewGame?: () => void;
 }
 
 export function DestinationCard({
@@ -29,20 +34,22 @@ export function DestinationCard({
   isCompleted,
   isUnlocked,
   isInProgress,
+  showLog,
+  onShowLogChange,
   onObserve,
   onNavigateArchive,
+  onNewGame,
 }: DestinationCardProps) {
+  const [confirmRestart, setConfirmRestart] = useState(false);
+  const atlasLabel = getAtlasLabel(destination, isCompleted);
   const totalCost = getDestinationTotalCost(destination, difficulty);
-  const [showLog, setShowLog] = useState(false);
-
-  useEffect(() => {
-    setShowLog(false);
-  }, [destination.id]);
+  const showNewGame =
+    Boolean(onNewGame) && isCompleted && destination.id === "the-new-body";
 
   return (
     <aside className="obs-dest-card" data-testid="destination-detail-card">
       <div className="obs-dest-card-header">
-        <h2>{destination.name}</h2>
+        <h2>{atlasLabel}</h2>
       </div>
 
       <div className="obs-dest-card-body">
@@ -69,7 +76,9 @@ export function DestinationCard({
           </svg>
         </div>
 
-        <p className="obs-dest-desc">{destination.description}</p>
+        {!showLog && (
+          <p className="obs-dest-desc">{destination.description}</p>
+        )}
 
         {isCompleted ? (
           <>
@@ -79,23 +88,28 @@ export function DestinationCard({
                 className="obs-sector-log"
                 data-testid="sector-log"
                 role="region"
-                aria-label={`${destination.name} sector log`}
+                aria-label={`${atlasLabel} sector log`}
               >
                 <span className="obs-sector-log-eyebrow">
-                  Sector log · {destination.name}
+                  Sector log · {atlasLabel}
                 </span>
-                <p className="obs-sector-log-blurb">
-                  {destination.profile.blurb}
-                </p>
-                <ul className="obs-sector-log-facts">
-                  {destination.profile.facts.map((fact) => (
-                    <li key={fact}>{fact}</li>
-                  ))}
-                </ul>
+                <div
+                  className="obs-sector-log-scroll"
+                  data-testid="sector-log-scroll"
+                >
+                  <p className="obs-sector-log-blurb">
+                    {destination.profile.blurb}
+                  </p>
+                  <ul className="obs-sector-log-facts">
+                    {destination.profile.facts.map((fact) => (
+                      <li key={fact}>{fact}</li>
+                    ))}
+                  </ul>
+                </div>
                 <button
                   type="button"
                   className="obs-secondary-btn"
-                  onClick={() => setShowLog(false)}
+                  onClick={() => onShowLogChange(false)}
                   data-testid="close-sector-log-btn"
                 >
                   Close Log
@@ -105,7 +119,7 @@ export function DestinationCard({
               <button
                 type="button"
                 className="obs-primary-cta obs-observe-btn"
-                onClick={() => setShowLog(true)}
+                onClick={() => onShowLogChange(true)}
                 data-testid="view-sector-log-btn"
               >
                 View Sector Log
@@ -166,15 +180,33 @@ export function DestinationCard({
           </>
         )}
 
-        <button
-          type="button"
-          className="obs-secondary-btn obs-archive-link-btn"
-          onClick={onNavigateArchive}
-          data-testid="visit-archive-btn"
-        >
-          Visit Archive (+Calibration)
-        </button>
+        {showNewGame ? (
+          <button
+            type="button"
+            className="obs-primary-cta obs-new-game-btn"
+            onClick={() => setConfirmRestart(true)}
+            data-testid="new-game-btn"
+          >
+            New Game
+          </button>
+        ) : (
+          <button
+            type="button"
+            className="obs-secondary-btn obs-archive-link-btn"
+            onClick={onNavigateArchive}
+            data-testid="visit-archive-btn"
+          >
+            Visit Archive (+Calibration)
+          </button>
+        )}
       </div>
+
+      {confirmRestart && onNewGame && (
+        <RestartConfirmModal
+          onCancel={() => setConfirmRestart(false)}
+          onConfirm={onNewGame}
+        />
+      )}
     </aside>
   );
 }

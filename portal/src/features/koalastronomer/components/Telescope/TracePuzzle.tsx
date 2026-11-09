@@ -1,7 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { DialName, Difficulty } from "../../engine/game-state";
+import type {
+  ControlMode,
+  DialName,
+  Difficulty,
+} from "../../engine/game-state";
 import { RING_METADATA } from "../../engine/telescope-engine";
 import {
   availableNeighbors,
@@ -14,6 +18,9 @@ import {
   type TraceState,
 } from "../../engine/trace-engine";
 
+/** How close (in viewBox units) a sliding finger must come to a dot to reach it. */
+const DRAG_SNAP_RADIUS = 10;
+
 interface TracePuzzleProps {
   ring: DialName;
   figure: TraceFigure;
@@ -23,8 +30,11 @@ interface TracePuzzleProps {
   unlimitedCalibration?: boolean;
   lineHint: TraceEdge | null;
   failedTracePenalty?: number;
+  controlMode?: ControlMode;
   onSolve: (ring: DialName) => void;
   onStuck: (ring: DialName) => void;
+  /** Live path progress for the active collar turn animation. */
+  onTraceChange?: (used: number, total: number, stuck: boolean) => void;
   onClose: () => void;
   onNavigateArchive: () => void;
 }
@@ -38,8 +48,10 @@ export function TracePuzzle({
   unlimitedCalibration = false,
   lineHint,
   failedTracePenalty = 0,
+  controlMode = "buttons",
   onSolve,
   onStuck,
+  onTraceChange,
   onClose,
   onNavigateArchive,
 }: TracePuzzleProps) {
@@ -47,6 +59,11 @@ export function TracePuzzle({
     createTraceState(),
   );
   const draggingRef = useRef(false);
+  const svgRef = useRef<SVGSVGElement>(null);
+  const [dragPoint, setDragPoint] = useState<{ x: number; y: number } | null>(
+    null,
+  );
+  const slideMode = controlMode === "touch";
   const reportedStuckRef = useRef(false);
   const solvedRef = useRef(false);
 
@@ -54,6 +71,7 @@ export function TracePuzzle({
   const totalLines = figure.edges.length;
   const usedLines = traceState.usedEdgeIndices.length;
   const canAfford = unlimitedCalibration || calibrationPoints >= cost;
+  const stuck = isStuck(figure, traceState);
 
   // Reset internal trace state when switching to a different figure
   useEffect(() => {
@@ -63,8 +81,13 @@ export function TracePuzzle({
   }, [figure.id]);
 
   useEffect(() => {
+    onTraceChange?.(usedLines, totalLines, stuck);
+  }, [usedLines, totalLines, stuck, onTraceChange]);
+
+  useEffect(() => {
     const stopDrag = () => {
       draggingRef.current = false;
+      setDragPoint(null);
     };
     window.addEventListener("pointerup", stopDrag);
     window.addEventListener("pointercancel", stopDrag);
@@ -119,10 +142,51 @@ export function TracePuzzle({
     onClose();
   }, [chargeAbandonedTrace, onClose]);
 
+  const toSvgPoint = (clientX: number, clientY: number) => {
+    const svg = svgRef.current;
+    const matrix = svg?.getScreenCTM();
+    if (!svg || !matrix) return null;
+    const point = new DOMPoint(clientX, clientY).matrixTransform(
+      matrix.inverse(),
+    );
+    return { x: point.x, y: point.y };
+  };
+
+  const nearestNode = (point: { x: number; y: number }) => {
+    let best: { id: string; dist: number } | null = null;
+    for (const node of figure.nodes) {
+      const dist = Math.hypot(node.x - point.x, node.y - point.y);
+      if (dist <= DRAG_SNAP_RADIUS && (!best || dist < best.dist)) {
+        best = { id: node.id, dist };
+      }
+    }
+    return best?.id ?? null;
+  };
+
+  const handleSlideStart = (event: React.PointerEvent<SVGSVGElement>) => {
+    if (!slideMode) return;
+    event.preventDefault();
+    event.currentTarget.setPointerCapture(event.pointerId);
+    draggingRef.current = true;
+    const point = toSvgPoint(event.clientX, event.clientY);
+    if (!point) return;
+    const nodeId = nearestNode(point);
+    if (nodeId) stepToNode(nodeId);
+    setDragPoint(point);
+  };
+
+  const handleSlideMove = (event: React.PointerEvent<SVGSVGElement>) => {
+    if (!slideMode || !draggingRef.current) return;
+    const point = toSvgPoint(event.clientX, event.clientY);
+    if (!point) return;
+    setDragPoint(point);
+    const nodeId = nearestNode(point);
+    if (nodeId && nodeId !== traceState.currentNodeId) stepToNode(nodeId);
+  };
+
   const nodeById = Object.fromEntries(figure.nodes.map((n) => [n.id, n]));
   const neighborIds = new Set(availableNeighbors(figure, traceState));
   const usedSet = new Set(traceState.usedEdgeIndices);
-  const stuck = isStuck(figure, traceState);
 
   const activeLineHint = usedLines === 0 ? lineHint : null;
   const hintFrom = activeLineHint ? nodeById[activeLineHint[0]] : null;
@@ -185,9 +249,13 @@ export function TracePuzzle({
         <>
           <div className="obs-trace-board-shell">
             <svg
-              className="obs-trace-svg"
+              ref={svgRef}
+              className={`obs-trace-svg${slideMode ? " is-slide" : ""}`}
               viewBox="0 0 100 100"
               data-testid="trace-svg"
+              data-control-mode={controlMode}
+              onPointerDown={handleSlideStart}
+              onPointerMove={handleSlideMove}
             >
               <defs>
                 <marker
@@ -246,6 +314,20 @@ export function TracePuzzle({
                 </g>
               )}
 
+              {slideMode &&
+                dragPoint &&
+                traceState.currentNodeId &&
+                !stuck && (
+                  <line
+                    x1={nodeById[traceState.currentNodeId].x}
+                    y1={nodeById[traceState.currentNodeId].y}
+                    x2={dragPoint.x}
+                    y2={dragPoint.y}
+                    className="obs-trace-drag-line"
+                    data-testid="trace-drag-line"
+                  />
+                )}
+
               {/* Interactive nodes */}
               {figure.nodes.map((node) => {
                 const isCurrent = traceState.currentNodeId === node.id;
@@ -282,12 +364,13 @@ export function TracePuzzle({
                       aria-label={`Dot ${node.id.toUpperCase()}`}
                       onClick={() => stepToNode(node.id)}
                       onPointerDown={(e) => {
+                        if (slideMode) return;
                         e.preventDefault();
                         draggingRef.current = true;
                         stepToNode(node.id);
                       }}
                       onPointerEnter={() => {
-                        if (draggingRef.current) {
+                        if (!slideMode && draggingRef.current) {
                           stepToNode(node.id);
                         }
                       }}
@@ -340,7 +423,9 @@ export function TracePuzzle({
                 ? activeLineHint
                   ? "Follow the highlighted line from the starting dot."
                   : "Pick a starting dot and trace every line without lifting."
-                : "Tap or drag to a connected dot along an unused line."}
+                : slideMode
+                  ? "Slide your finger along an unused line to the next dot."
+                  : "Tap a connected dot along an unused line."}
             </p>
           )}
 

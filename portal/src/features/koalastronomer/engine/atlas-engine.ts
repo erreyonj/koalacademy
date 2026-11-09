@@ -31,6 +31,31 @@ export function getAvailableDestinations(
 }
 
 /**
+ * Atlas label: charted sectors show the identified body. The New Body stays
+ * unnamed because it is still an unknown world.
+ */
+export function getAtlasLabel(
+  destination: TelescopeDestination,
+  isCompleted: boolean,
+): string {
+  if (!isCompleted || destination.id === "the-new-body") {
+    return destination.name;
+  }
+  return destination.revealName;
+}
+
+/** True once every Atlas sector has been charted. */
+export function isCampaignWon(
+  completedDestinationIds: readonly string[],
+  destinations: readonly TelescopeDestination[],
+): boolean {
+  return (
+    destinations.length > 0 &&
+    destinations.every((dest) => completedDestinationIds.includes(dest.id))
+  );
+}
+
+/**
  * Get map regions that have been revealed.
  */
 export function getRevealedRegions(

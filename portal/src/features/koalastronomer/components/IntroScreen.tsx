@@ -10,9 +10,9 @@ const HERO_RULES_INTERVAL_MS = 7000;
 export const INTRO_RULES: readonly string[] = [
   "You're a legendary Astronomer and have discovered a new celestial body...",
   "But an unknown interference has altered your observatory records.",
-  "Recover the damaged records in the Archive by rebuilding words with the musical alphabet (A to G). Count up from each missing letter to the next: those intervals add up to the Calibration you earn.",
+  "Recover the damaged records in the Archive by rebuilding words with the musical alphabet (A to G).",
   "Choose a sky sector in the Atlas, then calibrate the telescope's Range, Focus, and Alignment collars.",
-  "Trace each collar's optic in one continuous line. Count the lines at each dot: if some are odd, start on one of them.",
+  "Trace each collar's optic in one continuous line.",
   "Calibrate all four sectors to bring the new body into view.",
 ];
 
@@ -89,7 +89,7 @@ const DIFFICULTY_OPTIONS: ReadonlyArray<{
   {
     id: "easy",
     title: "Easy",
-    records: "4 records per sector · 2 missing letters · 2 backup sets if Calibration runs dry",
+    records: "4 A–G records per sector · 2 missing letters · 2 backup sets if Calibration runs dry",
     sectors: "4–6 line figures · 55 Cal total across 4 sectors",
     hintPolicy: "1 'Follow this line' hint on the very first dial only",
     rules: "Failed traces are free · Pay 1 Cal per line on solve",
@@ -97,7 +97,7 @@ const DIFFICULTY_OPTIONS: ReadonlyArray<{
   {
     id: "medium",
     title: "Medium",
-    records: "4 records per sector · 3 missing letters · 2 backup sets if Calibration runs dry",
+    records: "4 A–G records per sector · 3 missing letters · 2 backup sets if Calibration runs dry",
     sectors: "6–9 line double-loop lattices · Capped 4–6 Cal per ring",
     hintPolicy: "No line hints · Count odd-degree crossroads",
     rules: "Failed traces are free · Fixed 55 Cal total sector cost",
@@ -105,7 +105,7 @@ const DIFFICULTY_OPTIONS: ReadonlyArray<{
   {
     id: "hard",
     title: "Hard",
-    records: "5 records per sector incl. a bonus · 3–4 missing letters · 1 backup set, then Game Over",
+    records: "6 records per sector (4 A–G + 2 astronomy bonus) · 3–4 missing letters · 1 backup set, then Game Over",
     sectors: "8–11 line multi-mesh optics · Unlabeled nodes",
     hintPolicy: "No hints or node labels · Pure graph analysis",
     rules: "Failed traces cost 1 Cal · Pay 1 Cal per line",

@@ -33,6 +33,8 @@ interface TracePuzzleProps {
   controlMode?: ControlMode;
   onSolve: (ring: DialName) => void;
   onStuck: (ring: DialName) => void;
+  /** Live path progress for the active collar turn animation. */
+  onTraceChange?: (used: number, total: number, stuck: boolean) => void;
   onClose: () => void;
   onNavigateArchive: () => void;
 }
@@ -49,6 +51,7 @@ export function TracePuzzle({
   controlMode = "buttons",
   onSolve,
   onStuck,
+  onTraceChange,
   onClose,
   onNavigateArchive,
 }: TracePuzzleProps) {
@@ -68,6 +71,7 @@ export function TracePuzzle({
   const totalLines = figure.edges.length;
   const usedLines = traceState.usedEdgeIndices.length;
   const canAfford = unlimitedCalibration || calibrationPoints >= cost;
+  const stuck = isStuck(figure, traceState);
 
   // Reset internal trace state when switching to a different figure
   useEffect(() => {
@@ -75,6 +79,10 @@ export function TracePuzzle({
     reportedStuckRef.current = false;
     solvedRef.current = false;
   }, [figure.id]);
+
+  useEffect(() => {
+    onTraceChange?.(usedLines, totalLines, stuck);
+  }, [usedLines, totalLines, stuck, onTraceChange]);
 
   useEffect(() => {
     const stopDrag = () => {
@@ -179,7 +187,6 @@ export function TracePuzzle({
   const nodeById = Object.fromEntries(figure.nodes.map((n) => [n.id, n]));
   const neighborIds = new Set(availableNeighbors(figure, traceState));
   const usedSet = new Set(traceState.usedEdgeIndices);
-  const stuck = isStuck(figure, traceState);
 
   const activeLineHint = usedLines === 0 ? lineHint : null;
   const hintFrom = activeLineHint ? nodeById[activeLineHint[0]] : null;

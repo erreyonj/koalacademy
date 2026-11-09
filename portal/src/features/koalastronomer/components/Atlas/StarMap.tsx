@@ -1,6 +1,9 @@
 "use client";
 
-import { isDestinationUnlocked } from "../../engine/atlas-engine";
+import {
+  getAtlasLabel,
+  isDestinationUnlocked,
+} from "../../engine/atlas-engine";
 import type { TelescopeDestination } from "../../engine/game-state";
 
 interface StarMapProps {
@@ -8,6 +11,7 @@ interface StarMapProps {
   completedDestinationIds: readonly string[];
   revealedRegions: readonly string[];
   selectedDestinationId: string;
+  nextDestinationId?: string | null;
   onSelectDestination: (destinationId: string) => void;
 }
 
@@ -85,6 +89,7 @@ export function StarMap({
   completedDestinationIds,
   revealedRegions,
   selectedDestinationId,
+  nextDestinationId = null,
   onSelectDestination,
 }: StarMapProps) {
   return (
@@ -229,12 +234,13 @@ export function StarMap({
             completedDestinationIds,
           );
           const isSelected = selectedDestinationId === dest.id;
+          const isNext = dest.id === nextDestinationId && !isCompleted;
 
           return (
             <button
               key={dest.id}
               type="button"
-              className={`obs-map-node${isSelected ? " is-selected" : ""}${isCompleted ? " is-completed" : ""}${!isUnlocked ? " is-locked" : ""}`}
+              className={`obs-map-node${isSelected ? " is-selected" : ""}${isCompleted ? " is-completed" : ""}${isNext ? " is-next" : ""}${!isUnlocked ? " is-locked" : ""}`}
               style={{
                 left: `${(pos.x / 620) * 100}%`,
                 top: `${(pos.y / 520) * 100}%`,
@@ -242,13 +248,21 @@ export function StarMap({
               onClick={() => onSelectDestination(dest.id)}
               data-testid={`destination-${dest.id}`}
               data-status={
-                isCompleted ? "completed" : isUnlocked ? "unlocked" : "locked"
+                isCompleted
+                  ? "completed"
+                  : isNext
+                    ? "next"
+                    : isUnlocked
+                      ? "unlocked"
+                      : "locked"
               }
             >
               <span className="obs-node-badge" aria-hidden="true">
                 {isCompleted ? "✓" : isUnlocked ? "🪐" : "🔒"}
               </span>
-              <span className="obs-node-label">{dest.name}</span>
+              <span className="obs-node-label">
+                {getAtlasLabel(dest, isCompleted)}
+              </span>
             </button>
           );
         })}

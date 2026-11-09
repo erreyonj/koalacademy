@@ -16,8 +16,10 @@ import {
   validateWordChallenge,
 } from "./archive-engine";
 import {
+  getAtlasLabel,
   getAvailableDestinations,
   getRevealedRegions,
+  isCampaignWon,
   isDestinationUnlocked,
 } from "./atlas-engine";
 import {
@@ -173,13 +175,13 @@ describe("Archive engine & curated word bank", () => {
     expect(afterDuplicate.completedChallengeIds).toEqual(["beef-1"]);
   });
 
-  it("has 44 valid records with nested, note-only blanks per difficulty", () => {
-    expect(WORD_CHALLENGES.length).toBe(44);
+  it("has 48 valid records with nested, note-only blanks per difficulty", () => {
+    expect(WORD_CHALLENGES.length).toBe(48);
     for (const challenge of WORD_CHALLENGES) {
       expect(validateChallengeDefinition(challenge), challenge.id).toBe(true);
     }
-    expect(new Set(WORD_CHALLENGES.map((c) => c.id)).size).toBe(44);
-    expect(new Set(WORD_CHALLENGES.map((c) => c.answer)).size).toBe(44);
+    expect(new Set(WORD_CHALLENGES.map((c) => c.id)).size).toBe(48);
+    expect(new Set(WORD_CHALLENGES.map((c) => c.answer)).size).toBe(48);
     expect(
       validateChallengeDefinition({
         ...sampleChallenge,
@@ -188,11 +190,20 @@ describe("Archive engine & curated word bank", () => {
     ).toBe(false);
   });
 
+  it("keeps astronomy words Hard-only: Easy and Medium records are spelled with A-G", () => {
+    for (const challenge of getDifficultyChallenges(WORD_CHALLENGES, "medium")) {
+      expect(challenge.answer, challenge.id).toMatch(/^[A-G]+$/);
+    }
+    for (const challenge of WORD_CHALLENGES.filter((c) => c.hardOnly)) {
+      expect(challenge.answer, challenge.id).not.toMatch(/^[A-G]+$/);
+    }
+  });
+
   it("gives every sector a primary set that funds its calibration within 6 Cal on every difficulty", () => {
     for (const dest of DESTINATIONS) {
       const sector = WORD_CHALLENGES.filter((c) => c.destinationId === dest.id);
       expect(sector.filter((c) => c.set === "primary" && !c.hardOnly).length).toBe(4);
-      expect(sector.filter((c) => c.hardOnly).length).toBe(1);
+      expect(sector.filter((c) => c.hardOnly).length).toBe(2);
       expect(sector.filter((c) => c.set === "backup-1").length).toBe(3);
       expect(sector.filter((c) => c.set === "backup-2").length).toBe(3);
 
@@ -200,7 +211,7 @@ describe("Archive engine & curated word bank", () => {
         const primary = getDifficultyChallenges(sector, difficulty).filter(
           (c) => c.set === "primary",
         );
-        expect(primary.length).toBe(difficulty === "hard" ? 5 : 4);
+        expect(primary.length).toBe(difficulty === "hard" ? 6 : 4);
         const sum = primary.reduce(
           (total, c) => total + getChallengeReward(c, difficulty),
           0,
@@ -446,11 +457,19 @@ describe("Hard-mode failed traces & Game Over", () => {
     ).toBe(false);
   });
 
-  it("gives every destination a sector log profile", () => {
+  it("gives every destination a sector log profile and a lens reveal photo", () => {
     for (const dest of DESTINATIONS) {
       expect(dest.profile.blurb.length).toBeGreaterThan(20);
       expect(dest.profile.facts.length).toBeGreaterThanOrEqual(2);
+      expect(dest.lensImage).toMatch(/^\/assets\/koalastronomer\//);
+      expect(dest.revealName.length).toBeGreaterThan(2);
     }
+    expect(DESTINATIONS.map((d) => d.revealName)).toEqual([
+      "Mercury",
+      "Ceres",
+      "Pluto",
+      "Unknown world",
+    ]);
   });
 });
 
@@ -551,7 +570,7 @@ describe("Per-sector Archive record sets", () => {
       );
     expect(total(flush)).toBe(16);
     expect(total(dry)).toBe(19);
-    expect(total({ ...createInitialState("hard"), calibrationPoints: 20 })).toBe(20);
+    expect(total({ ...createInitialState("hard"), calibrationPoints: 20 })).toBe(24);
   });
 });
 
@@ -563,6 +582,8 @@ describe("Atlas unlock progression & persistence migration", () => {
     ).toEqual(["mercury-sector"]);
 
     state = completeObservation(state, "mercury-sector");
+    expect(state.currentDestinationId).toBe("mercury-sector");
+    expect(state.telescopeProgress).toBeNull();
     expect(
       getRevealedRegions(DESTINATIONS, state.completedDestinationIds),
     ).toEqual(["mercury-sector"]);
@@ -572,6 +593,33 @@ describe("Atlas unlock progression & persistence migration", () => {
     expect(
       getAvailableDestinations(DESTINATIONS, state).map((d) => d.id),
     ).toEqual(["outer-belt"]);
+  });
+
+  it("renames charted Atlas sectors to the identified body, except the New Body", () => {
+    const [mercury, outerBelt, distant, newBody] = DESTINATIONS;
+    expect(getAtlasLabel(mercury, false)).toBe("Mercury Sector");
+    expect(getAtlasLabel(mercury, true)).toBe("Mercury");
+    expect(getAtlasLabel(outerBelt, false)).toBe("Outer Belt");
+    expect(getAtlasLabel(outerBelt, true)).toBe("Ceres");
+    expect(getAtlasLabel(distant, false)).toBe("Distant Region");
+    expect(getAtlasLabel(distant, true)).toBe("Pluto");
+    expect(getAtlasLabel(newBody, false)).toBe("The New Body");
+    expect(getAtlasLabel(newBody, true)).toBe("The New Body");
+  });
+
+  it("treats the campaign as won only once every sector is charted", () => {
+    const none = createInitialState();
+    expect(isCampaignWon(none.completedDestinationIds, DESTINATIONS)).toBe(
+      false,
+    );
+    const almost = DESTINATIONS.slice(0, 3).map((d) => d.id);
+    expect(isCampaignWon(almost, DESTINATIONS)).toBe(false);
+    expect(
+      isCampaignWon(
+        DESTINATIONS.map((d) => d.id),
+        DESTINATIONS,
+      ),
+    ).toBe(true);
   });
 
   it("round-trips valid saved state and migrates legacy dial saves cleanly", () => {

@@ -4,6 +4,7 @@ import { useState } from "react";
 import {
   getAvailableDestinations,
   getRevealedRegions,
+  isCampaignWon,
   isDestinationUnlocked,
 } from "../../engine/atlas-engine";
 import type {
@@ -19,6 +20,7 @@ interface AtlasScreenProps {
   destinations: readonly TelescopeDestination[];
   onSelectDestination: (destinationId: string) => void;
   onNavigateArchive: () => void;
+  onNewGame?: () => void;
 }
 
 export function AtlasScreen({
@@ -26,10 +28,16 @@ export function AtlasScreen({
   destinations,
   onSelectDestination,
   onNavigateArchive,
+  onNewGame,
 }: AtlasScreenProps) {
   const availableDestinations = getAvailableDestinations(destinations, state);
+  const campaignWon = isCampaignWon(
+    state.completedDestinationIds,
+    destinations,
+  );
   const defaultDest =
     destinations.find((d) => d.id === state.currentDestinationId) ??
+    (campaignWon ? destinations[destinations.length - 1] : undefined) ??
     availableDestinations[0] ??
     destinations[0];
 
@@ -70,6 +78,9 @@ export function AtlasScreen({
             <LensView
               sectorId={selectedDest.id}
               sectorName={selectedDest.name}
+              revealName={selectedDest.revealName}
+              lensImage={selectedDest.lensImage}
+              lensClipGlobe={selectedDest.lensClipGlobe}
               solvedCount={3}
             />
           </div>
@@ -79,6 +90,7 @@ export function AtlasScreen({
             completedDestinationIds={state.completedDestinationIds}
             revealedRegions={revealedRegions}
             selectedDestinationId={selectedDest.id}
+            nextDestinationId={availableDestinations[0]?.id ?? null}
             onSelectDestination={handleSelect}
           />
         )}
@@ -93,6 +105,7 @@ export function AtlasScreen({
           onShowLogChange={setShowLog}
           onObserve={() => onSelectDestination(selectedDest.id)}
           onNavigateArchive={onNavigateArchive}
+          onNewGame={campaignWon ? onNewGame : undefined}
         />
       </div>
     </section>

@@ -1,5 +1,6 @@
 "use client";
 
+import { useLayoutEffect } from "react";
 import type {
   ControlMode,
   GameState,
@@ -46,6 +47,12 @@ export function ArchiveScreen({
     challenges.find((c) => c.id === selectedChallengeId) ??
     challenges.find((c) => c.id === fallbackId);
 
+  useLayoutEffect(() => {
+    if (selectedChallenge && selectedChallengeId !== selectedChallenge.id) {
+      onSelectChallenge(selectedChallenge.id);
+    }
+  }, [selectedChallenge, selectedChallengeId, onSelectChallenge]);
+
   if (!selectedChallenge) return null;
 
   const nextIncomplete = challenges.find(
@@ -62,6 +69,7 @@ export function ArchiveScreen({
     >
       <div className="obs-archive-stage">
         <WordChallenge
+          key={`${selectedChallenge.id}:${state.difficulty}`}
           challenge={selectedChallenge}
           difficulty={state.difficulty}
           controlMode={controlMode}
@@ -69,6 +77,10 @@ export function ArchiveScreen({
             selectedChallenge.id,
           )}
           onComplete={(reward) => {
+            // Pin the fallback record so its success state stays on screen
+            if (selectedChallengeId !== selectedChallenge.id) {
+              onSelectChallenge(selectedChallenge.id);
+            }
             onChallengeComplete(selectedChallenge.id, reward);
           }}
           onNextRecord={

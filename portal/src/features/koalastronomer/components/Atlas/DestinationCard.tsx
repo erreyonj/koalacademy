@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+import { getAtlasLabel } from "../../engine/atlas-engine";
 import type {
   Difficulty,
   TelescopeDestination,
@@ -11,6 +13,7 @@ import {
   getDestinationTotalCost,
   RING_METADATA,
 } from "../../engine/telescope-engine";
+import { RestartConfirmModal } from "./RestartConfirmModal";
 
 interface DestinationCardProps {
   destination: TelescopeDestination;
@@ -22,6 +25,7 @@ interface DestinationCardProps {
   onShowLogChange: (open: boolean) => void;
   onObserve: () => void;
   onNavigateArchive: () => void;
+  onNewGame?: () => void;
 }
 
 export function DestinationCard({
@@ -34,13 +38,18 @@ export function DestinationCard({
   onShowLogChange,
   onObserve,
   onNavigateArchive,
+  onNewGame,
 }: DestinationCardProps) {
+  const [confirmRestart, setConfirmRestart] = useState(false);
+  const atlasLabel = getAtlasLabel(destination, isCompleted);
   const totalCost = getDestinationTotalCost(destination, difficulty);
+  const showNewGame =
+    Boolean(onNewGame) && isCompleted && destination.id === "the-new-body";
 
   return (
     <aside className="obs-dest-card" data-testid="destination-detail-card">
       <div className="obs-dest-card-header">
-        <h2>{destination.name}</h2>
+        <h2>{atlasLabel}</h2>
       </div>
 
       <div className="obs-dest-card-body">
@@ -79,10 +88,10 @@ export function DestinationCard({
                 className="obs-sector-log"
                 data-testid="sector-log"
                 role="region"
-                aria-label={`${destination.name} sector log`}
+                aria-label={`${atlasLabel} sector log`}
               >
                 <span className="obs-sector-log-eyebrow">
-                  Sector log · {destination.name}
+                  Sector log · {atlasLabel}
                 </span>
                 <div
                   className="obs-sector-log-scroll"
@@ -171,15 +180,33 @@ export function DestinationCard({
           </>
         )}
 
-        <button
-          type="button"
-          className="obs-secondary-btn obs-archive-link-btn"
-          onClick={onNavigateArchive}
-          data-testid="visit-archive-btn"
-        >
-          Visit Archive (+Calibration)
-        </button>
+        {showNewGame ? (
+          <button
+            type="button"
+            className="obs-primary-cta obs-new-game-btn"
+            onClick={() => setConfirmRestart(true)}
+            data-testid="new-game-btn"
+          >
+            New Game
+          </button>
+        ) : (
+          <button
+            type="button"
+            className="obs-secondary-btn obs-archive-link-btn"
+            onClick={onNavigateArchive}
+            data-testid="visit-archive-btn"
+          >
+            Visit Archive (+Calibration)
+          </button>
+        )}
       </div>
+
+      {confirmRestart && onNewGame && (
+        <RestartConfirmModal
+          onCancel={() => setConfirmRestart(false)}
+          onConfirm={onNewGame}
+        />
+      )}
     </aside>
   );
 }

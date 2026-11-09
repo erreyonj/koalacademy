@@ -34,6 +34,7 @@ export function RecordsControl({
   const doneCount = challenges.filter((c) =>
     completedChallengeIds.includes(c.id),
   ).length;
+  const allRecovered = challenges.length > 0 && doneCount === challenges.length;
 
   useEffect(() => {
     if (!open) return;
@@ -55,7 +56,7 @@ export function RecordsControl({
     <div className="obs-records-control" ref={rootRef}>
       <button
         type="button"
-        className={`obs-records-toggle${open ? " is-open" : ""}`}
+        className={`obs-records-toggle${open ? " is-open" : ""}${allRecovered ? " is-complete" : ""}`}
         aria-expanded={open}
         aria-haspopup="listbox"
         data-testid="records-toggle"

@@ -1,6 +1,6 @@
 "use client";
 
-import { type CSSProperties, useEffect, useRef, useState } from "react";
+import { type CSSProperties, useState } from "react";
 import {
   getBlankNotes,
   validateWordChallenge,
@@ -24,9 +24,9 @@ interface WordChallengeProps {
   controlMode: ControlMode;
   isCompleted: boolean;
   onComplete: (reward: number) => void;
-  /** Shown after success when another record is still unrecovered. */
+  /** Shown once this record is recovered and another is still unrecovered. */
   onNextRecord?: () => void;
-  /** Shown after success when no unrecovered records remain. */
+  /** Shown once this record is recovered and no unrecovered records remain. */
   onCalibrate?: () => void;
 }
 
@@ -54,16 +54,6 @@ export function WordChallenge({
   );
   const [result, setResult] = useState<WordValidationResult | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
-
-  const prevKeyRef = useRef(`${challenge.id}:${difficulty}`);
-  useEffect(() => {
-    const key = `${challenge.id}:${difficulty}`;
-    if (prevKeyRef.current === key) return;
-    prevKeyRef.current = key;
-    setGuesses(initialGuesses(challenge, difficulty, isCompleted));
-    setResult(null);
-    setShowSuccess(false);
-  }, [challenge, difficulty, isCompleted]);
 
   const chars = challenge.answer.split("");
   const wrongIndex = result && !result.valid ? result.wrongIndex : null;
@@ -163,7 +153,7 @@ export function WordChallenge({
           {isCompleted && !showSuccess ? "Record Recovered ✓" : "Recover Record"}
         </button>
 
-        {showSuccess && onNextRecord && (
+        {locked && onNextRecord && (
           <button
             type="button"
             className="obs-secondary-btn"
@@ -174,7 +164,7 @@ export function WordChallenge({
           </button>
         )}
 
-        {showSuccess && !onNextRecord && onCalibrate && (
+        {locked && !onNextRecord && onCalibrate && (
           <button
             type="button"
             className="obs-secondary-btn"

@@ -22,13 +22,15 @@ export const DESTINATIONS: readonly TelescopeDestination[] = [
       "The closest observable sector along the inner rim. A reliable baseline for calibrating the brass optics.",
     profile: {
       blurb:
-        "Mercury is the smallest planet and the closest to the Sun. From Earth it never strays far from the Sun, so it is only visible low on the horizon around sunrise or sunset.",
+        "A small, cratered world closest to the Sun. It never strays far from the glare, so it is easiest to catch at dawn or dusk.",
       facts: [
-        "Mercury orbits the Sun once every 88 Earth days.",
-        "With almost no atmosphere, its surface swings from about 430 °C by day to about -180 °C at night.",
-        "One Mercury day (sunrise to sunrise) lasts about 176 Earth days.",
+        "Mercury is the closest planet to the Sun.",
+        "Its surface is dry and heavily cratered.",
       ],
     },
+    lensImage: "/assets/koalastronomer/koalastronomer-MERCURY.png",
+    revealName: "Mercury",
+    lensClipGlobe: true,
     components: {
       range: "mercury-range",
       focus: "mercury-focus",
@@ -43,13 +45,14 @@ export const DESTINATIONS: readonly TelescopeDestination[] = [
     description: "A band of smaller bodies beyond the inner planets.",
     profile: {
       blurb:
-        "Between Mars and Jupiter lies the main asteroid belt: millions of rocky leftovers from the early solar system that never formed a planet.",
+        "The largest body in the asteroid belt: a pale, cratered world sitting between Mars and Jupiter.",
       facts: [
-        "Ceres, the largest object in the belt, is classified as a dwarf planet.",
-        "Despite movie scenes, asteroids in the belt are usually hundreds of thousands of kilometers apart.",
-        "All the asteroids in the belt added together have less mass than Earth's Moon.",
+        "Ceres is the largest object in the belt.",
+        "It is classified as a dwarf planet.",
       ],
     },
+    lensImage: "/assets/koalastronomer/ceres-w-bg.jpg",
+    revealName: "Ceres",
     components: {
       range: "outer-range",
       focus: "outer-focus",
@@ -65,13 +68,15 @@ export const DESTINATIONS: readonly TelescopeDestination[] = [
       "Faint outer constellations requiring careful focal alignment across the deep dome.",
     profile: {
       blurb:
-        "Far beyond Neptune, the Kuiper Belt is a cold ring of icy bodies, home to Pluto and many comets that swing in toward the Sun.",
+        "A distant icy world far beyond Neptune, with a bright heart-shaped plain on one face.",
       facts: [
-        "Pluto was reclassified as a dwarf planet in 2006.",
-        "Sunlight takes about 5.5 hours to reach Pluto.",
-        "NASA's New Horizons spacecraft flew past Pluto in 2015.",
+        "Pluto lies in the Kuiper Belt.",
+        "It is classified as a dwarf planet.",
       ],
     },
+    lensImage: "/assets/koalastronomer/koalastronomer-PLUTO.png",
+    revealName: "Pluto",
+    lensClipGlobe: true,
     components: {
       range: "distant-range",
       focus: "distant-focus",
@@ -87,13 +92,14 @@ export const DESTINATIONS: readonly TelescopeDestination[] = [
       "An uncharted celestial body on the far horizon. The final piece of the observatory chart.",
     profile: {
       blurb:
-        "Your discovery: an uncharted body on the far horizon. Astronomers find new objects by comparing images of the same patch of sky over time and spotting what moves.",
+        "It looks Earth-like: clouds, a glow at the limb, land and sea. What intelligence could be here?",
       facts: [
-        "Neptune was found in 1846 after its position was predicted from wobbles in Uranus's orbit.",
-        "Clyde Tombaugh discovered Pluto in 1930 by flipping between photographs of the night sky.",
-        "Newly found objects receive temporary codes until they are officially named.",
+        "Its colors and clouds resemble Earth, but no charts list it.",
+        "The interference around it is unlike anything in the inner sectors.",
       ],
     },
+    lensImage: "/assets/koalastronomer/achean-earth-w-bg.jpg",
+    revealName: "Unknown world",
     components: {
       range: "new-body-range",
       focus: "new-body-focus",

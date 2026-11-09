@@ -62,6 +62,23 @@ export function KoalastronomerApp() {
   const gameOver =
     !unlimitedCalibration &&
     isGameOver(state, DESTINATIONS, WORD_CHALLENGES);
+  const availableRecordIds = availableChallenges.map((c) => c.id).join(",");
+
+  useEffect(() => {
+    const ids = availableRecordIds.split(",").filter(Boolean);
+    if (selectedRecordId && ids.includes(selectedRecordId)) return;
+    // Stay on a recovered record so Next Record / Calibrate Telescope can show.
+    setSelectedRecordId(
+      ids.find((id) => !state.completedChallengeIds.includes(id)) ??
+        ids[0] ??
+        null,
+    );
+  }, [
+    archiveSector.id,
+    availableRecordIds,
+    selectedRecordId,
+    state.completedChallengeIds,
+  ]);
 
   useEffect(() => {
     if (!ducked) return;
@@ -267,6 +284,7 @@ export function KoalastronomerApp() {
               destinations={DESTINATIONS}
               onSelectDestination={handleSelectObservation}
               onNavigateArchive={() => handleNavigate("archive")}
+              onNewGame={actions.resetGame}
             />
           )}
 

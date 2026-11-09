@@ -284,7 +284,7 @@ export function completeObservation(
     ...state,
     currentScreen: "atlas",
     completedDestinationIds,
-    currentDestinationId: null,
+    currentDestinationId: destinationId,
     telescopeProgress: null,
   };
 }

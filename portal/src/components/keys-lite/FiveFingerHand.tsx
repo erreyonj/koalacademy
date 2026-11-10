@@ -133,8 +133,8 @@ export function FiveFingerHand() {
   );
   const [loop, setLoop] = useState(false);
   const [soundOn, setSoundOn] = useState(true);
-  const [timingMode, setTimingMode] = useState<TimingMode>("lesson");
-  const [bpm, setBpm] = useState(80);
+  const [timingMode, setTimingMode] = useState<TimingMode>("smooth");
+  const [bpm, setBpm] = useState(60);
   const [tonic, setTonic] = useState<string>("C");
   const [mode, setMode] = useState<FiveMode>("major");
   const loopRef = useRef(loop);

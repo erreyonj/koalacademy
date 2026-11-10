@@ -115,10 +115,15 @@ const ODD_UP: Record<string, Partial<Record<HandSide, Finger[]>>> = {
   },
 };
 
-export type FingeringOpts = { tonic?: string; mode?: string };
+export type ScaleOctaves = 1 | 2;
 
-/** One-octave ascent. Minors and church modes stay on CAGED. */
-export function upFingers(
+export type FingeringOpts = {
+  tonic?: string;
+  mode?: string;
+  octaves?: ScaleOctaves;
+};
+
+function oneOctaveUp(
   side: HandSide,
   tonic = "C",
   mode = "major",
@@ -126,6 +131,24 @@ export function upFingers(
   const caged = side === "right" ? CAGED_RH : CAGED_LH;
   if (mode !== "major") return caged;
   return ODD_UP[tonic]?.[side] ?? caged;
+}
+
+/**
+ * Ascending fingering for one or two octaves.
+ * Two-octave RH stitches [...one.slice(0,-1), ...one]; LH stitches [...one, ...one.slice(1)].
+ * Minors and church modes stay on CAGED.
+ */
+export function upFingers(
+  side: HandSide,
+  tonic = "C",
+  mode = "major",
+  octaves: ScaleOctaves = 1,
+): Finger[] {
+  const one = oneOctaveUp(side, tonic, mode);
+  if (octaves === 1) return one;
+  return side === "right"
+    ? [...one.slice(0, -1), ...one]
+    : [...one, ...one.slice(1)];
 }
 
 function downFingersFromUp(up: Finger[], repeatPeak: boolean): Finger[] {
@@ -154,18 +177,19 @@ function crossKind(side: HandSide, dir: "up" | "down"): CrossKind {
   return thumbUnder ? "under" : "over";
 }
 
-/** First index of the second group: thumb under, or 3/4 over. */
-function findCrossAt(fingers: Finger[], kind: CrossKind): number {
+/** All thumb-under / cross-over indices along a finger row. */
+function findAllCrossAts(fingers: Finger[], kind: CrossKind): number[] {
+  const ats: number[] = [];
   if (kind === "under") {
     for (let i = 2; i < fingers.length; i++) {
-      if (fingers[i] < fingers[i - 1]) return i;
+      if (fingers[i] < fingers[i - 1]) ats.push(i);
     }
   } else {
     for (let i = 1; i < fingers.length; i++) {
-      if (fingers[i] > fingers[i - 1]) return i;
+      if (fingers[i] > fingers[i - 1]) ats.push(i);
     }
   }
-  return 3;
+  return ats.length > 0 ? ats : [3];
 }
 
 export function crossingFinger(
@@ -173,9 +197,9 @@ export function crossingFinger(
   dir: "up" | "down",
   opts: FingeringOpts = {},
 ): Finger {
-  const up = upFingers(side, opts.tonic, opts.mode);
+  const up = upFingers(side, opts.tonic, opts.mode, opts.octaves ?? 1);
   const fingers = dir === "up" ? up : downFingersFromUp(up, false);
-  const at = findCrossAt(fingers, crossKind(side, dir));
+  const at = findAllCrossAts(fingers, crossKind(side, dir))[0] ?? 3;
   return fingers[at] ?? 1;
 }
 
@@ -214,27 +238,38 @@ const LESSON_FIRST_MS = 240;
 const LESSON_STEP_MS = 480;
 const LESSON_END_MS = 820;
 
+function flipShift(shift: 0 | 1): 0 | 1 {
+  return shift === 0 ? 1 : 0;
+}
+
 function buildWaypoints(
   tones: Tone[],
-  crossAt: number,
+  crossAts: number[],
   fromShift: 0 | 1,
-  crossFinger: Finger,
   timing: Timing,
 ): TimedWaypoint[] {
-  const toShift = (fromShift === 0 ? 1 : 0) as 0 | 1;
-  const fromT = fromShift;
-  const toT = toShift;
+  const crossSet = new Set(crossAts);
   const smooth = timing.mode === "smooth";
   const step = smooth ? beatMs(timing.bpm) : LESSON_STEP_MS;
   const first = smooth ? step : LESSON_FIRST_MS;
+  const firstCrossFinger = tones[crossAts[0]]?.finger ?? 1;
+
+  const activeCrossFinger = (index: number): Finger => {
+    for (const at of crossAts) {
+      if (at >= index) return tones[at]?.finger ?? 1;
+    }
+    return tones[crossAts[crossAts.length - 1]]?.finger ?? firstCrossFinger;
+  };
+
+  let shift: 0 | 1 = fromShift;
   const wps: TimedWaypoint[] = [
     {
       time: 0,
-      shift: fromShift,
-      thumbT: fromT,
+      shift,
+      thumbT: shift,
       pressedFinger: null,
       note: null,
-      crossFinger,
+      crossFinger: firstCrossFinger,
       attack: 0,
     },
   ];
@@ -243,13 +278,14 @@ function buildWaypoints(
 
   const pose = (
     at: number,
-    shift: number,
+    nextShift: number,
     thumbT: number,
     tone: Tone | null,
     attackAt: number,
+    crossFinger: Finger,
   ): TimedWaypoint => ({
     time: at,
-    shift,
+    shift: nextShift,
     thumbT,
     pressedFinger: tone?.finger ?? null,
     note: tone?.note ?? null,
@@ -258,36 +294,61 @@ function buildWaypoints(
   });
 
   for (let i = 0; i < tones.length; i++) {
-    if (!smooth && i === crossAt) {
+    const crossFinger = activeCrossFinger(i);
+    if (!smooth && crossSet.has(i)) {
+      const fromS = shift;
+      const toS = flipShift(shift);
       const hold = tones[i - 1];
       time += 550;
-      wps.push(pose(time, fromShift, fromT + 0.2 * (toT - fromT), hold, attack));
+      wps.push(
+        pose(time, fromS, fromS + 0.2 * (toS - fromS), hold, attack, crossFinger),
+      );
       time += 550;
-      wps.push(pose(time, fromShift, fromT + 0.72 * (toT - fromT), hold, attack));
+      wps.push(
+        pose(time, fromS, fromS + 0.72 * (toS - fromS), hold, attack, crossFinger),
+      );
       time += 1000;
-      wps.push(pose(time, fromShift, fromT + 0.72 * (toT - fromT), hold, attack));
+      wps.push(
+        pose(time, fromS, fromS + 0.72 * (toS - fromS), hold, attack, crossFinger),
+      );
       attack += 1;
       time += 480;
-      wps.push(pose(time, fromShift + 0.22 * (toShift - fromShift), toT, tones[i], attack));
+      wps.push(
+        pose(
+          time,
+          fromS + 0.22 * (toS - fromS),
+          toS,
+          tones[i],
+          attack,
+          crossFinger,
+        ),
+      );
       time += 440;
-      wps.push(pose(time, toShift, toT, tones[i], attack));
+      wps.push(pose(time, toS, toS, tones[i], attack, crossFinger));
+      shift = toS;
       continue;
+    }
+    if (smooth && crossSet.has(i)) {
+      shift = flipShift(shift);
     }
     attack += 1;
     time += i === 0 ? first : step;
-    const crossed = i >= crossAt;
     wps.push(
-      pose(
-        time,
-        crossed ? toShift : fromShift,
-        crossed ? toT : fromT,
-        tones[i],
-        attack,
-      ),
+      pose(time, shift, shift, tones[i], attack, crossFinger),
     );
   }
   time += smooth ? step : LESSON_END_MS;
-  wps.push(pose(time, toShift, toT, tones[tones.length - 1], attack));
+  const last = tones[tones.length - 1];
+  wps.push(
+    pose(
+      time,
+      shift,
+      shift,
+      last ?? null,
+      attack,
+      activeCrossFinger(tones.length - 1),
+    ),
+  );
   return wps;
 }
 
@@ -344,23 +405,44 @@ export function motionFor(
   pitches: string[] = DEFAULT_PITCHES,
   tonic = "C",
   mode = "major",
+  octaves: ScaleOctaves = 1,
 ): MotionPlan {
-  const upNotes = pitches.length === 8 ? pitches : DEFAULT_PITCHES;
+  const upRow = upFingers(side, tonic, mode, octaves);
+  const upNotes =
+    pitches.length === upRow.length
+      ? pitches
+      : octaves === 2
+        ? [
+            "C4",
+            "D4",
+            "E4",
+            "F4",
+            "G4",
+            "A4",
+            "B4",
+            "C5",
+            "D5",
+            "E5",
+            "F5",
+            "G5",
+            "A5",
+            "B5",
+            "C6",
+          ]
+        : DEFAULT_PITCHES;
   const repeatPeak = dir === "updown";
   const downNotes = downPitches(upNotes, repeatPeak);
-  const upRow = upFingers(side, tonic, mode);
   const downRow = downFingersFromUp(upRow, repeatPeak);
-  const upCrossAt = findCrossAt(upRow, crossKind(side, "up"));
-  const downCrossAt = findCrossAt(downRow, crossKind(side, "down"));
-  const upCross = upRow[upCrossAt] ?? 1;
-  const downCross = downRow[downCrossAt] ?? 1;
+  const upCrossAts = findAllCrossAts(upRow, crossKind(side, "up"));
+  const downCrossAts = findAllCrossAts(downRow, crossKind(side, "down"));
   const upTones = zipTones(upNotes, upRow);
   const downTones = zipTones(downNotes, downRow);
-  const up = buildWaypoints(upTones, upCrossAt, 0, upCross, timing);
-  const down = buildWaypoints(downTones, downCrossAt, 1, downCross, timing);
+  const up = buildWaypoints(upTones, upCrossAts, 0, timing);
+  const down = buildWaypoints(downTones, downCrossAts, 1, timing);
   const gap = timing.mode === "smooth" ? beatMs(timing.bpm) : LESSON_STEP_MS;
   const peak = upNotes[upNotes.length - 1] ?? "C5";
-  const waypoints = dir === "up" ? up : dir === "down" ? down : stitchUpDown(up, down, gap, peak);
+  const waypoints =
+    dir === "up" ? up : dir === "down" ? down : stitchUpDown(up, down, gap, peak);
   return {
     waypoints,
     totalMs: waypoints[waypoints.length - 1].time,
@@ -373,6 +455,7 @@ export function idleSample(
   dir: ScaleDir,
   tonic = "C",
   mode = "major",
+  octaves: ScaleOctaves = 1,
 ): MotionSample {
   const down = dir === "down";
   const phase: "up" | "down" = down ? "down" : "up";
@@ -381,7 +464,7 @@ export function idleSample(
     thumbT: down ? 1 : 0,
     pressedFinger: null,
     note: null,
-    crossFinger: crossingFinger(side, phase, { tonic, mode }),
+    crossFinger: crossingFinger(side, phase, { tonic, mode, octaves }),
     attack: 0,
   };
 }

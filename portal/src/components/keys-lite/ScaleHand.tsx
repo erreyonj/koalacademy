@@ -3,7 +3,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Sparkles } from "lucide-react";
 import { Note } from "tonal";
-import { COMMON_MAJOR_KEYS, scalePitchesFor } from "@/lib/notation/key";
+import {
+  COMMON_MAJOR_KEYS,
+  scalePitchesForOctaves,
+} from "@/lib/notation/key";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,10 +18,12 @@ import {
 import {
   KEY_TOP,
   VIEW_H,
-  VIEW_W,
+  WHITE_COUNT,
+  WHITE_COUNT_TWO_OCTAVE,
   WHITE_H,
   blackKeys,
   keyboardStart,
+  viewWidth,
   whiteCenter,
   whiteKeys,
   type BlackKey,
@@ -39,6 +44,7 @@ import {
   type HandSide,
   type MotionSample,
   type ScaleDir,
+  type ScaleOctaves,
   type TimingMode,
 } from "./timeline";
 
@@ -162,7 +168,7 @@ const TIPS_LEFT: Record<Finger, { x: number; y: number }> = {
   5: { x: 20.6, y: 29.8 },
 };
 
-export function ScaleHand() {
+export function ScaleHand({ octaves = 1 }: { octaves?: ScaleOctaves }) {
   const [reduceMotion, setReduceMotion] = useState(false);
   const [status, setStatus] = useState<PlayStatus>("idle");
   const [playGen, setPlayGen] = useState(0);
@@ -171,44 +177,52 @@ export function ScaleHand() {
   const [dir, setDir] = useState<ScaleDir>("up");
   const [bySide, setBySide] = useState<{ left: MotionSample; right: MotionSample }>(
     () => ({
-      left: idleSample("left", "up"),
-      right: idleSample("right", "up"),
+      left: idleSample("left", "up", "C", "major", octaves),
+      right: idleSample("right", "up", "C", "major", octaves),
     }),
   );
   const [loop, setLoop] = useState(false);
   const [soundOn, setSoundOn] = useState(true);
-  const [timingMode, setTimingMode] = useState<TimingMode>("lesson");
-  const [bpm, setBpm] = useState(80);
+  const [timingMode, setTimingMode] = useState<TimingMode>("smooth");
+  const [bpm, setBpm] = useState(60);
   const [tonic, setTonic] = useState<string>("C");
   const [mode, setMode] = useState<ScaleHandMode>("major");
   const [showChurch, setShowChurch] = useState(false);
   const loopRef = useRef(loop);
   loopRef.current = loop;
 
+  const keyCount =
+    octaves === 2 ? WHITE_COUNT_TWO_OCTAVE : WHITE_COUNT;
+  const svgWidth = viewWidth(keyCount);
   const register = useMemo(() => keyboardStart(tonic), [tonic]);
   const pitches = useMemo(
-    () => scalePitchesFor(tonalScaleName(tonic, mode), register.octave),
-    [tonic, mode, register.octave],
+    () =>
+      scalePitchesForOctaves(
+        tonalScaleName(tonic, mode),
+        register.octave,
+        octaves,
+      ),
+    [tonic, mode, register.octave, octaves],
   );
   const whites = useMemo(
-    () => whiteKeys(register.letter, register.octave),
-    [register.letter, register.octave],
+    () => whiteKeys(register.letter, register.octave, keyCount),
+    [register.letter, register.octave, keyCount],
   );
   const blacks = useMemo(
-    () => blackKeys(register.letter, register.octave),
-    [register.letter, register.octave],
+    () => blackKeys(register.letter, register.octave, keyCount),
+    [register.letter, register.octave, keyCount],
   );
   const timing = useMemo(
     () => ({ mode: timingMode, bpm }),
     [timingMode, bpm],
   );
   const leftMotion = useMemo(
-    () => motionFor("left", dir, timing, pitches, tonic, mode),
-    [dir, timing, pitches, tonic, mode],
+    () => motionFor("left", dir, timing, pitches, tonic, mode, octaves),
+    [dir, timing, pitches, tonic, mode, octaves],
   );
   const rightMotion = useMemo(
-    () => motionFor("right", dir, timing, pitches, tonic, mode),
-    [dir, timing, pitches, tonic, mode],
+    () => motionFor("right", dir, timing, pitches, tonic, mode, octaves),
+    [dir, timing, pitches, tonic, mode, octaves],
   );
   const name = scaleLabel(tonic, mode);
   const sample = showBoth ? bySide.right : bySide[side];
@@ -306,8 +320,8 @@ export function ScaleHand() {
     nextMode: ScaleHandMode = mode,
   ) {
     setBySide({
-      left: idleSample("left", nextDir, nextTonic, nextMode),
-      right: idleSample("right", nextDir, nextTonic, nextMode),
+      left: idleSample("left", nextDir, nextTonic, nextMode, octaves),
+      right: idleSample("right", nextDir, nextTonic, nextMode, octaves),
     });
   }
 
@@ -390,6 +404,7 @@ export function ScaleHand() {
       data-sound={soundOn ? "on" : "off"}
       data-key={tonic}
       data-mode={mode}
+      data-octaves={String(octaves)}
     >
       <div className="deck-screen">
         <span className="lcd" aria-live="polite">
@@ -412,6 +427,8 @@ export function ScaleHand() {
               pitches={pitches}
               scaleName={name}
               label={label}
+              svgWidth={svgWidth}
+              octaves={octaves}
             />
           );
         })}
@@ -570,6 +587,8 @@ function HandModule({
   pitches,
   scaleName,
   label,
+  svgWidth,
+  octaves,
 }: {
   side: HandSide;
   note: string | null;
@@ -580,6 +599,8 @@ function HandModule({
   pitches: string[];
   scaleName: string;
   label: string;
+  svgWidth: number;
+  octaves: ScaleOctaves;
 }) {
   const hand = (
     <GutterHand
@@ -597,6 +618,8 @@ function HandModule({
       scaleName={scaleName}
       side={side}
       label={label}
+      svgWidth={svgWidth}
+      octaves={octaves}
     />
   );
   return (
@@ -626,6 +649,8 @@ function Keyboard({
   scaleName,
   side,
   label,
+  svgWidth,
+  octaves,
 }: {
   whites: WhiteKey[];
   blacks: BlackKey[];
@@ -634,6 +659,8 @@ function Keyboard({
   scaleName: string;
   side: HandSide;
   label: string;
+  svgWidth: number;
+  octaves: ScaleOctaves;
 }) {
   const tonicPc = tonicPitch ? pitchClassOf(tonicPitch) : null;
   const isTonic = (pitch: string) => {
@@ -660,11 +687,15 @@ function Keyboard({
   ];
   const first = whites[0]?.note ?? "C4";
   const last = whites[whites.length - 1]?.note ?? "G5";
+  const turnCopy =
+    octaves === 2
+      ? "including each thumb-under turn across two octaves"
+      : "including the 3-to-1 turn";
 
   return (
     <svg
       className="scale-hand-keys"
-      viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
+      viewBox={`0 0 ${svgWidth} ${VIEW_H}`}
       role="img"
       aria-label={label}
       preserveAspectRatio="xMidYMid meet"
@@ -672,10 +703,10 @@ function Keyboard({
       <title>{`${scaleName} scale, ${side} hand`}</title>
       <desc>
         A piano from {first} to {last}. A home mark sits on the tonic. The
-        sounding note lights as {scaleName} plays, including the 3-to-1 turn.
+        sounding note lights as {scaleName} plays, {turnCopy}.
       </desc>
 
-      <rect x="0" y="0" width={VIEW_W} height={VIEW_H} className="scale-hand-bed" />
+      <rect x="0" y="0" width={svgWidth} height={VIEW_H} className="scale-hand-bed" />
 
       {whites.map((key) => {
         const pressed = note != null && samePitch(note, key.note);

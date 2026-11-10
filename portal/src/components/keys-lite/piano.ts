@@ -51,6 +51,64 @@ const PARTIALS: { ratio: number; type: OscillatorType; gain: number }[] = [
 ];
 
 const DECAY = 0.7;
+const HOLD_RELEASE = 0.08;
+
+type HeldVoice = {
+  amps: GainNode[];
+  oscs: OscillatorNode[];
+  filter: BiquadFilterNode;
+};
+
+let heldVoices: HeldVoice[] = [];
+
+function fadeAmps(amps: GainNode[], now: number, release = 0.04) {
+  for (const amp of amps) {
+    try {
+      amp.gain.cancelScheduledValues(now);
+      amp.gain.setValueAtTime(Math.max(amp.gain.value, 0.0001), now);
+      amp.gain.exponentialRampToValueAtTime(0.0001, now + release);
+    } catch {
+      // Node already stopped.
+    }
+  }
+}
+
+function startVoice(
+  ctx: AudioContext,
+  hz: number,
+  now: number,
+  sustain: boolean,
+  voiceGain = 1,
+): HeldVoice {
+  const filter = ctx.createBiquadFilter();
+  filter.type = "lowpass";
+  filter.frequency.setValueAtTime(1700, now);
+  filter.Q.value = 0.65;
+  filter.connect(ctx.destination);
+
+  const amps: GainNode[] = [];
+  const oscs: OscillatorNode[] = [];
+  for (const partial of PARTIALS) {
+    const osc = ctx.createOscillator();
+    const amp = ctx.createGain();
+    const peak = partial.gain * voiceGain;
+    osc.type = partial.type;
+    osc.frequency.setValueAtTime(hz * partial.ratio, now);
+    amp.gain.setValueAtTime(0.0001, now);
+    amp.gain.exponentialRampToValueAtTime(peak, now + 0.012);
+    if (sustain) {
+      amp.gain.exponentialRampToValueAtTime(peak * 0.72, now + 0.18);
+    } else {
+      amp.gain.exponentialRampToValueAtTime(0.0001, now + DECAY);
+    }
+    osc.connect(amp).connect(filter);
+    osc.start(now);
+    if (!sustain) osc.stop(now + DECAY + 0.03);
+    amps.push(amp);
+    oscs.push(osc);
+  }
+  return { amps, oscs, filter };
+}
 
 export function playNote(note: string) {
   const ctx = context();
@@ -59,36 +117,49 @@ export function playNote(note: string) {
   if (!hz) return;
 
   const now = ctx.currentTime;
+  fadeAmps(previousAmps, now);
+  const voice = startVoice(ctx, hz, now, false);
+  previousAmps = voice.amps;
+}
 
-  for (const amp of previousAmps) {
-    try {
-      amp.gain.cancelScheduledValues(now);
-      amp.gain.setValueAtTime(Math.max(amp.gain.value, 0.0001), now);
-      amp.gain.exponentialRampToValueAtTime(0.0001, now + 0.04);
-    } catch {
-      // Node already stopped.
+/** Soften every currently held chord voice. */
+export function releaseChord() {
+  const ctx = context();
+  if (!ctx || heldVoices.length === 0) {
+    heldVoices = [];
+    return;
+  }
+  const now = ctx.currentTime;
+  for (const voice of heldVoices) {
+    fadeAmps(voice.amps, now, HOLD_RELEASE);
+    for (const osc of voice.oscs) {
+      try {
+        osc.stop(now + HOLD_RELEASE + 0.04);
+      } catch {
+        // Already stopped.
+      }
     }
   }
+  heldVoices = [];
+}
 
-  const filter = ctx.createBiquadFilter();
-  filter.type = "lowpass";
-  filter.frequency.setValueAtTime(1700, now);
-  filter.Q.value = 0.65;
-  filter.connect(ctx.destination);
-
-  const amps: GainNode[] = [];
-  for (const partial of PARTIALS) {
-    const osc = ctx.createOscillator();
-    const amp = ctx.createGain();
-    osc.type = partial.type;
-    osc.frequency.setValueAtTime(hz * partial.ratio, now);
-    amp.gain.setValueAtTime(0.0001, now);
-    amp.gain.exponentialRampToValueAtTime(partial.gain, now + 0.012);
-    amp.gain.exponentialRampToValueAtTime(0.0001, now + DECAY);
-    osc.connect(amp).connect(filter);
-    osc.start(now);
-    osc.stop(now + DECAY + 0.03);
-    amps.push(amp);
+/**
+ * Sound several pitches together and hold them until `releaseChord` or
+ * the next `playChord` call. Scales each voice so a triad stays below a
+ * single `playNote`.
+ */
+export function playChord(notes: string[]) {
+  const ctx = context();
+  if (!ctx) return;
+  releaseChord();
+  const now = ctx.currentTime;
+  const unique = [...new Set(notes)];
+  const voiceGain = unique.length > 1 ? 0.55 : 1;
+  const voices: HeldVoice[] = [];
+  for (const note of unique) {
+    const hz = noteToHz(note);
+    if (!hz) continue;
+    voices.push(startVoice(ctx, hz, now, true, voiceGain));
   }
-  previousAmps = amps;
+  heldVoices = voices;
 }

@@ -152,6 +152,19 @@ export function scalePitches(key: string, startOctave = 4): string[] {
   return scalePitchesFor(scaleName, startOctave);
 }
 
+/** One or two octaves of a named scale (15 pitches for two octaves). */
+export function scalePitchesForOctaves(
+  scaleName: string,
+  startOctave = 4,
+  octaves: 1 | 2 = 1,
+): string[] {
+  if (octaves === 1) return scalePitchesFor(scaleName, startOctave);
+  const first = scalePitchesFor(scaleName, startOctave);
+  const second = scalePitchesFor(scaleName, startOctave + 1);
+  if (first.length === 0 || second.length === 0) return first;
+  return [...first.slice(0, -1), ...second];
+}
+
 export const COMMON_MAJOR_KEYS = [
   "C",
   "G",

@@ -2819,6 +2819,70 @@ button.lesson-toolbar-item {
   }
 }
 
+/* ---------- Keys.lite songs ---------- */
+
+.song-player-stack {
+  gap: 1rem;
+}
+
+.song-register.scale-hand-module,
+.song-register.scale-hand-module[data-side="left"],
+.song-register.scale-hand-module[data-side="right"] {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto 1fr;
+}
+
+.song-register-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.55rem 0.85rem;
+  padding: 0.55rem 0.85rem;
+  background: var(--ka-mist);
+  border-bottom: 2px solid var(--ka-edge);
+  font-family: var(--font-display);
+}
+
+.song-register-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ka-charcoal);
+}
+
+.song-register-symbol {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--ka-ink);
+}
+
+.song-register-note {
+  margin-left: auto;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--ka-ink);
+}
+
+.song-finger circle {
+  fill: var(--ka-pith);
+  stroke: var(--ka-edge);
+  stroke-width: 2;
+}
+
+.song-finger.is-on-black circle {
+  fill: var(--hw-yellow);
+}
+
+.song-finger text {
+  fill: var(--ka-ink);
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  pointer-events: none;
+}
+
 /* ---------- skills hub ---------- */
 
 .skills-hero {

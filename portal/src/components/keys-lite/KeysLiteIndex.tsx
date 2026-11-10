@@ -16,7 +16,7 @@ const PROGRAMS: KeysLiteCard[] = [
     title: "2 Octave Scales",
     description: "The same walk, stretched across two octaves.",
     href: "/tools/keys-lite/two-octave/",
-    status: "Coming",
+    status: "Live",
   },
   {
     id: "warmups",
@@ -24,6 +24,14 @@ const PROGRAMS: KeysLiteCard[] = [
     title: "Warmups",
     description: "Short keyboard drills before a scale or a song.",
     href: "/tools/keys-lite/warmups/",
+    status: "Live",
+  },
+  {
+    id: "songs",
+    code: "KL-04",
+    title: "Songs",
+    description: "Left-hand bass with right-hand chords on short song loops.",
+    href: "/tools/keys-lite/songs/",
     status: "Live",
   },
 ];

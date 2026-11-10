@@ -5,7 +5,14 @@ export const VIEW_H = 360;
 
 export const LEFT = 48;
 export const WHITE_COUNT = 12;
+export const WHITE_COUNT_TWO_OCTAVE = 15;
 export const WHITE_W = 52;
+const RIGHT_PAD = VIEW_W - LEFT - WHITE_COUNT * WHITE_W;
+
+/** SVG viewBox width for a keyboard with `whiteCount` whites (same key size). */
+export function viewWidth(whiteCount: number = WHITE_COUNT): number {
+  return LEFT + whiteCount * WHITE_W + RIGHT_PAD;
+}
 export const WHITE_H = 250;
 export const KEY_TOP = 36;
 export const BLACK_W = 22;
@@ -103,8 +110,9 @@ export type BlackKey = {
 export function whiteKeys(
   startLetter: WhiteLetter = "C",
   startOctave = 4,
+  count: number = WHITE_COUNT,
 ): WhiteKey[] {
-  return Array.from({ length: WHITE_COUNT }, (_, index) => ({
+  return Array.from({ length: count }, (_, index) => ({
     index,
     note: whiteNote(index, startLetter, startOctave),
     letter: whiteLetter(index, startLetter),
@@ -118,8 +126,9 @@ export function whiteKeys(
 export function blackKeys(
   startLetter: WhiteLetter = "C",
   startOctave = 4,
+  count: number = WHITE_COUNT,
 ): BlackKey[] {
-  return Array.from({ length: WHITE_COUNT }, (_, index) => index)
+  return Array.from({ length: count }, (_, index) => index)
     .map((afterIndex) => {
       const letter = letterAt(afterIndex, startLetter);
       const sharp = SHARP_AFTER[letter];

@@ -8,7 +8,7 @@ import { HELLO } from "@/components/keys-lite/songs";
 export const metadata: Metadata = {
   title: "Hello",
   description:
-    "Hello bridge loop in F minor. Left hand holds the root; right hand holds Fm, Db, Eb, Ab.",
+    "Hello in F minor. Left hand holds the root; right hand holds the triad through the full form.",
 };
 
 export default function HelloSongPage() {
@@ -20,7 +20,7 @@ export default function HelloSongPage() {
         <LedText
           as="p"
           className="page-lede"
-          text="Bridge cell in F minor at 80. Left hand holds F, Db, Eb, Ab. Right hand holds the matching triad. Loop the two-bar cell until the hands lock."
+          text="Full form in F minor at 80. Left hand holds the bass root; right hand holds the triad. Follow the scrolling staff, then match both hands on the piano below."
         />
       </GlassScreen>
 

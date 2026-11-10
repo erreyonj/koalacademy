@@ -2821,66 +2821,155 @@ button.lesson-toolbar-item {
 
 /* ---------- Keys.lite songs ---------- */
 
-.song-player-stack {
-  gap: 1rem;
-}
-
-.song-register.scale-hand-module,
-.song-register.scale-hand-module[data-side="left"],
-.song-register.scale-hand-module[data-side="right"] {
-  display: grid;
-  grid-template-columns: 1fr;
-  grid-template-rows: auto 1fr;
-}
-
-.song-register-meta {
+.song-form-row {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0.55rem 0.85rem;
-  padding: 0.55rem 0.85rem;
-  background: var(--ka-mist);
-  border-bottom: 2px solid var(--ka-edge);
-  font-family: var(--font-display);
+  gap: 0.35rem;
 }
 
-.song-register-title {
+.song-form-chip {
+  appearance: none;
+  margin: 0;
+  padding: 0.35rem 0.65rem;
+  border: 2px solid var(--ka-edge);
+  border-radius: 8px;
+  background: var(--ka-snow);
+  color: var(--ka-ink);
+  font-family: var(--font-display);
   font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.song-form-chip.is-active,
+.song-form-chip:hover,
+.song-form-chip:focus-visible {
+  background: var(--hw-yellow);
+}
+
+.song-stage {
+  display: grid;
+  gap: 0;
+  background: var(--ka-snow);
+  border: 3px solid var(--ka-edge);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.song-staff-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  background: #fff;
+  border-bottom: 2px solid var(--ka-edge);
+  -webkit-overflow-scrolling: touch;
+}
+
+.song-staff-host {
+  min-height: 15rem;
+}
+
+.song-staff-host svg {
+  display: block;
+  height: auto;
+}
+
+.song-piano-gutter {
+  display: grid;
+  grid-template-columns: minmax(4.5rem, 12%) 1fr minmax(4.5rem, 12%);
+  align-items: stretch;
+  min-height: 0;
+  background: #fff;
+}
+
+.song-hand-cue {
+  display: grid;
+  place-items: center;
+  gap: 0.2rem;
+  padding: 0.35rem 0.2rem;
+  background: #fff;
+  opacity: 0.55;
+}
+
+.song-hand-cue.is-active {
+  opacity: 1;
+}
+
+.song-hand-cue.is-left.is-active {
+  background: color-mix(in srgb, var(--ka-eucalyptus) 28%, #fff);
+}
+
+.song-hand-cue.is-right.is-active {
+  background: color-mix(in srgb, var(--ka-bamboo) 32%, #fff);
+}
+
+.song-hand-cue-img {
+  display: block;
+  width: 100%;
+  max-width: 5.5rem;
+  height: auto;
+  pointer-events: none;
+}
+
+.song-hand-cue[data-side="left"] .song-hand-cue-img {
+  transform: scaleX(-1);
+}
+
+.song-hand-cue-label {
+  font-family: var(--font-display);
+  font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--ka-charcoal);
 }
 
-.song-register-symbol {
-  font-size: 1.35rem;
-  font-weight: 700;
-  color: var(--ka-ink);
+.song-piano-keys {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 9.5rem;
 }
 
-.song-register-note {
-  margin-left: auto;
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: var(--ka-ink);
+.scale-hand-white.is-bass,
+.scale-hand-black.is-bass {
+  fill: color-mix(in srgb, var(--ka-eucalyptus) 72%, #fff);
 }
 
-.song-finger circle {
+.scale-hand-white.is-chord,
+.scale-hand-black.is-chord {
+  fill: color-mix(in srgb, var(--ka-bamboo) 78%, #fff);
+}
+
+.song-key-label rect {
   fill: var(--ka-pith);
   stroke: var(--ka-edge);
   stroke-width: 2;
 }
 
-.song-finger.is-on-black circle {
+.song-key-label.is-bass rect {
+  fill: color-mix(in srgb, var(--ka-eucalyptus) 55%, #fff);
+}
+
+.song-key-label.is-chord rect {
   fill: var(--hw-yellow);
 }
 
-.song-finger text {
+.song-key-label text {
   fill: var(--ka-ink);
   font-family: var(--font-display);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   pointer-events: none;
+}
+
+@media (max-width: 40rem) {
+  .song-piano-gutter {
+    grid-template-columns: minmax(3.25rem, 16%) 1fr minmax(3.25rem, 16%);
+  }
+
+  .song-piano-keys {
+    max-height: 7.5rem;
+  }
 }
 
 /* ---------- skills hub ---------- */

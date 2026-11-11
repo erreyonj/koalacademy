@@ -5076,9 +5076,38 @@ a.mobile-toolpad-sub-link[data-active="true"],
   box-shadow: 0 1px 0 var(--ka-edge);
 }
 
+.teacher-device-reopen {
+  position: absolute;
+  top: 0;
+  right: 5.6rem;
+  z-index: 30;
+  min-height: var(--tap-min);
+  padding: 0.4rem 0.7rem;
+  background: var(--hw-panel);
+  border: 3px solid var(--ka-edge);
+  border-radius: 10px;
+  box-shadow: 0 4px 0 var(--ka-edge);
+  color: var(--ka-ink);
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+
+.teacher-device-reopen:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 var(--ka-edge);
+}
+
 /* Inset is wide enough that wrap is centered with a real right gutter. */
 @media (min-width: 90rem) {
   .teacher-device {
+    right: auto;
+    left: 0.55rem;
+  }
+
+  .teacher-device-reopen {
     right: auto;
     left: 0.55rem;
   }
@@ -5091,7 +5120,8 @@ a.mobile-toolpad-sub-link[data-active="true"],
     position: static;
   }
 
-  .teacher-device {
+  .teacher-device,
+  .teacher-device-reopen {
     position: fixed;
     top: calc(var(--header-height) + 0.55rem);
     right: max(0.5rem, env(safe-area-inset-right));

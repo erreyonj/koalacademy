@@ -17,6 +17,22 @@ async function waitForCipherReveal(
   );
 }
 
+test("Staff DeCode start screen opens and closes the leaderboard panel", async ({
+  page,
+}) => {
+  await page.goto("/toolkit/games/staff-decode/");
+  await expect(page.getByTestId("staff-decode-stage")).toHaveAttribute(
+    "data-phase",
+    "start",
+  );
+  await page.getByTestId("view-leaderboard-btn").click();
+  await expect(page.getByTestId("leaderboard-panel")).toBeVisible();
+  await expect(page.getByTestId("leaderboard-sort-toggle")).toBeVisible();
+  await page.getByTestId("leaderboard-close").click();
+  await expect(page.getByTestId("leaderboard-panel")).toHaveCount(0);
+  await expect(page.getByTestId("start-game-btn")).toBeVisible();
+});
+
 test("Staff DeCode full game loop: start, cipher, wrong pitch, wrong value, clear room, door transition, win", async ({
   page,
 }) => {
@@ -222,6 +238,8 @@ test("Staff DeCode full game loop: start, cipher, wrong pitch, wrong value, clea
   // 8. Confirm Win vault screen
   await expect(stage).toHaveAttribute("data-phase", "win");
   await expect(page.getByTestId("win-screen")).toContainText("Vault Unlocked");
+  await expect(page.getByTestId("log-score-ask")).toBeVisible();
+  await page.getByTestId("log-score-no").click();
   await page.screenshot({
     path: path.join(SCREENSHOT_DIR, "06-win-vault.png"),
   });

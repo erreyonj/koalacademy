@@ -116,8 +116,18 @@ export function TeacherLessonIndicator({
   code,
   sequence,
 }: TeacherLessonIndicatorProps) {
-  const { unlocked, ready, error, cell, lock, setPhase, setAllPhases, rows } =
-    useTeacherMode();
+  const {
+    unlocked,
+    ready,
+    deviceOpen,
+    error,
+    cell,
+    hideDevice,
+    showDevice,
+    setPhase,
+    setAllPhases,
+    rows,
+  } = useTeacherMode();
   const [picked, setPicked] = useState<TeacherSection | null>(null);
   const [houseHold, setHouseHold] = useState<HousePick>("g");
   const grades = BAND_GRADES[band] as readonly TeacherGrade[];
@@ -132,6 +142,21 @@ export function TeacherLessonIndicator({
   }, [band, rows, sections, sequence, slug]);
 
   if (!ready || !unlocked) return null;
+
+  if (!deviceOpen) {
+    return (
+      <div className="teacher-device-anchor">
+        <button
+          type="button"
+          className="teacher-device-reopen"
+          aria-label="Show progress device"
+          onClick={showDevice}
+        >
+          Progress
+        </button>
+      </div>
+    );
+  }
 
   const section =
     picked && (sections as readonly string[]).includes(picked)
@@ -185,8 +210,8 @@ export function TeacherLessonIndicator({
           <button
             type="button"
             className="teacher-device-close"
-            aria-label="Lock teacher mode"
-            onClick={lock}
+            aria-label="Hide progress device"
+            onClick={hideDevice}
           >
             X
           </button>

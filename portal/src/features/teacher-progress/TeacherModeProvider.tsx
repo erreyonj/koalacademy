@@ -26,12 +26,16 @@ import {
 interface TeacherModeValue {
   ready: boolean;
   unlocked: boolean;
+  /** Progress device is on-screen (independent of unlocked). */
+  deviceOpen: boolean;
   code: string | null;
   rows: TeacherProgressRow[];
   error: string | null;
   cell: (section: string, slug: string) => CellFlags;
   unlock: (code: string) => Promise<void>;
   lock: () => void;
+  hideDevice: () => void;
+  showDevice: () => void;
   setPhase: (
     section: TeacherSection,
     slug: string,
@@ -59,6 +63,7 @@ export function TeacherModeProvider({ children }: { children: ReactNode }) {
   const [code, setCode] = useState<string | null>(null);
   const [rows, setRows] = useState<TeacherProgressRow[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [deviceOpen, setDeviceOpen] = useState(true);
 
   useEffect(() => {
     const stored = loadTeacherCode();
@@ -92,6 +97,7 @@ export function TeacherModeProvider({ children }: { children: ReactNode }) {
     setCode(nextCode);
     setRows(data);
     setError(null);
+    setDeviceOpen(true);
   }, []);
 
   const lock = useCallback(() => {
@@ -99,7 +105,11 @@ export function TeacherModeProvider({ children }: { children: ReactNode }) {
     setCode(null);
     setRows([]);
     setError(null);
+    setDeviceOpen(true);
   }, []);
+
+  const hideDevice = useCallback(() => setDeviceOpen(false), []);
+  const showDevice = useCallback(() => setDeviceOpen(true), []);
 
   const writeProgress = useCallback(
     (
@@ -183,16 +193,32 @@ export function TeacherModeProvider({ children }: { children: ReactNode }) {
     () => ({
       ready,
       unlocked: Boolean(code),
+      deviceOpen,
       code,
       rows,
       error,
       cell,
       unlock,
       lock,
+      hideDevice,
+      showDevice,
       setPhase,
       setAllPhases,
     }),
-    [ready, code, rows, error, cell, unlock, lock, setPhase, setAllPhases],
+    [
+      ready,
+      code,
+      deviceOpen,
+      rows,
+      error,
+      cell,
+      unlock,
+      lock,
+      hideDevice,
+      showDevice,
+      setPhase,
+      setAllPhases,
+    ],
   );
 
   return (

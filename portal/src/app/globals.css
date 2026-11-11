@@ -2821,66 +2821,238 @@ button.lesson-toolbar-item {
 
 /* ---------- Keys.lite songs ---------- */
 
-.song-player-stack {
-  gap: 1rem;
-}
-
-.song-register.scale-hand-module,
-.song-register.scale-hand-module[data-side="left"],
-.song-register.scale-hand-module[data-side="right"] {
-  display: grid;
-  grid-template-columns: 1fr;
-  grid-template-rows: auto 1fr;
-}
-
-.song-register-meta {
+.song-form-row {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0.55rem 0.85rem;
-  padding: 0.55rem 0.85rem;
-  background: var(--ka-mist);
-  border-bottom: 2px solid var(--ka-edge);
-  font-family: var(--font-display);
+  gap: 0.35rem;
 }
 
-.song-register-title {
+.song-form-chip {
+  appearance: none;
+  margin: 0;
+  padding: 0.35rem 0.65rem;
+  border: 2px solid var(--ka-edge);
+  border-radius: 8px;
+  background: var(--ka-snow);
+  color: var(--ka-ink);
+  font-family: var(--font-display);
   font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.song-form-chip.is-active,
+.song-form-chip:hover,
+.song-form-chip:focus-visible {
+  background: var(--hw-yellow);
+}
+
+.song-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.65rem;
+  align-items: start;
+}
+
+.song-stage {
+  display: grid;
+  grid-template-rows: auto auto;
+  gap: 0;
+  min-width: 0;
+  height: fit-content;
+  background: var(--ka-snow);
+  border: 3px solid var(--ka-edge);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.song-controls {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-self: center;
+  gap: 0.45rem;
+  position: sticky;
+  top: 1rem;
+}
+
+.song-control {
+  appearance: none;
+  display: grid;
+  place-items: center;
+  width: var(--tap-min);
+  height: var(--tap-min);
+  margin: 0;
+  padding: 0;
+  color: var(--ka-ink);
+  background: var(--ka-snow);
+  border: 2px solid var(--ka-edge);
+  border-radius: 8px;
+  box-shadow: 0 3px 0 var(--ka-edge);
+  cursor: pointer;
+}
+
+.song-control svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.song-control-text {
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.02em;
+}
+
+.song-control:hover,
+.song-control:focus-visible,
+.song-control[aria-pressed="true"] {
+  background: var(--hw-yellow);
+}
+
+.song-control:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--ka-edge);
+}
+
+.song-staff-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  background: #fff;
+  border-bottom: 2px solid var(--ka-edge);
+  -webkit-overflow-scrolling: touch;
+  line-height: 0;
+}
+
+.song-staff-host {
+  min-height: 0;
+  line-height: 0;
+}
+
+.song-staff-host svg {
+  display: block;
+  width: auto;
+  height: auto;
+  max-height: 14.5rem;
+}
+
+.song-piano-gutter {
+  display: grid;
+  grid-template-columns: minmax(5rem, 11%) minmax(0, 1fr) minmax(5rem, 11%);
+  align-items: center;
+  gap: 0.15rem;
+  min-height: 13rem;
+  padding: 0.45rem 0.25rem;
+  background: #fff;
+}
+
+.song-hand-cue {
+  display: grid;
+  place-items: center;
+  gap: 0.15rem;
+  padding: 0.2rem;
+  background: transparent;
+  opacity: 0.55;
+}
+
+.song-hand-cue.is-active {
+  opacity: 1;
+}
+
+.song-hand-cue.is-left.is-active {
+  background: color-mix(in srgb, var(--ka-eucalyptus) 28%, #fff);
+  border-radius: 8px;
+}
+
+.song-hand-cue.is-right.is-active {
+  background: color-mix(in srgb, var(--ka-bamboo) 32%, #fff);
+  border-radius: 8px;
+}
+
+.song-hand-cue-img {
+  display: block;
+  width: 100%;
+  max-width: 6.5rem;
+  height: auto;
+  pointer-events: none;
+}
+
+.song-hand-cue[data-side="left"] .song-hand-cue-img {
+  transform: scaleX(-1);
+}
+
+.song-hand-cue-label {
+  font-family: var(--font-display);
+  font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--ka-charcoal);
 }
 
-.song-register-symbol {
-  font-size: 1.35rem;
-  font-weight: 700;
-  color: var(--ka-ink);
+.song-piano-keys {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 18rem;
 }
 
-.song-register-note {
-  margin-left: auto;
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: var(--ka-ink);
+.scale-hand-white.is-bass,
+.scale-hand-black.is-bass {
+  fill: color-mix(in srgb, var(--ka-eucalyptus) 72%, #fff);
 }
 
-.song-finger circle {
+.scale-hand-white.is-chord,
+.scale-hand-black.is-chord {
+  fill: color-mix(in srgb, var(--ka-bamboo) 78%, #fff);
+}
+
+.song-key-label rect {
   fill: var(--ka-pith);
   stroke: var(--ka-edge);
   stroke-width: 2;
 }
 
-.song-finger.is-on-black circle {
+.song-key-label.is-bass rect {
+  fill: color-mix(in srgb, var(--ka-eucalyptus) 55%, #fff);
+}
+
+.song-key-label.is-chord rect {
   fill: var(--hw-yellow);
 }
 
-.song-finger text {
+.song-key-label text {
   fill: var(--ka-ink);
   font-family: var(--font-display);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   pointer-events: none;
+}
+
+@media (max-width: 40rem) {
+  .song-body {
+    gap: 0.45rem;
+  }
+
+  .song-piano-gutter {
+    grid-template-columns: minmax(3.5rem, 14%) minmax(0, 1fr) minmax(3.5rem, 14%);
+    min-height: 10rem;
+    padding: 0.3rem 0.15rem;
+  }
+
+  .song-piano-keys {
+    max-height: 12rem;
+  }
+
+  .song-hand-cue-img {
+    max-width: 4.5rem;
+  }
+
+  .song-control {
+    width: 2.65rem;
+    height: 2.65rem;
+  }
 }
 
 /* ---------- skills hub ---------- */

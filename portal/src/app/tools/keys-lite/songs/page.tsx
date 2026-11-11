@@ -19,7 +19,7 @@ export default function SongsPage() {
         <LedText
           as="p"
           className="page-lede"
-          text="Left hand holds the bass root. Right hand holds the triad. Play a short loop until both hands feel steady."
+          text="Left hand holds the bass root. Right hand holds the triad. Follow the staff, then match both hands on the piano."
         />
       </GlassScreen>
 

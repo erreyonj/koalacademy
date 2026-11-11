@@ -1,23 +1,33 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { Play, RefreshCw, Square, Volume2, VolumeX } from "lucide-react";
 import { Note } from "tonal";
 import {
   KEY_TOP,
   VIEW_H,
-  VIEW_W,
   WHITE_H,
   blackKeys,
+  viewWidth,
   whiteCenter,
   whiteKeys,
   type BlackKey,
   type WhiteKey,
 } from "./keyboard";
 import { playChord, releaseChord, resumePiano } from "./piano";
-import { beatMs, type Finger } from "./timeline";
-import type { SongScore, SongStep } from "./songs";
+import {
+  highlightSongBar,
+  renderSongStaff,
+  type SongMeasureHit,
+} from "./renderSongStaff";
+import { beatMs } from "./timeline";
+import { stepToBar, type SongScore, type SongStep } from "./songs";
 
 type PlayStatus = "idle" | "playing" | "done";
+type LabelMode = "names" | "fingers";
+
+const FRAME_DIR = "/keys-lite";
+const FRAME_IDLE = "keys-lite-rh-frame-1.png";
 
 function midiOf(note: string): number | null {
   return Note.midi(note) ?? null;
@@ -29,50 +39,87 @@ function samePitch(a: string, b: string): boolean {
   return left != null && left === right;
 }
 
-function pitchesActive(step: SongStep | null): string[] {
-  if (!step) return [];
-  return [step.bass, ...step.chord];
-}
-
-function fingerForPitch(step: SongStep, pitch: string): Finger | null {
-  if (samePitch(pitch, step.bass)) return step.bassFinger;
-  const index = step.chord.findIndex((note) => samePitch(note, pitch));
-  if (index < 0) return null;
-  return step.chordFingers[index] ?? null;
-}
-
 function classNames(...parts: Array<string | false | null | undefined>) {
   return parts.filter(Boolean).join(" ");
+}
+
+function pitchesActive(step: SongStep | null): string[] {
+  if (!step || step.rest || step.bass == null) return [];
+  return [step.bass, ...step.chord];
 }
 
 export function SongPlayer({ score }: { score: SongScore }) {
   const [status, setStatus] = useState<PlayStatus>("idle");
   const [stepIndex, setStepIndex] = useState(0);
-  const [loop, setLoop] = useState(true);
+  const [loop, setLoop] = useState(false);
   const [soundOn, setSoundOn] = useState(true);
+  const [labelMode, setLabelMode] = useState<LabelMode>("names");
   const [playGen, setPlayGen] = useState(0);
+  const [measures, setMeasures] = useState<SongMeasureHit[]>([]);
   const loopRef = useRef(loop);
   loopRef.current = loop;
 
+  const staffHostRef = useRef<HTMLDivElement>(null);
+  const scrollerRef = useRef<HTMLDivElement>(null);
+
   const step = score.steps[stepIndex] ?? null;
+  const activeBar = step ? stepToBar(score.steps, stepIndex) : null;
   const playing = status === "playing";
 
-  const bassWhites = useMemo(
-    () => whiteKeys(score.bassKeyboard.startLetter, score.bassKeyboard.startOctave),
-    [score.bassKeyboard.startLetter, score.bassKeyboard.startOctave],
+  const whites = useMemo(
+    () =>
+      whiteKeys(
+        score.keyboard.startLetter,
+        score.keyboard.startOctave,
+        score.keyboard.whiteCount,
+      ),
+    [score.keyboard],
   );
-  const bassBlacks = useMemo(
-    () => blackKeys(score.bassKeyboard.startLetter, score.bassKeyboard.startOctave),
-    [score.bassKeyboard.startLetter, score.bassKeyboard.startOctave],
+  const blacks = useMemo(
+    () =>
+      blackKeys(
+        score.keyboard.startLetter,
+        score.keyboard.startOctave,
+        score.keyboard.whiteCount,
+      ),
+    [score.keyboard],
   );
-  const chordWhites = useMemo(
-    () => whiteKeys(score.chordKeyboard.startLetter, score.chordKeyboard.startOctave),
-    [score.chordKeyboard.startLetter, score.chordKeyboard.startOctave],
-  );
-  const chordBlacks = useMemo(
-    () => blackKeys(score.chordKeyboard.startLetter, score.chordKeyboard.startOctave),
-    [score.chordKeyboard.startLetter, score.chordKeyboard.startOctave],
-  );
+  const pianoWidth = viewWidth(score.keyboard.whiteCount);
+
+  useEffect(() => {
+    const img = new Image();
+    img.src = `${FRAME_DIR}/${FRAME_IDLE}`;
+  }, []);
+
+  useEffect(() => {
+    const host = staffHostRef.current;
+    if (!host) return;
+    let cancelled = false;
+    void renderSongStaff(host, score).then((result) => {
+      if (cancelled) return;
+      setMeasures(result.measures);
+      highlightSongBar(host, result.measures, activeBar);
+    });
+    return () => {
+      cancelled = true;
+    };
+    // activeBar is applied in the highlight effect after the staff exists
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [score]);
+
+  useEffect(() => {
+    const host = staffHostRef.current;
+    if (!host || measures.length === 0) return;
+    highlightSongBar(host, measures, activeBar);
+  }, [activeBar, measures]);
+
+  useEffect(() => {
+    if (activeBar == null || !scrollerRef.current || !measures[activeBar]) return;
+    const scroller = scrollerRef.current;
+    const hit = measures[activeBar];
+    const target = hit.firstChordX - scroller.clientWidth / 2;
+    scroller.scrollTo({ left: Math.max(0, target), behavior: "smooth" });
+  }, [activeBar, measures]);
 
   useEffect(() => {
     if (status !== "playing") return;
@@ -104,20 +151,36 @@ export function SongPlayer({ score }: { score: SongScore }) {
       if (status !== "playing") releaseChord();
       return;
     }
-    playChord(pitchesActive(step));
-  }, [status, playGen, step, soundOn]);
+    const pitches = pitchesActive(step);
+    if (pitches.length === 0) {
+      releaseChord();
+      return;
+    }
+    const prev = score.steps[stepIndex - 1];
+    const prevPitches = pitchesActive(prev ?? null);
+    const same =
+      prevPitches.length === pitches.length &&
+      prevPitches.every((pitch, index) => samePitch(pitch, pitches[index] ?? ""));
+    if (same) return;
+    playChord(pitches);
+  }, [status, playGen, step, soundOn, score.steps, stepIndex]);
 
-  useEffect(() => {
-    return () => releaseChord();
-  }, []);
+  useEffect(() => () => releaseChord(), []);
+
+  function jumpToSection(startStep: number) {
+    releaseChord();
+    setStepIndex(startStep);
+    setStatus("idle");
+    setPlayGen((gen) => gen + 1);
+  }
 
   function start() {
-    if (playing && loop) {
+    if (playing) {
       stop();
       return;
     }
     if (soundOn) resumePiano();
-    setStepIndex(0);
+    if (status === "done") setStepIndex(0);
     setStatus("playing");
     setPlayGen((gen) => gen + 1);
   }
@@ -125,7 +188,6 @@ export function SongPlayer({ score }: { score: SongScore }) {
   function stop() {
     releaseChord();
     setStatus("idle");
-    setStepIndex(0);
   }
 
   function toggleSound() {
@@ -141,8 +203,10 @@ export function SongPlayer({ score }: { score: SongScore }) {
   }
 
   const lcd = step
-    ? `${step.symbol} · LH ${step.bass} · RH ${step.chord.join(" ")}`
-    : `${score.title} · ${score.bpm} bpm`;
+    ? step.rest || step.bass == null
+      ? `${step.section} · rest`
+      : `${step.section} · ${step.symbol} · LH ${step.bass} · RH ${step.chord.join(" ")}`
+    : `${score.title} · ${score.key} · ${score.bpm} bpm`;
 
   return (
     <div
@@ -153,6 +217,7 @@ export function SongPlayer({ score }: { score: SongScore }) {
       data-bpm={String(score.bpm)}
       data-loop={loop ? "true" : "false"}
       data-sound={soundOn ? "on" : "off"}
+      data-labels={labelMode}
     >
       <div className="deck-screen">
         <span className="lcd" aria-live="polite">
@@ -160,148 +225,168 @@ export function SongPlayer({ score }: { score: SongScore }) {
         </span>
       </div>
 
-      <div className="song-player-stack scale-hand-stack">
-        <Register
-          side="left"
-          label={`Left hand bass for ${score.title}`}
-          title="Left · bass"
-          symbol={null}
-          step={step}
-          whites={bassWhites}
-          blacks={bassBlacks}
-          mode="bass"
-        />
-        <Register
-          side="right"
-          label={`Right hand chords for ${score.title}`}
-          title="Right · chords"
-          symbol={step?.symbol ?? null}
-          step={step}
-          whites={chordWhites}
-          blacks={chordBlacks}
-          mode="chord"
-        />
+      <div className="song-form-row" role="list">
+        {score.sections.map((section) => {
+          const bar = activeBar ?? -1;
+          const onSection =
+            bar >= section.startBar && bar < section.startBar + section.barCount;
+          return (
+            <button
+              key={section.id}
+              type="button"
+              className={classNames("song-form-chip", onSection && "is-active")}
+              onClick={() => jumpToSection(section.startStep)}
+            >
+              {section.label}
+            </button>
+          );
+        })}
       </div>
 
-      <div className="scale-hand-controls tools-buttons">
-        <button type="button" className="tools-button" onClick={start}>
-          {playing && loop ? "Stop" : status === "done" ? "Replay" : "Play"}
-        </button>
-        {!loop && playing ? (
-          <button type="button" className="tools-button" onClick={stop}>
-            Stop
+      <div className="song-body">
+        <div className="song-stage">
+          <div className="song-staff-scroll" ref={scrollerRef}>
+            <div className="song-staff-host" ref={staffHostRef} />
+          </div>
+
+          <div className="song-piano-gutter">
+            <HandCue side="left" active={Boolean(step && !step.rest && step.bass)} />
+            <SongPiano
+              whites={whites}
+              blacks={blacks}
+              width={pianoWidth}
+              step={step}
+              labelMode={labelMode}
+            />
+            <HandCue
+              side="right"
+              active={Boolean(step && !step.rest && step.chord.length)}
+            />
+          </div>
+        </div>
+
+        <div className="song-controls" role="toolbar" aria-label="Song controls">
+          <button
+            type="button"
+            className="song-control"
+            onClick={start}
+            aria-label={playing ? "Stop" : status === "done" ? "Replay" : "Play"}
+          >
+            {playing ? <Square aria-hidden="true" /> : <Play aria-hidden="true" />}
           </button>
-        ) : null}
-        <button
-          type="button"
-          className="tools-button"
-          aria-pressed={loop}
-          onClick={() => setLoop((on) => !on)}
-        >
-          Loop {loop ? "on" : "off"}
-        </button>
-        <button
-          type="button"
-          className="tools-button"
-          aria-pressed={soundOn}
-          onClick={toggleSound}
-        >
-          Sound {soundOn ? "on" : "off"}
-        </button>
+          <button
+            type="button"
+            className="song-control"
+            aria-label={loop ? "Loop on" : "Loop off"}
+            aria-pressed={loop}
+            onClick={() => setLoop((on) => !on)}
+          >
+            <RefreshCw aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            className="song-control"
+            aria-label={soundOn ? "Sound on" : "Sound off"}
+            aria-pressed={soundOn}
+            onClick={toggleSound}
+          >
+            {soundOn ? (
+              <Volume2 aria-hidden="true" />
+            ) : (
+              <VolumeX aria-hidden="true" />
+            )}
+          </button>
+          <button
+            type="button"
+            className="song-control"
+            aria-label={
+              labelMode === "names"
+                ? "Show finger numbers"
+                : "Show note names"
+            }
+            aria-pressed={labelMode === "fingers"}
+            onClick={() =>
+              setLabelMode((mode) => (mode === "names" ? "fingers" : "names"))
+            }
+          >
+            <span className="song-control-text" aria-hidden="true">
+              {labelMode === "fingers" ? "123" : "A♭"}
+            </span>
+          </button>
+        </div>
       </div>
     </div>
   );
 }
 
-function Register({
-  side,
-  label,
-  title,
-  symbol,
-  step,
-  whites,
-  blacks,
-  mode,
-}: {
-  side: "left" | "right";
-  label: string;
-  title: string;
-  symbol: string | null;
-  step: SongStep | null;
-  whites: WhiteKey[];
-  blacks: BlackKey[];
-  mode: "bass" | "chord";
-}) {
+function HandCue({ side, active }: { side: "left" | "right"; active: boolean }) {
   return (
-    <div className="song-register scale-hand-module" data-side={side}>
-      <div className="song-register-meta" data-side={side}>
-        <span className="song-register-title">{title}</span>
-        {symbol ? <span className="song-register-symbol">{symbol}</span> : null}
-        {step && mode === "bass" ? (
-          <span className="song-register-note">{step.bass}</span>
-        ) : null}
-      </div>
-      <SongKeyboard
-        label={label}
-        title={title}
-        step={step}
-        whites={whites}
-        blacks={blacks}
-        mode={mode}
+    <div
+      className={classNames(
+        "song-hand-cue",
+        active && "is-active",
+        side === "left" && "is-left",
+        side === "right" && "is-right",
+      )}
+      data-side={side}
+      aria-hidden="true"
+    >
+      <img
+        src={`${FRAME_DIR}/${FRAME_IDLE}`}
+        alt=""
+        className="song-hand-cue-img"
       />
+      <span className="song-hand-cue-label">{side === "left" ? "LH" : "RH"}</span>
     </div>
   );
 }
 
-function SongKeyboard({
-  label,
-  title,
-  step,
+function SongPiano({
   whites,
   blacks,
-  mode,
+  width,
+  step,
+  labelMode,
 }: {
-  label: string;
-  title: string;
-  step: SongStep | null;
   whites: WhiteKey[];
   blacks: BlackKey[];
-  mode: "bass" | "chord";
+  width: number;
+  step: SongStep | null;
+  labelMode: LabelMode;
 }) {
-  const active =
-    mode === "bass"
-      ? step
-        ? [step.bass]
-        : []
-      : step
-        ? step.chord
-        : [];
+  const resting = Boolean(step?.rest) || step?.bass == null;
+  const bass = resting ? null : step?.bass ?? null;
+  const chord = resting ? [] : (step?.chord ?? []);
 
-  const isPressed = (pitch: string) =>
-    active.some((note) => samePitch(note, pitch));
+  const isBass = (pitch: string) => bass != null && samePitch(pitch, bass);
+  const isChord = (pitch: string) => chord.some((note) => samePitch(note, pitch));
 
-  const first = whites[0]?.note ?? "";
-  const last = whites[whites.length - 1]?.note ?? "";
+  function labelFor(pitch: string, hand: "bass" | "chord"): string | null {
+    if (!step || resting) return null;
+    if (labelMode === "names") return pitch;
+    if (hand === "bass") return String(step.bassFinger);
+    const index = step.chord.findIndex((note) => samePitch(note, pitch));
+    if (index < 0) return null;
+    return String(step.chordFingers[index] ?? "");
+  }
 
   return (
     <svg
-      className="scale-hand-keys"
-      viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
+      className="song-piano-keys"
+      viewBox={`0 0 ${width} ${VIEW_H}`}
       role="img"
-      aria-label={label}
+      aria-label="Song piano"
       preserveAspectRatio="xMidYMid meet"
     >
-      <title>{title}</title>
-      <desc>
-        Piano from {first} to {last}. Lit keys show the current{" "}
-        {mode === "bass" ? "bass note" : "chord"} with finger numbers.
-      </desc>
-
-      <rect x="0" y="0" width={VIEW_W} height={VIEW_H} className="scale-hand-bed" />
+      <title>Full-range piano</title>
+      <rect x="0" y="0" width={width} height={VIEW_H} className="scale-hand-bed" />
 
       {whites.map((key) => {
-        const pressed = isPressed(key.note);
-        const finger = step && pressed ? fingerForPitch(step, key.note) : null;
+        const bassHit = isBass(key.note);
+        const chordHit = isChord(key.note);
+        const pressed = bassHit || chordHit;
+        const hand = bassHit ? "bass" : "chord";
+        const label = pressed ? labelFor(key.note, hand) : null;
         return (
           <g key={key.note}>
             <rect
@@ -310,7 +395,12 @@ function SongKeyboard({
               width={key.width}
               height={key.height}
               rx="3"
-              className={classNames("scale-hand-white", pressed && "is-pressed")}
+              className={classNames(
+                "scale-hand-white",
+                bassHit && "is-bass",
+                chordHit && "is-chord",
+                pressed && "is-pressed",
+              )}
             />
             <text
               x={whiteCenter(key.index)}
@@ -322,12 +412,12 @@ function SongKeyboard({
             >
               {key.letter}
             </text>
-            {finger != null ? (
-              <FingerBadge
+            {label ? (
+              <KeyLabel
                 x={whiteCenter(key.index)}
-                y={KEY_TOP + WHITE_H * 0.62}
-                finger={finger}
-                onBlack={false}
+                y={KEY_TOP + WHITE_H * 0.58}
+                text={label}
+                hand={hand}
               />
             ) : null}
           </g>
@@ -335,11 +425,15 @@ function SongKeyboard({
       })}
 
       {blacks.map((key) => {
-        const pressed = isPressed(key.note) || isPressed(key.flat);
-        const match = active.find(
+        const bassHit = isBass(key.note) || isBass(key.flat);
+        const chordHit = isChord(key.note) || isChord(key.flat);
+        const pressed = bassHit || chordHit;
+        const match = [...(bass ? [bass] : []), ...chord].find(
           (note) => samePitch(note, key.note) || samePitch(note, key.flat),
         );
-        const finger = step && match ? fingerForPitch(step, match) : null;
+        const hand = bassHit ? "bass" : "chord";
+        const label =
+          pressed && match ? labelFor(match, hand) : null;
         return (
           <g key={`black-${key.afterIndex}`}>
             <rect
@@ -348,45 +442,61 @@ function SongKeyboard({
               width={key.width}
               height={key.height}
               rx="2"
-              className={classNames("scale-hand-black", pressed && "is-pressed")}
+              className={classNames(
+                "scale-hand-black",
+                bassHit && "is-bass",
+                chordHit && "is-chord",
+                pressed && "is-pressed",
+              )}
             />
-            {finger != null ? (
-              <FingerBadge
+            {label ? (
+              <KeyLabel
                 x={key.x + key.width / 2}
                 y={key.y + key.height * 0.55}
-                finger={finger}
+                text={label}
+                hand={hand}
                 onBlack
               />
             ) : null}
           </g>
         );
       })}
-
-      {mode === "chord" && step ? (
-        <text x={VIEW_W / 2} y={KEY_TOP - 8} className="scale-hand-note">
-          {step.symbol}
-        </text>
-      ) : null}
     </svg>
   );
 }
 
-function FingerBadge({
+function KeyLabel({
   x,
   y,
-  finger,
-  onBlack,
+  text,
+  hand,
+  onBlack = false,
 }: {
   x: number;
   y: number;
-  finger: Finger;
-  onBlack: boolean;
+  text: string;
+  hand: "bass" | "chord";
+  onBlack?: boolean;
 }) {
+  const wide = text.length > 2;
   return (
-    <g className={onBlack ? "song-finger is-on-black" : "song-finger"}>
-      <circle cx={x} cy={y} r="11" />
+    <g
+      className={classNames(
+        "song-key-label",
+        hand === "bass" && "is-bass",
+        hand === "chord" && "is-chord",
+        onBlack && "is-on-black",
+      )}
+    >
+      <rect
+        x={x - (wide ? 18 : 12)}
+        y={y - 11}
+        width={wide ? 36 : 24}
+        height={22}
+        rx="11"
+      />
       <text x={x} y={y + 4} textAnchor="middle">
-        {finger}
+        {text}
       </text>
     </g>
   );

@@ -50,7 +50,8 @@ import {
 import "../staff-decode.css";
 
 const CIPHER_LETTERS = ["A", "B", "C", "D", "E", "F", "G"] as const;
-const CIPHER_DURATION_MS = 620;
+/** Initial scramble before the first CODE letter locks in. */
+const CIPHER_SPIN_MS = 400;
 const RULES_INTERVAL_MS = 7000;
 
 const START_RULES = [
@@ -119,7 +120,7 @@ const DIFFICULTY_OPTIONS = [
     title: "Easy",
     words: "3–4 letter words",
     range: "9 stops: E4 to F5",
-    values: "Quarter & Eighth notes",
+    values: "Eighth & Quarter notes",
     rules: "No lose condition · Elapsed timer",
   },
   {
@@ -127,7 +128,7 @@ const DIFFICULTY_OPTIONS = [
     title: "Medium",
     words: "3–6 letter words",
     range: "9 stops: E4 to F5",
-    values: "Quarter & Eighth notes",
+    values: "Eighth, Quarter & Half notes",
     rules: "No lose condition · Elapsed timer",
   },
   {
@@ -136,7 +137,7 @@ const DIFFICULTY_OPTIONS = [
     words: "Up to 7 letters (5–7 weighted)",
     range: "17 stops: A3 to C6 (ledger lines)",
     values: "16th, Eighth, Quarter, Half & Whole notes",
-    rules: "15s per letter countdown timer",
+    rules: "15s/letter · 2nd chance with note names",
   },
 ] as const;
 
@@ -158,6 +159,8 @@ export function StaffDecodeApp() {
     createInitialGameState("easy"),
   );
   const [scrambleTick, setScrambleTick] = useState(0);
+  /** How many CODE letters have locked during the opening cipher (0 = all scrambling). */
+  const [cipherRevealCount, setCipherRevealCount] = useState(0);
   const [droppedTarget, setDroppedTarget] = useState<CodeTarget | null>(null);
   const [isWalking, setIsWalking] = useState(false);
   const [controlMode, setControlMode] = useState<ControlMode>("touch");
@@ -192,6 +195,7 @@ export function StaffDecodeApp() {
   }>({ x: 0, y: 0, mode: null, accum: 0 });
   const thumbDialSwipeRef = useRef({ y: 0, accum: 0, active: false });
   const thumbValueSwipeRef = useRef({ y: 0, accum: 0, active: false });
+  const codeReplayTimersRef = useRef<number[]>([]);
 
   const currentRoom = state.rooms[state.currentRoomIndex];
   const activeTarget = currentRoom?.targets[state.currentLetterIndex];
@@ -244,26 +248,56 @@ export function StaffDecodeApp() {
     setDialTurn((t) => ({ dir, n: t.n + 1 }));
   }, [state.selectedPitch, selectedStopIdx, activeStops]);
 
-  // 1. Cipher scramble animation when opening a room's safe dial
+  // 1. Cipher: scramble, then lock each CODE letter with its pitch tone
   useEffect(() => {
     if (state.phase !== "dial" || state.cipherRevealed) return;
 
-    const interval = window.setInterval(() => {
+    const room = state.rooms[state.currentRoomIndex];
+    if (!room) return;
+
+    setCipherRevealCount(0);
+    let cancelled = false;
+    const timers: number[] = [];
+
+    const scramble = window.setInterval(() => {
       setScrambleTick((t) => t + 1);
     }, 65);
 
-    const doneTimer = window.setTimeout(() => {
-      window.clearInterval(interval);
-      setState((prev) => finishCipher(prev));
-    }, CIPHER_DURATION_MS);
+    room.targets.forEach((target, idx) => {
+      timers.push(
+        window.setTimeout(() => {
+          if (cancelled) return;
+          setCipherRevealCount(idx + 1);
+          if (idx === 0) resumePiano();
+          playNote(target.pitch);
+        }, CIPHER_SPIN_MS + idx * PLAYBACK_STEP_MS),
+      );
+    });
+
+    timers.push(
+      window.setTimeout(
+        () => {
+          if (cancelled) return;
+          window.clearInterval(scramble);
+          setState((prev) => finishCipher(prev));
+        },
+        CIPHER_SPIN_MS + room.targets.length * PLAYBACK_STEP_MS,
+      ),
+    );
 
     return () => {
-      window.clearInterval(interval);
-      window.clearTimeout(doneTimer);
+      cancelled = true;
+      window.clearInterval(scramble);
+      timers.forEach((t) => window.clearTimeout(t));
     };
-  }, [state.phase, state.cipherRevealed, state.currentRoomIndex]);
+  }, [
+    state.phase,
+    state.cipherRevealed,
+    state.currentRoomIndex,
+    state.hardAttempt,
+  ]);
 
-  // 2. Smart timer: 800ms after the dial stops; only a dial move arms it.
+  // 2. Smart timer: 800ms after dial or stethoscope input arms it.
   const shouldScheduleSmartTimer =
     state.phase === "dial" &&
     state.cipherRevealed &&
@@ -601,7 +635,9 @@ export function StaffDecodeApp() {
   const wrapStaff = isPhoneLayout
     ? guessScore.measures.length > 1
     : guessScore.measures.length > 2;
-  const showNoteNames = state.difficulty !== "hard";
+  // Hard attempt 2 (after a timeout) shows dial note names for this room only.
+  const showNoteNames =
+    state.difficulty !== "hard" || state.hardAttempt === 2;
 
   // Keep the live (latest) note head in the phone staff viewport as systems grow.
   useEffect(() => {
@@ -647,6 +683,39 @@ export function StaffDecodeApp() {
     ? currentRoom.targets.slice(state.currentLetterIndex)
     : [];
 
+  const clearCodeReplay = useCallback(() => {
+    codeReplayTimersRef.current.forEach((t) => window.clearTimeout(t));
+    codeReplayTimersRef.current = [];
+  }, []);
+
+  useEffect(() => () => clearCodeReplay(), [clearCodeReplay]);
+
+  useEffect(() => {
+    clearCodeReplay();
+  }, [state.currentLetterIndex, state.currentRoomIndex, clearCodeReplay]);
+
+  const handleReplayRemainingCode = useCallback(() => {
+    if (!state.cipherRevealed || state.phase !== "dial") return;
+    const room = state.rooms[state.currentRoomIndex];
+    if (!room) return;
+    const tones = room.targets.slice(state.currentLetterIndex);
+    if (tones.length === 0) return;
+    clearCodeReplay();
+    resumePiano();
+    codeReplayTimersRef.current = tones.map((target, idx) =>
+      window.setTimeout(() => {
+        playNote(target.pitch);
+      }, idx * PLAYBACK_STEP_MS),
+    );
+  }, [
+    state.cipherRevealed,
+    state.phase,
+    state.rooms,
+    state.currentRoomIndex,
+    state.currentLetterIndex,
+    clearCodeReplay,
+  ]);
+
   return (
     <div className="sd-shell">
       {/* Top status bar */}
@@ -658,6 +727,13 @@ export function StaffDecodeApp() {
           >
             {state.difficulty}
           </span>
+          {state.difficulty === "hard" &&
+            state.phase === "dial" &&
+            state.hardAttempt === 2 && (
+              <span className="sd-badge" data-testid="hard-assist-badge">
+                Assist · names on
+              </span>
+            )}
           {state.phase !== "start" && (
             <span className="sd-badge" data-testid="room-progress-badge">
               Room {state.currentRoomIndex + 1} / {ROOMS_PER_RUN} ·{" "}
@@ -908,10 +984,15 @@ export function StaffDecodeApp() {
           <div className="sd-dial-layer">
             {/* Top row: CODE cipher + (phone) VALUE target + (desktop) status pill */}
             <div className="sd-code-row">
-              <div
+              <button
+                type="button"
                 className="sd-code-banner"
                 data-testid="code-banner"
                 aria-live="polite"
+                aria-label="Play remaining code tones"
+                title="Play remaining code tones"
+                disabled={!state.cipherRevealed}
+                onClick={handleReplayRemainingCode}
               >
                 <span className="sd-code-prefix">CODE:</span>
                 <span className="sd-code-letters">
@@ -927,7 +1008,9 @@ export function StaffDecodeApp() {
                   )}
                   {remainingTargets.map((target, idx) => {
                     const isFirst = idx === 0;
-                    const displayChar = state.cipherRevealed
+                    const letterLocked =
+                      state.cipherRevealed || idx < cipherRevealCount;
+                    const displayChar = letterLocked
                       ? target.letter
                       : CIPHER_LETTERS[
                           (scrambleTick + idx * 2) % CIPHER_LETTERS.length
@@ -941,20 +1024,20 @@ export function StaffDecodeApp() {
                         data-target-pitch={target.pitch}
                         data-target-duration={target.duration}
                         className={`sd-code-letter${
-                          !state.cipherRevealed
+                          !letterLocked
                             ? " is-scrambling"
-                            : isFirst
+                            : state.cipherRevealed && isFirst
                               ? " is-active"
                               : ""
                         }`}
                       >
                         {displayChar}
-                        {state.cipherRevealed && <sub>{target.octave}</sub>}
+                        {letterLocked && <sub>{target.octave}</sub>}
                       </span>
                     );
                   })}
                 </span>
-              </div>
+              </button>
 
               <div
                 className="sd-code-banner sd-value-banner"
@@ -1555,14 +1638,14 @@ export function StaffDecodeApp() {
             data-testid="lose-screen"
             aria-label="Vault locked"
           >
-            <span className="sd-eyebrow">Hard Mode · Time Expired</span>
+            <span className="sd-eyebrow">Hard Mode · Second Chance Failed</span>
             <h2 className="sd-end-title">
               The vault shutters locked on Room {state.currentRoomIndex + 1}.
             </h2>
             <p className="sd-rules-copy" style={{ margin: 0 }}>
               Active code was <strong>{currentRoom?.word}</strong>. You cleared{" "}
-              {state.currentRoomIndex} of {ROOMS_PER_RUN} rooms before the
-              countdown hit zero.
+              {state.currentRoomIndex} of {ROOMS_PER_RUN} rooms — time ran out
+              twice on this safe (second try had note names on the dial).
             </p>
             <div className="sd-end-actions">
               <button

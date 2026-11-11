@@ -7,6 +7,16 @@ const SCREENSHOT_DIR = path.resolve(
   "../test-results/staff-decode",
 );
 
+/** Wait until sequential CODE letter reveal finishes (up to ~7 letters). */
+async function waitForCipherReveal(
+  page: import("@playwright/test").Page,
+) {
+  await expect(page.getByTestId("dial-status-pill")).not.toContainText(
+    "Decoding safe cipher",
+    { timeout: 5000 },
+  );
+}
+
 test("Staff DeCode full game loop: start, cipher, wrong pitch, wrong value, clear room, door transition, win", async ({
   page,
 }) => {
@@ -64,9 +74,7 @@ test("Staff DeCode full game loop: start, cipher, wrong pitch, wrong value, clea
   // 4. Click safe door to open dial
   await page.getByTestId("safe-door-hotspot").click();
   await expect(stage).toHaveAttribute("data-phase", "dial");
-
-  // Wait for cipher scramble to finish (620ms)
-  await page.waitForTimeout(750);
+  await waitForCipherReveal(page);
 
   const activeLetter = page.getByTestId("active-code-letter");
   await expect(activeLetter).toBeVisible();
@@ -163,7 +171,7 @@ test("Staff DeCode full game loop: start, cipher, wrong pitch, wrong value, clea
       );
       await page.getByTestId("safe-door-hotspot").click();
       await expect(stage).toHaveAttribute("data-phase", "dial");
-      await page.waitForTimeout(750);
+      await waitForCipherReveal(page);
     }
 
     // Solve letters until phase becomes door-open
@@ -223,7 +231,7 @@ test("Staff DeCode full game loop: start, cipher, wrong pitch, wrong value, clea
   await page.getByTestId("difficulty-hard").click();
   await page.getByTestId("start-game-btn").click();
   await page.getByTestId("safe-door-hotspot").click();
-  await page.waitForTimeout(750);
+  await waitForCipherReveal(page);
   await expect(page.getByTestId("dial-stop-A3")).toBeVisible();
   await expect(page.getByTestId("dial-stop-A3")).toHaveText("");
   await expect(page.getByTestId("dial-stop-C6")).toBeVisible();
@@ -313,7 +321,7 @@ test("Staff DeCode phone thumb layout: rules, robber pick, mini dial swipe", asy
   await expect(stage).toHaveAttribute("data-phase", "room");
   await page.getByTestId("safe-door-hotspot").click();
   await expect(stage).toHaveAttribute("data-phase", "dial");
-  await page.waitForTimeout(750);
+  await waitForCipherReveal(page);
 
   await expect(page.getByTestId("thumb-dial")).toBeVisible();
   await expect(page.getByTestId("thumb-value")).toBeVisible();

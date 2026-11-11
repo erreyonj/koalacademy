@@ -59,6 +59,12 @@ export interface GameState {
   lastError: ErrorKind;
   elapsedSec: number;
   remainingSec: number | null;
+  /**
+   * Hard only: attempt 1 is blind (no dial note names). Timing out grants
+   * attempt 2 with the same code, full timer, and note names on. Timing out
+   * again is game over. Easy/Medium always stay on 1.
+   */
+  hardAttempt: 1 | 2;
 }
 
 function pickRandom<T>(items: readonly T[], rng: () => number): T {
@@ -234,6 +240,7 @@ export function createInitialGameState(
     lastError: null,
     elapsedSec: 0,
     remainingSec: null,
+    hardAttempt: 1,
   };
 }
 
@@ -255,6 +262,7 @@ export function startRun(
     lastError: null,
     elapsedSec: 0,
     remainingSec: rooms[0]?.timeLimitSec ?? null,
+    hardAttempt: 1,
   };
 }
 
@@ -276,6 +284,7 @@ export function openSafeDial(state: GameState): GameState {
     timerArmed: false,
     lastError: null,
     remainingSec: room?.timeLimitSec ?? null,
+    hardAttempt: 1,
   };
 }
 
@@ -333,8 +342,9 @@ export function selectDialPitch(
 
 /**
  * Cycles the stethoscope to the next available duration for the current
- * difficulty, or sets a specific duration. Leaves the smart timer as it was:
- * only a dial move arms it.
+ * difficulty, or sets a specific duration. Once the cipher is revealed, arms
+ * the smart timer so a correct value on an already-correct pitch can lock in
+ * without nudging the dial.
  */
 export function cycleDuration(
   state: GameState,
@@ -352,6 +362,7 @@ export function cycleDuration(
   return {
     ...state,
     selectedDuration: nextDuration,
+    timerArmed: state.cipherRevealed ? true : state.timerArmed,
     lastError: null,
   };
 }
@@ -458,12 +469,35 @@ export function advanceThroughDoor(state: GameState): GameState {
     timerArmed: false,
     lastError: null,
     remainingSec: nextRoom?.timeLimitSec ?? null,
+    hardAttempt: 1,
+  };
+}
+
+/**
+ * Hard first-timeout assist: same room code, full timer, dial note names on,
+ * letter progress cleared. Stays on the dial so the cipher can re-reveal.
+ */
+export function grantHardSecondChance(state: GameState): GameState {
+  if (state.difficulty !== "hard" || state.phase !== "dial") return state;
+  if (state.hardAttempt !== 1) return state;
+  const room = state.rooms[state.currentRoomIndex];
+  return {
+    ...state,
+    hardAttempt: 2,
+    currentLetterIndex: 0,
+    selectedPitch: DEFAULT_START_PITCH,
+    selectedDuration: DEFAULT_START_DURATION,
+    cipherRevealed: false,
+    timerArmed: false,
+    lastError: null,
+    remainingSec: room?.timeLimitSec ?? null,
   };
 }
 
 /**
  * Advances elapsed clock by 1 second and decrements the Hard mode countdown
- * while on the dial screen. Transitions to "lose" if the countdown hits 0.
+ * while on the dial screen. First timeout grants a named-note second chance;
+ * a second timeout is game over.
  */
 export function tickSecond(state: GameState): GameState {
   if (
@@ -483,6 +517,9 @@ export function tickSecond(state: GameState): GameState {
   ) {
     const nextRemaining = Math.max(0, state.remainingSec - 1);
     if (nextRemaining === 0) {
+      if (state.hardAttempt === 1) {
+        return grantHardSecondChance({ ...state, elapsedSec, remainingSec: 0 });
+      }
       return {
         ...state,
         phase: "lose",

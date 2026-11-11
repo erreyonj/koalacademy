@@ -357,12 +357,12 @@
 
 .sd-rules-slide {
   margin: 0;
-  min-height: 6.3rem;
+  min-height: 4.8rem;
   font-family: var(--font-display);
   font-weight: 700;
-  /* Midway between original (~1.35–2.15rem) and the 3× bump. */
-  font-size: clamp(2.7rem, 2rem + 3.6vw, 4.3rem);
-  line-height: 1.15;
+  /* ~1.5× original — long slides 2–4 must leave room for Enter Room. */
+  font-size: clamp(1.9rem, 1.4rem + 2.4vw, 2.85rem);
+  line-height: 1.18;
   color: var(--sd-panel-ink);
   /* Enter only — hold opaque. The old 7s out-fade left text at opacity 0. */
   animation: sd-rules-slide 420ms ease-out both;
@@ -669,6 +669,28 @@
   border-radius: 0.55rem;
   box-shadow: 0 3px 0 var(--ka-edge);
   color: var(--sd-panel-ink);
+}
+
+button.sd-code-banner {
+  appearance: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: translate 100ms ease, box-shadow 100ms ease;
+}
+
+button.sd-code-banner:not(:disabled):hover {
+  translate: 0 -1px;
+  box-shadow: 0 4px 0 var(--ka-edge);
+}
+
+button.sd-code-banner:not(:disabled):active {
+  translate: 0 1px;
+  box-shadow: 0 2px 0 var(--ka-edge);
+}
+
+button.sd-code-banner:disabled {
+  cursor: default;
 }
 
 /* Phone dial chrome: target duration (desktop keeps this in the dial center). */
@@ -1193,8 +1215,8 @@
   }
 
   .sd-phone-rules .sd-rules-slide {
-    min-height: 6rem;
-    font-size: clamp(2.1rem, 8.8vw, 2.7rem);
+    min-height: 4.5rem;
+    font-size: clamp(1.5rem, 6vw, 2rem);
   }
 
   .sd-workbench {

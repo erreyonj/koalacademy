@@ -97,9 +97,9 @@ describe("Pitch ranges and durations", () => {
     expect(pitchesForDifficulty("hard")).toEqual(HARD_PITCH_STOPS);
   });
 
-  it("uses eighth/quarter for easy/medium and 16th/quarter/half/whole for hard", () => {
+  it("uses eighth/quarter for easy, adds half on medium, and full set on hard", () => {
     expect(durationsForDifficulty("easy")).toEqual(["8", "q"]);
-    expect(durationsForDifficulty("medium")).toEqual(["8", "q"]);
+    expect(durationsForDifficulty("medium")).toEqual(["8", "q", "h"]);
     expect(durationsForDifficulty("hard")).toEqual(["16", "8", "q", "h", "w"]);
   });
 
@@ -149,7 +149,7 @@ describe("Step evaluation and smart timer disarm", () => {
     expect(judgeStep(targetE5Half, "E5", "h")).toBe("correct");
   });
 
-  it("arms the smart timer only on dial moves and disarms after each check", () => {
+  it("arms the smart timer on dial or stethoscope input and disarms after each check", () => {
     let state = startRun("easy", sequenceRng([0.1, 0.8]));
     state = openSafeDial(state);
     expect(state.selectedPitch).toBe(DEFAULT_START_PITCH);
@@ -161,8 +161,8 @@ describe("Step evaluation and smart timer disarm", () => {
     expect(state.timerArmed).toBe(false);
     expect(evaluateSmartTimer(state).outcome).toBeNull();
 
-    // Stethoscope alone does not arm the timer
-    expect(cycleDuration(state).timerArmed).toBe(false);
+    // After cipher reveal, stethoscope input arms the timer
+    expect(cycleDuration(state).timerArmed).toBe(true);
 
     const firstTarget = state.rooms[0].targets[0];
     // Pick a deliberately wrong pitch first
@@ -192,11 +192,8 @@ describe("Step evaluation and smart timer disarm", () => {
     expect(wrongValueCheck.state.timerArmed).toBe(false);
     expect(wrongValueCheck.state.currentLetterIndex).toBe(0);
 
-    // Fixing the stethoscope leaves the timer disarmed until the dial moves
+    // Fixing the stethoscope re-arms without nudging the dial
     state = cycleDuration(wrongValueCheck.state, firstTarget.duration);
-    expect(state.timerArmed).toBe(false);
-    expect(evaluateSmartTimer(state).outcome).toBeNull();
-    state = selectDialPitch(state, firstTarget.pitch);
     expect(state.timerArmed).toBe(true);
     const correctCheck = evaluateSmartTimer(state);
     expect(correctCheck.outcome).toBe("correct");
@@ -251,19 +248,39 @@ describe("Five-room run and hard countdown", () => {
     expect(state.phase).toBe("win");
   });
 
-  it("initializes a 15s-per-letter countdown on hard and transitions to lose at zero", () => {
+  it("gives hard a named-note second chance on first timeout, then lose on the second", () => {
     const run = buildRun("hard", sequenceRng([0.3, 0.6]));
     expect(run[0].timeLimitSec).toBe(
       run[0].targets.length * HARD_SECONDS_PER_LETTER,
     );
 
     let state = openSafeDial(startRun("hard", sequenceRng([0.3, 0.6])));
+    state = finishCipher(state);
     const totalSec = state.remainingSec ?? 0;
     expect(totalSec).toBeGreaterThan(0);
+    expect(state.hardAttempt).toBe(1);
 
+    // Burn most of the first timer, then nudge a letter so progress must reset
+    state = selectDialPitch(state, state.rooms[0].targets[0].pitch);
     for (let s = 0; s < totalSec - 1; s++) {
       state = tickSecond(state);
       expect(state.phase).toBe("dial");
+      expect(state.hardAttempt).toBe(1);
+    }
+
+    state = tickSecond(state);
+    expect(state.phase).toBe("dial");
+    expect(state.hardAttempt).toBe(2);
+    expect(state.currentLetterIndex).toBe(0);
+    expect(state.cipherRevealed).toBe(false);
+    expect(state.remainingSec).toBe(totalSec);
+    expect(state.selectedPitch).toBe(DEFAULT_START_PITCH);
+
+    state = finishCipher(state);
+    for (let s = 0; s < totalSec - 1; s++) {
+      state = tickSecond(state);
+      expect(state.phase).toBe("dial");
+      expect(state.hardAttempt).toBe(2);
     }
 
     state = tickSecond(state);

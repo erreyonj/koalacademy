@@ -99,7 +99,9 @@ export const PITCH_STOP_BY_ID: Readonly<Record<PitchId, PitchStop>> =
     {} as Record<PitchId, PitchStop>,
   );
 
-export const EASY_MEDIUM_DURATIONS: readonly NoteDuration[] = ["8", "q"];
+export const EASY_DURATIONS: readonly NoteDuration[] = ["8", "q"];
+
+export const MEDIUM_DURATIONS: readonly NoteDuration[] = ["8", "q", "h"];
 
 /** Shorter above, longer below — phone thumb rail and desktop strip share this order. */
 export const DURATION_RAIL_ORDER: readonly NoteDuration[] = [
@@ -137,7 +139,9 @@ export function pitchesForDifficulty(
 export function durationsForDifficulty(
   difficulty: Difficulty,
 ): readonly NoteDuration[] {
-  return difficulty === "hard" ? HARD_DURATIONS : EASY_MEDIUM_DURATIONS;
+  if (difficulty === "hard") return HARD_DURATIONS;
+  if (difficulty === "medium") return MEDIUM_DURATIONS;
+  return EASY_DURATIONS;
 }
 
 /** Active durations in rail order (shorter → longer) for phone neighbor squares. */

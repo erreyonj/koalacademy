@@ -6,6 +6,10 @@ export const VIEW_H = 360;
 export const LEFT = 48;
 export const WHITE_COUNT = 12;
 export const WHITE_COUNT_TWO_OCTAVE = 15;
+/** Both-hands (LH octave below RH): two-octave span on one keyboard. */
+export const WHITE_COUNT_BOTH = 15;
+/** Both-hands two-octave scales: three-octave span (LH + RH staggered). */
+export const WHITE_COUNT_BOTH_TWO_OCTAVE = 22;
 export const WHITE_W = 52;
 const RIGHT_PAD = VIEW_W - LEFT - WHITE_COUNT * WHITE_W;
 

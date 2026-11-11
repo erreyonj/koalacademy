@@ -14,18 +14,24 @@ import {
   KEY_TOP,
   VIEW_H,
   VIEW_W,
+  WHITE_COUNT_BOTH,
   WHITE_H,
   blackKeys,
   keyboardStart,
+  viewWidth,
   whiteCenter,
   whiteKeys,
   type BlackKey,
   type WhiteKey,
 } from "./keyboard";
-import { playNote, resumePiano } from "./piano";
+import { BothHandsStage } from "./BothHandsStage";
+import { GUTTER_FRAME_FILES, GutterHand } from "./GutterHand";
+import { LandscapePrompt } from "./LandscapePrompt";
+import { playNote, playNotes, resumePiano } from "./piano";
 import { fiveFingerIdle, fiveFingerMotion } from "./fiveFinger";
+import { shiftPitches } from "./pitchShift";
+import { useLandscape } from "./useLandscape";
 import {
-  FINGERS,
   STEP_HOLD_MS,
   beatMs,
   lcdLine,
@@ -40,25 +46,6 @@ import {
 type PlayStatus = "idle" | "playing" | "done";
 type FiveMode = "major" | "minor";
 
-const FRAME_DIR = "/keys-lite";
-const FRAME_IDLE = "keys-lite-rh-frame-1.png";
-const FRAME_FILES = [
-  FRAME_IDLE,
-  "keys-lite-rh-frame-2+5.png",
-  "keys-lite-rh-frame-3+6.png",
-  "keys-lite-rh-frame-4.png",
-  "keys-lite-rh-frame-7.png",
-  "keys-lite-rh-frame-8.png",
-] as const;
-
-const FINGER_FRAMES: Record<Finger, string> = {
-  1: FRAME_IDLE,
-  2: "keys-lite-rh-frame-2+5.png",
-  3: "keys-lite-rh-frame-3+6.png",
-  4: "keys-lite-rh-frame-7.png",
-  5: "keys-lite-rh-frame-8.png",
-};
-
 function samePitch(a: string, b: string): boolean {
   const left = Note.midi(a);
   const right = Note.midi(b);
@@ -72,11 +59,6 @@ function midiOf(note: string): number | null {
 function pitchClassOf(note: string): number | null {
   const midi = midiOf(note);
   return midi == null ? null : ((midi % 12) + 12) % 12;
-}
-
-function frameSrc(finger: Finger | null): string {
-  if (!finger) return `${FRAME_DIR}/${FRAME_IDLE}`;
-  return `${FRAME_DIR}/${FINGER_FRAMES[finger]}`;
 }
 
 function noteAnchorX(
@@ -101,25 +83,8 @@ function positionLabel(tonic: string, mode: FiveMode): string {
   return mode === "major" ? `${tonic} major` : `${tonic} minor`;
 }
 
-/** Fingertip badge centers as % of the gutter PNG. Right: thumb on image-left. */
-const TIPS_RIGHT: Record<Finger, { x: number; y: number }> = {
-  1: { x: 21.2, y: 41.5 },
-  2: { x: 37.5, y: 15.4 },
-  3: { x: 50.7, y: 10.9 },
-  4: { x: 63.5, y: 15.6 },
-  5: { x: 79.4, y: 29.8 },
-};
-
-/** Left gutter uses a mirrored image, so thumb sits on image-right. */
-const TIPS_LEFT: Record<Finger, { x: number; y: number }> = {
-  1: { x: 78.8, y: 41.5 },
-  2: { x: 62.5, y: 15.4 },
-  3: { x: 49.3, y: 10.9 },
-  4: { x: 36.5, y: 15.6 },
-  5: { x: 20.6, y: 29.8 },
-};
-
 export function FiveFingerHand() {
+  const landscape = useLandscape();
   const [status, setStatus] = useState<PlayStatus>("idle");
   const [playGen, setPlayGen] = useState(0);
   const [side, setSide] = useState<HandSide>("right");
@@ -141,44 +106,60 @@ export function FiveFingerHand() {
   loopRef.current = loop;
 
   const register = useMemo(() => keyboardStart(tonic), [tonic]);
-  const pitches = useMemo(() => {
+  const rightPitches = useMemo(() => {
     const full = scalePitchesFor(`${tonic} ${mode}`, register.octave);
     return full.slice(0, 5);
   }, [tonic, mode, register.octave]);
+  const leftPitches = useMemo(
+    () => shiftPitches(rightPitches, -1),
+    [rightPitches],
+  );
+  const keyCount = showBoth ? WHITE_COUNT_BOTH : 12;
+  const boardOctave = showBoth ? register.octave - 1 : register.octave;
+  const svgWidth = viewWidth(keyCount);
   const whites = useMemo(
-    () => whiteKeys(register.letter, register.octave),
-    [register.letter, register.octave],
+    () => whiteKeys(register.letter, boardOctave, keyCount),
+    [register.letter, boardOctave, keyCount],
   );
   const blacks = useMemo(
-    () => blackKeys(register.letter, register.octave),
-    [register.letter, register.octave],
+    () => blackKeys(register.letter, boardOctave, keyCount),
+    [register.letter, boardOctave, keyCount],
   );
   const timing = useMemo(
     () => ({ mode: timingMode, bpm }),
     [timingMode, bpm],
   );
   const leftMotion = useMemo(
-    () => fiveFingerMotion("left", dir, timing, pitches),
-    [dir, timing, pitches],
+    () =>
+      fiveFingerMotion(
+        "left",
+        dir,
+        timing,
+        showBoth ? leftPitches : rightPitches,
+      ),
+    [dir, timing, leftPitches, rightPitches, showBoth],
   );
   const rightMotion = useMemo(
-    () => fiveFingerMotion("right", dir, timing, pitches),
-    [dir, timing, pitches],
+    () => fiveFingerMotion("right", dir, timing, rightPitches),
+    [dir, timing, rightPitches],
   );
   const name = positionLabel(tonic, mode);
   const sample = showBoth ? bySide.right : bySide[side];
-  const line = lcdLine(sample, name, side, {
-    both: showBoth,
-    smooth: timingMode === "smooth",
-    bpm,
-  });
+  const line = showBoth
+    ? bySide.left.note && bySide.right.note
+      ? `LH ${bySide.left.note} · RH ${bySide.right.note}`
+      : `${name} · both${timingMode === "smooth" ? ` · ${bpm} bpm` : ""}`
+    : lcdLine(sample, name, side, {
+        smooth: timingMode === "smooth",
+        bpm,
+      });
   const playing = status === "playing";
   const modules: HandSide[] = showBoth ? ["left", "right"] : [side];
 
   useEffect(() => {
-    for (const file of FRAME_FILES) {
+    for (const file of GUTTER_FRAME_FILES) {
       const img = new Image();
-      img.src = `${FRAME_DIR}/${file}`;
+      img.src = `/keys-lite/${file}`;
     }
   }, []);
 
@@ -221,9 +202,27 @@ export function FiveFingerHand() {
   }, [status, playGen, leftMotion, rightMotion, showBoth, side, timingMode, bpm]);
 
   useEffect(() => {
-    if (!soundOn || !sample.note) return;
+    if (!soundOn) return;
+    if (showBoth) {
+      const notes = [bySide.left.note, bySide.right.note].filter(
+        (note): note is string => Boolean(note),
+      );
+      if (notes.length === 0) return;
+      playNotes(notes);
+      return;
+    }
+    if (!sample.note) return;
     playNote(sample.note);
-  }, [sample.note, sample.attack, soundOn]);
+  }, [
+    sample.note,
+    sample.attack,
+    soundOn,
+    showBoth,
+    bySide.left.note,
+    bySide.left.attack,
+    bySide.right.note,
+    bySide.right.attack,
+  ]);
 
   function resetHands() {
     setBySide({
@@ -317,22 +316,41 @@ export function FiveFingerHand() {
       </div>
 
       <div className="scale-hand-stack">
-        {modules.map((moduleSide) => {
-          const live = bySide[moduleSide];
-          return (
-            <HandModule
-              key={moduleSide}
-              side={moduleSide}
-              note={live.note}
-              pressedFinger={live.pressedFinger}
+        {showBoth ? (
+          landscape ? (
+            <BothHandsStage
+              left={bySide.left}
+              right={bySide.right}
               whites={whites}
               blacks={blacks}
-              pitches={pitches}
-              positionName={name}
+              leftPitches={leftPitches}
+              rightPitches={rightPitches}
+              scaleName={name}
               label={label}
+              svgWidth={svgWidth}
+              homeMode="span"
             />
-          );
-        })}
+          ) : (
+            <LandscapePrompt />
+          )
+        ) : (
+          modules.map((moduleSide) => {
+            const live = bySide[moduleSide];
+            return (
+              <HandModule
+                key={moduleSide}
+                side={moduleSide}
+                note={live.note}
+                pressedFinger={live.pressedFinger}
+                whites={whites}
+                blacks={blacks}
+                pitches={rightPitches}
+                positionName={name}
+                label={label}
+              />
+            );
+          })
+        )}
       </div>
 
       <div className="scale-hand-controls tools-buttons">
@@ -630,37 +648,5 @@ function Keyboard({
         </text>
       ) : null}
     </svg>
-  );
-}
-
-function GutterHand({
-  side,
-  pressedFinger,
-}: {
-  side: HandSide;
-  pressedFinger: Finger | null;
-}) {
-  const tips = side === "right" ? TIPS_RIGHT : TIPS_LEFT;
-  return (
-    <div className="scale-hand-gutter" data-side={side}>
-      <div className="scale-hand-gutter-inner">
-        <img
-          src={frameSrc(pressedFinger)}
-          alt=""
-          className="scale-hand-gutter-img"
-        />
-        {FINGERS.map((finger) => (
-          <span
-            key={finger}
-            className={
-              pressedFinger === finger ? "scale-hand-tip is-active" : "scale-hand-tip"
-            }
-            style={{ left: `${tips[finger].x}%`, top: `${tips[finger].y}%` }}
-          >
-            {finger}
-          </span>
-        ))}
-      </div>
-    </div>
   );
 }

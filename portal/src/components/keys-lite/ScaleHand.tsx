@@ -19,6 +19,8 @@ import {
   KEY_TOP,
   VIEW_H,
   WHITE_COUNT,
+  WHITE_COUNT_BOTH,
+  WHITE_COUNT_BOTH_TWO_OCTAVE,
   WHITE_COUNT_TWO_OCTAVE,
   WHITE_H,
   blackKeys,
@@ -29,9 +31,13 @@ import {
   type BlackKey,
   type WhiteKey,
 } from "./keyboard";
-import { playNote, resumePiano } from "./piano";
+import { BothHandsStage } from "./BothHandsStage";
+import { GUTTER_FRAME_FILES, GutterHand } from "./GutterHand";
+import { LandscapePrompt } from "./LandscapePrompt";
+import { playNote, playNotes, resumePiano } from "./piano";
+import { shiftPitches } from "./pitchShift";
+import { useLandscape } from "./useLandscape";
 import {
-  FINGERS,
   STEP_HOLD_MS,
   beatMs,
   idleSample,
@@ -49,27 +55,6 @@ import {
 } from "./timeline";
 
 type PlayStatus = "idle" | "playing" | "done";
-
-const FRAME_DIR = "/keys-lite";
-const FRAME_IDLE = "keys-lite-rh-frame-1.png";
-const FRAME_FILES = [
-  FRAME_IDLE,
-  "keys-lite-rh-frame-2+5.png",
-  "keys-lite-rh-frame-3+6.png",
-  "keys-lite-rh-frame-4.png",
-  "keys-lite-rh-frame-7.png",
-  "keys-lite-rh-frame-8.png",
-] as const;
-
-/** Finger pose files. Thumb uses a pre-turn vs post-turn frame. */
-const FINGER_FRAMES: Record<Finger, string> = {
-  1: FRAME_IDLE,
-  2: "keys-lite-rh-frame-2+5.png",
-  3: "keys-lite-rh-frame-3+6.png",
-  4: "keys-lite-rh-frame-7.png",
-  5: "keys-lite-rh-frame-8.png",
-};
-const FRAME_THUMB_AFTER = "keys-lite-rh-frame-4.png";
 
 function samePitch(a: string, b: string): boolean {
   const left = Note.midi(a);
@@ -125,13 +110,6 @@ function scaleLabel(tonic: string, mode: ScaleHandMode): string {
   return `${tonic} ${modeButtonLabel(mode)}`;
 }
 
-function frameSrc(finger: Finger | null, afterTurn: boolean): string {
-  if (!finger) return `${FRAME_DIR}/${FRAME_IDLE}`;
-  const file =
-    finger === 1 && afterTurn ? FRAME_THUMB_AFTER : FINGER_FRAMES[finger];
-  return `${FRAME_DIR}/${file}`;
-}
-
 function noteAnchorX(
   note: string,
   whites: WhiteKey[],
@@ -150,25 +128,8 @@ function classNames(...parts: Array<string | false | null | undefined>): string 
   return parts.filter(Boolean).join(" ");
 }
 
-/** Fingertip badge centers as % of the gutter PNG. Right: thumb on image-left. */
-const TIPS_RIGHT: Record<Finger, { x: number; y: number }> = {
-  1: { x: 21.2, y: 41.5 },
-  2: { x: 37.5, y: 15.4 },
-  3: { x: 50.7, y: 10.9 },
-  4: { x: 63.5, y: 15.6 },
-  5: { x: 79.4, y: 29.8 },
-};
-
-/** Left gutter uses a mirrored image, so thumb sits on image-right. */
-const TIPS_LEFT: Record<Finger, { x: number; y: number }> = {
-  1: { x: 78.8, y: 41.5 },
-  2: { x: 62.5, y: 15.4 },
-  3: { x: 49.3, y: 10.9 },
-  4: { x: 36.5, y: 15.6 },
-  5: { x: 20.6, y: 29.8 },
-};
-
 export function ScaleHand({ octaves = 1 }: { octaves?: ScaleOctaves }) {
+  const landscape = useLandscape();
   const [reduceMotion, setReduceMotion] = useState(false);
   const [status, setStatus] = useState<PlayStatus>("idle");
   const [playGen, setPlayGen] = useState(0);
@@ -191,11 +152,9 @@ export function ScaleHand({ octaves = 1 }: { octaves?: ScaleOctaves }) {
   const loopRef = useRef(loop);
   loopRef.current = loop;
 
-  const keyCount =
-    octaves === 2 ? WHITE_COUNT_TWO_OCTAVE : WHITE_COUNT;
-  const svgWidth = viewWidth(keyCount);
   const register = useMemo(() => keyboardStart(tonic), [tonic]);
-  const pitches = useMemo(
+  /** RH stays on the usual register; LH sits one octave below when both. */
+  const rightPitches = useMemo(
     () =>
       scalePitchesForOctaves(
         tonalScaleName(tonic, mode),
@@ -204,33 +163,58 @@ export function ScaleHand({ octaves = 1 }: { octaves?: ScaleOctaves }) {
       ),
     [tonic, mode, register.octave, octaves],
   );
+  const leftPitches = useMemo(
+    () => shiftPitches(rightPitches, -1),
+    [rightPitches],
+  );
+  const keyCount = showBoth
+    ? octaves === 2
+      ? WHITE_COUNT_BOTH_TWO_OCTAVE
+      : WHITE_COUNT_BOTH
+    : octaves === 2
+      ? WHITE_COUNT_TWO_OCTAVE
+      : WHITE_COUNT;
+  const boardOctave = showBoth ? register.octave - 1 : register.octave;
+  const svgWidth = viewWidth(keyCount);
   const whites = useMemo(
-    () => whiteKeys(register.letter, register.octave, keyCount),
-    [register.letter, register.octave, keyCount],
+    () => whiteKeys(register.letter, boardOctave, keyCount),
+    [register.letter, boardOctave, keyCount],
   );
   const blacks = useMemo(
-    () => blackKeys(register.letter, register.octave, keyCount),
-    [register.letter, register.octave, keyCount],
+    () => blackKeys(register.letter, boardOctave, keyCount),
+    [register.letter, boardOctave, keyCount],
   );
   const timing = useMemo(
     () => ({ mode: timingMode, bpm }),
     [timingMode, bpm],
   );
   const leftMotion = useMemo(
-    () => motionFor("left", dir, timing, pitches, tonic, mode, octaves),
-    [dir, timing, pitches, tonic, mode, octaves],
+    () =>
+      motionFor(
+        "left",
+        dir,
+        timing,
+        showBoth ? leftPitches : rightPitches,
+        tonic,
+        mode,
+        octaves,
+      ),
+    [dir, timing, leftPitches, rightPitches, showBoth, tonic, mode, octaves],
   );
   const rightMotion = useMemo(
-    () => motionFor("right", dir, timing, pitches, tonic, mode, octaves),
-    [dir, timing, pitches, tonic, mode, octaves],
+    () => motionFor("right", dir, timing, rightPitches, tonic, mode, octaves),
+    [dir, timing, rightPitches, tonic, mode, octaves],
   );
   const name = scaleLabel(tonic, mode);
   const sample = showBoth ? bySide.right : bySide[side];
-  const line = lcdLine(sample, name, side, {
-    both: showBoth,
-    smooth: timingMode === "smooth",
-    bpm,
-  });
+  const line = showBoth
+    ? bySide.left.note && bySide.right.note
+      ? `LH ${bySide.left.note} · RH ${bySide.right.note}`
+      : `${name} · both${timingMode === "smooth" ? ` · ${bpm} bpm` : ""}`
+    : lcdLine(sample, name, side, {
+        smooth: timingMode === "smooth",
+        bpm,
+      });
   const playing = status === "playing";
   const modules: HandSide[] = showBoth ? ["left", "right"] : [side];
 
@@ -243,9 +227,9 @@ export function ScaleHand({ octaves = 1 }: { octaves?: ScaleOctaves }) {
   }, []);
 
   useEffect(() => {
-    for (const file of FRAME_FILES) {
+    for (const file of GUTTER_FRAME_FILES) {
       const img = new Image();
-      img.src = `${FRAME_DIR}/${file}`;
+      img.src = `/keys-lite/${file}`;
     }
   }, []);
 
@@ -310,9 +294,27 @@ export function ScaleHand({ octaves = 1 }: { octaves?: ScaleOctaves }) {
   }, [status, playGen, reduceMotion, leftMotion, rightMotion, showBoth, side, timingMode, bpm]);
 
   useEffect(() => {
-    if (!soundOn || !sample.note) return;
+    if (!soundOn) return;
+    if (showBoth) {
+      const notes = [bySide.left.note, bySide.right.note].filter(
+        (note): note is string => Boolean(note),
+      );
+      if (notes.length === 0) return;
+      playNotes(notes);
+      return;
+    }
+    if (!sample.note) return;
     playNote(sample.note);
-  }, [sample.note, sample.attack, soundOn]);
+  }, [
+    sample.note,
+    sample.attack,
+    soundOn,
+    showBoth,
+    bySide.left.note,
+    bySide.left.attack,
+    bySide.right.note,
+    bySide.right.attack,
+  ]);
 
   function resetHands(
     nextDir: ScaleDir = dir,
@@ -413,25 +415,44 @@ export function ScaleHand({ octaves = 1 }: { octaves?: ScaleOctaves }) {
       </div>
 
       <div className="scale-hand-stack">
-        {modules.map((moduleSide) => {
-          const live = bySide[moduleSide];
-          return (
-            <HandModule
-              key={moduleSide}
-              side={moduleSide}
-              note={live.note}
-              pressedFinger={live.pressedFinger}
-              afterTurn={live.shift >= 0.5}
+        {showBoth ? (
+          landscape ? (
+            <BothHandsStage
+              left={bySide.left}
+              right={bySide.right}
               whites={whites}
               blacks={blacks}
-              pitches={pitches}
+              leftPitches={leftPitches}
+              rightPitches={rightPitches}
               scaleName={name}
               label={label}
               svgWidth={svgWidth}
-              octaves={octaves}
+              homeMode="tonic"
             />
-          );
-        })}
+          ) : (
+            <LandscapePrompt />
+          )
+        ) : (
+          modules.map((moduleSide) => {
+            const live = bySide[moduleSide];
+            return (
+              <HandModule
+                key={moduleSide}
+                side={moduleSide}
+                note={live.note}
+                pressedFinger={live.pressedFinger}
+                afterTurn={live.shift >= 0.5}
+                whites={whites}
+                blacks={blacks}
+                pitches={rightPitches}
+                scaleName={name}
+                label={label}
+                svgWidth={svgWidth}
+                octaves={octaves}
+              />
+            );
+          })
+        )}
       </div>
 
       <div className="scale-hand-controls tools-buttons">
@@ -781,39 +802,5 @@ function Keyboard({
         </text>
       ) : null}
     </svg>
-  );
-}
-
-function GutterHand({
-  side,
-  pressedFinger,
-  afterTurn,
-}: {
-  side: HandSide;
-  pressedFinger: Finger | null;
-  afterTurn: boolean;
-}) {
-  const tips = side === "right" ? TIPS_RIGHT : TIPS_LEFT;
-  return (
-    <div className="scale-hand-gutter" data-side={side}>
-      <div className="scale-hand-gutter-inner">
-        <img
-          src={frameSrc(pressedFinger, afterTurn)}
-          alt=""
-          className="scale-hand-gutter-img"
-        />
-        {FINGERS.map((finger) => (
-          <span
-            key={finger}
-            className={
-              pressedFinger === finger ? "scale-hand-tip is-active" : "scale-hand-tip"
-            }
-            style={{ left: `${tips[finger].x}%`, top: `${tips[finger].y}%` }}
-          >
-            {finger}
-          </span>
-        ))}
-      </div>
-    </div>
   );
 }

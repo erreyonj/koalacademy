@@ -2747,6 +2747,62 @@ button.lesson-toolbar-item {
   gap: 0.45rem;
 }
 
+.scale-hand-both {
+  grid-template-columns: 1fr;
+}
+
+.scale-hand-both-gutter {
+  min-height: 14rem;
+}
+
+.scale-hand-both .scale-hand-gutter {
+  padding: 0.2rem;
+}
+
+.scale-hand-landscape-card {
+  display: grid;
+  justify-items: center;
+  gap: 0.65rem;
+  padding: clamp(1.5rem, 4vw, 2.5rem) 1.25rem;
+  text-align: center;
+  background: var(--ka-snow);
+  border: 3px solid var(--ka-edge);
+  border-radius: 10px;
+}
+
+.scale-hand-landscape-icon {
+  display: grid;
+  place-items: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--hw-yellow) 55%, #fff);
+  border: 2px solid var(--ka-edge);
+  color: var(--ka-ink);
+}
+
+.scale-hand-landscape-icon svg {
+  width: 1.75rem;
+  height: 1.75rem;
+  transform: rotate(90deg);
+}
+
+.scale-hand-landscape-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--ka-ink);
+}
+
+.scale-hand-landscape-copy {
+  margin: 0;
+  max-width: 22rem;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  color: var(--ka-charcoal);
+}
+
 .scale-hand-menu {
   width: auto;
   min-width: 8.75rem;
@@ -2999,13 +3055,25 @@ button.lesson-toolbar-item {
 }
 
 .scale-hand-white.is-bass,
-.scale-hand-black.is-bass {
+.scale-hand-black.is-bass,
+.scale-hand-white.is-bass.is-pressed,
+.scale-hand-black.is-bass.is-pressed {
   fill: color-mix(in srgb, var(--ka-eucalyptus) 72%, #fff);
 }
 
 .scale-hand-white.is-chord,
-.scale-hand-black.is-chord {
+.scale-hand-black.is-chord,
+.scale-hand-white.is-chord.is-pressed,
+.scale-hand-black.is-chord.is-pressed {
   fill: color-mix(in srgb, var(--ka-bamboo) 78%, #fff);
+}
+
+.scale-hand-note.is-bass-note {
+  fill: color-mix(in srgb, var(--ka-eucalyptus) 55%, var(--ka-ink));
+}
+
+.scale-hand-note.is-chord-note {
+  fill: color-mix(in srgb, var(--ka-bamboo) 45%, var(--ka-ink));
 }
 
 .song-key-label rect {

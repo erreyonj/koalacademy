@@ -44,7 +44,23 @@ export type SongScore = {
 };
 
 const RH: Finger[] = [1, 3, 5];
-const LH: Finger = 5;
+
+/**
+ * LH home: thumb on Ab3. Db3=5, Eb3=4, F3=3, Ab3=1.
+ * C3 keeps 5 (pinky drop in the pre). Ab2 keeps 5 (bridge low note).
+ */
+const LH_HOME: Record<string, Finger> = {
+  Ab3: 1,
+  F3: 3,
+  Eb3: 4,
+  Db3: 5,
+  C3: 5,
+  Ab2: 5,
+};
+
+function lhFinger(bass: string, override?: Finger): Finger {
+  return override ?? LH_HOME[bass] ?? 5;
+}
 
 function step(
   beats: number,
@@ -52,13 +68,14 @@ function step(
   chord: string[],
   symbol: string,
   section: string,
+  bassFinger?: Finger,
 ): SongStep {
   return {
     beats,
     bass,
     chord,
     symbol,
-    bassFinger: LH,
+    bassFinger: lhFinger(bass, bassFinger),
     chordFingers: RH,
     section,
   };
@@ -70,7 +87,7 @@ function rest(beats: number, section: string): SongStep {
     bass: null,
     chord: [],
     symbol: "",
-    bassFinger: LH,
+    bassFinger: 5,
     chordFingers: RH,
     section,
     rest: true,
@@ -96,12 +113,12 @@ const AB = { bass: "Ab3", chord: ["Eb4", "Ab4", "C5"], symbol: "Ab" };
 const AB_LOW = { bass: "Ab2", chord: ["Eb4", "Ab4", "C5"], symbol: "Ab" };
 const CM = { bass: "C3", chord: ["C4", "Eb4", "G4"], symbol: "Cm" };
 
-/** Verse cell: Fm → Ab → Eb → Db (2 bars). */
+/** Verse cell: Fm → Ab → Eb → Db (2 bars). LH 3 → 1 → 4 → 5. */
 function verseCell(section: string): SongStep[] {
   return [...bar(FM, AB, section), ...bar(EB, DB, section)];
 }
 
-/** Pre cell: Fm → Eb → Cm → Db (2 bars). */
+/** Pre cell: Fm → Eb → Cm → Db (2 bars). LH 3 → 4 → 5 → 5. */
 function preCell(section: string): SongStep[] {
   return [...bar(FM, EB, section), ...bar(CM, DB, section)];
 }
@@ -121,17 +138,26 @@ function preSection(section: string): SongStep[] {
   ];
 }
 
-/** Chorus cell: Fm → Db → Ab → Eb (2 bars). */
+/** Chorus cell: Fm → Db → Ab → Eb (2 bars). LH 3 → 5 → 1 → 4. */
 function chorusCell(section: string): SongStep[] {
   return [...bar(FM, DB, section), ...bar(AB, EB, section)];
 }
 
-/** Bridge cell: Fm → Db → Eb → Ab2 (2 bars). */
+/**
+ * Bridge cell: Fm → Db in home (3 → 5), then shift for Eb → Ab2 (1 → 5).
+ */
 function bridgeCell(section: string): SongStep[] {
-  return [...bar(FM, DB, section), ...bar(EB, AB_LOW, section)];
+  return [
+    ...bar(FM, DB, section),
+    step(1.5, EB.bass, EB.chord, EB.symbol, section, 1),
+    step(2.5, AB_LOW.bass, AB_LOW.chord, AB_LOW.symbol, section, 5),
+  ];
 }
 
-/** Bridge: three full cells, then Fm → Db, and a whole-bar Eb hold. */
+/**
+ * Bridge: three full cells, then Fm → Db, and a whole-bar Eb hold in home
+ * position (finger 4 — no low Ab follows).
+ */
 function bridgeSection(section: string): SongStep[] {
   return [
     ...repeat(3, () => bridgeCell(section)),

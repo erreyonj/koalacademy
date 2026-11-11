@@ -122,6 +122,29 @@ export function playNote(note: string) {
   previousAmps = voice.amps;
 }
 
+/** Strike several decaying notes together (both-hands scales). */
+export function playNotes(notes: string[]) {
+  const unique = [...new Set(notes.filter(Boolean))];
+  if (unique.length === 0) return;
+  if (unique.length === 1) {
+    playNote(unique[0]);
+    return;
+  }
+  const ctx = context();
+  if (!ctx) return;
+  const now = ctx.currentTime;
+  fadeAmps(previousAmps, now);
+  const amps: GainNode[] = [];
+  const voiceGain = 0.7;
+  for (const note of unique) {
+    const hz = noteToHz(note);
+    if (!hz) continue;
+    const voice = startVoice(ctx, hz, now, false, voiceGain);
+    amps.push(...voice.amps);
+  }
+  previousAmps = amps;
+}
+
 /** Soften every currently held chord voice. */
 export function releaseChord() {
   const ctx = context();

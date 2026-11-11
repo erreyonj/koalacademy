@@ -11,7 +11,7 @@ import { WORDS_BY_LENGTH } from "./words";
 
 export const ROOMS_PER_RUN = 5;
 export const SMART_TIMER_MS = 800;
-export const HARD_SECONDS_PER_LETTER = 15;
+export const HARD_SECONDS_PER_LETTER = 18;
 export const DEFAULT_START_PITCH: PitchId = "E4";
 export const DEFAULT_START_DURATION: NoteDuration = "q";
 

@@ -31,11 +31,11 @@ export type SongStaffRender = {
 
 const MEASURE_W = 168;
 const CLEF_PAD = 72;
-const TOP = 36;
+const TOP = 28;
 const TREBLE_Y = TOP;
-const BASS_Y = TOP + 90;
-const STAFF_BOTTOM = BASS_Y + 100;
-const LABEL_Y = 18;
+const BASS_Y = TOP + 78;
+const STAFF_BOTTOM = BASS_Y + 72;
+const LABEL_Y = 16;
 
 type DurationPiece = { duration: string; dots: 0 | 1 };
 

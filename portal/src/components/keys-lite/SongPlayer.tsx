@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { Play, RefreshCw, Square, Volume2, VolumeX } from "lucide-react";
 import { Note } from "tonal";
 import {
   KEY_TOP,
@@ -242,57 +243,77 @@ export function SongPlayer({ score }: { score: SongScore }) {
         })}
       </div>
 
-      <div className="song-stage">
-        <div className="song-staff-scroll" ref={scrollerRef}>
-          <div className="song-staff-host" ref={staffHostRef} />
+      <div className="song-body">
+        <div className="song-stage">
+          <div className="song-staff-scroll" ref={scrollerRef}>
+            <div className="song-staff-host" ref={staffHostRef} />
+          </div>
+
+          <div className="song-piano-gutter">
+            <HandCue side="left" active={Boolean(step && !step.rest && step.bass)} />
+            <SongPiano
+              whites={whites}
+              blacks={blacks}
+              width={pianoWidth}
+              step={step}
+              labelMode={labelMode}
+            />
+            <HandCue
+              side="right"
+              active={Boolean(step && !step.rest && step.chord.length)}
+            />
+          </div>
         </div>
 
-        <div className="song-piano-gutter">
-          <HandCue side="left" active={Boolean(step && !step.rest && step.bass)} />
-          <SongPiano
-            whites={whites}
-            blacks={blacks}
-            width={pianoWidth}
-            step={step}
-            labelMode={labelMode}
-          />
-          <HandCue
-            side="right"
-            active={Boolean(step && !step.rest && step.chord.length)}
-          />
+        <div className="song-controls" role="toolbar" aria-label="Song controls">
+          <button
+            type="button"
+            className="song-control"
+            onClick={start}
+            aria-label={playing ? "Stop" : status === "done" ? "Replay" : "Play"}
+          >
+            {playing ? <Square aria-hidden="true" /> : <Play aria-hidden="true" />}
+          </button>
+          <button
+            type="button"
+            className="song-control"
+            aria-label={loop ? "Loop on" : "Loop off"}
+            aria-pressed={loop}
+            onClick={() => setLoop((on) => !on)}
+          >
+            <RefreshCw aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            className="song-control"
+            aria-label={soundOn ? "Sound on" : "Sound off"}
+            aria-pressed={soundOn}
+            onClick={toggleSound}
+          >
+            {soundOn ? (
+              <Volume2 aria-hidden="true" />
+            ) : (
+              <VolumeX aria-hidden="true" />
+            )}
+          </button>
+          <button
+            type="button"
+            className="song-control"
+            aria-label={
+              labelMode === "names"
+                ? "Show finger numbers"
+                : "Show note names"
+            }
+            aria-pressed={labelMode === "fingers"}
+            onClick={() =>
+              setLabelMode((mode) => (mode === "names" ? "fingers" : "names"))
+            }
+          >
+            <span className="song-control-text" aria-hidden="true">
+              {labelMode === "fingers" ? "123" : "A♭"}
+            </span>
+          </button>
         </div>
-      </div>
-
-      <div className="scale-hand-controls tools-buttons">
-        <button type="button" className="tools-button" onClick={start}>
-          {playing ? "Stop" : status === "done" ? "Replay" : "Play"}
-        </button>
-        <button
-          type="button"
-          className="tools-button"
-          aria-pressed={loop}
-          onClick={() => setLoop((on) => !on)}
-        >
-          Loop {loop ? "on" : "off"}
-        </button>
-        <button
-          type="button"
-          className="tools-button"
-          aria-pressed={soundOn}
-          onClick={toggleSound}
-        >
-          Sound {soundOn ? "on" : "off"}
-        </button>
-        <button
-          type="button"
-          className="tools-button"
-          aria-pressed={labelMode === "fingers"}
-          onClick={() =>
-            setLabelMode((mode) => (mode === "names" ? "fingers" : "names"))
-          }
-        >
-          {labelMode === "names" ? "Names" : "Fingers"}
-        </button>
       </div>
     </div>
   );

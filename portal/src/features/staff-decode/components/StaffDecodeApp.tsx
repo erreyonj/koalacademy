@@ -37,7 +37,10 @@ import {
   PITCH_STOP_BY_ID,
   pitchesForDifficulty,
 } from "../pitches";
+import { formatClock } from "../leaderboard";
 import { NoteValueGlyph } from "./NoteGlyph";
+import { LeaderboardPanel } from "./LeaderboardPanel";
+import { LogScoreFlow } from "./LogScoreFlow";
 import { StethoscopeEnd } from "./StethoscopeEnd";
 import { MusicTransport, useThemeMusic } from "./ThemeMusic";
 import { staffProgress } from "../staffGuess";
@@ -148,12 +151,6 @@ function soundDialPitch(prev: GameState, nextPitch: GameState["selectedPitch"]) 
   playNote(nextPitch);
 }
 
-function formatClock(totalSeconds: number): string {
-  const mins = Math.floor(totalSeconds / 60);
-  const secs = totalSeconds % 60;
-  return `${mins}:${secs.toString().padStart(2, "0")}`;
-}
-
 export function StaffDecodeApp() {
   const [state, setState] = useState<GameState>(() =>
     createInitialGameState("easy"),
@@ -165,6 +162,8 @@ export function StaffDecodeApp() {
   const [isWalking, setIsWalking] = useState(false);
   const [controlMode, setControlMode] = useState<ControlMode>("touch");
   const [startStep, setStartStep] = useState<StartStep>("rules");
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [logScoreSettled, setLogScoreSettled] = useState(false);
   const [playbackDone, setPlaybackDone] = useState<{
     rooms: GameState["rooms"];
     roomIndex: number;
@@ -225,7 +224,11 @@ export function StaffDecodeApp() {
     selectedStopIdx !== -1 && selectedStopIdx < activeStops.length - 1;
 
   useEffect(() => {
-    if (state.phase === "start") setStartStep("rules");
+    if (state.phase === "start") {
+      setStartStep("rules");
+      setShowLeaderboard(false);
+    }
+    if (state.phase !== "win") setLogScoreSettled(false);
   }, [state.phase]);
 
   useEffect(() => {
@@ -826,7 +829,10 @@ export function StaffDecodeApp() {
         </svg>
 
         {/* PHASE 1: START SCREEN */}
-        {state.phase === "start" && (
+        {state.phase === "start" && showLeaderboard && (
+          <LeaderboardPanel onClose={() => setShowLeaderboard(false)} />
+        )}
+        {state.phase === "start" && !showLeaderboard && (
           <section
             className="sd-overlay-card"
             aria-label="Staff DeCode rules and setup"
@@ -889,14 +895,24 @@ export function StaffDecodeApp() {
                   <span>Advanced Tools · Locked</span>
                 </button>
 
-                <button
-                  type="button"
-                  className="sd-primary-btn"
-                  data-testid="start-game-btn"
-                  onClick={() => beginRun(state.difficulty)}
-                >
-                  Enter Room 1 →
-                </button>
+                <div className="sd-start-actions">
+                  <button
+                    type="button"
+                    className="sd-ghost-btn"
+                    data-testid="view-leaderboard-btn"
+                    onClick={() => setShowLeaderboard(true)}
+                  >
+                    Leaderboard
+                  </button>
+                  <button
+                    type="button"
+                    className="sd-primary-btn"
+                    data-testid="start-game-btn"
+                    onClick={() => beginRun(state.difficulty)}
+                  >
+                    Enter Room 1 →
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -911,14 +927,24 @@ export function StaffDecodeApp() {
                     Crack the staff combinations.
                   </h2>
                   <RulesCarousel lines={START_RULES} />
-                  <button
-                    type="button"
-                    className="sd-primary-btn"
-                    data-testid="choose-difficulty-btn"
-                    onClick={() => setStartStep("pick")}
-                  >
-                    Choose difficulty
-                  </button>
+                  <div className="sd-phone-rules-actions">
+                    <button
+                      type="button"
+                      className="sd-ghost-btn"
+                      data-testid="phone-view-leaderboard-btn"
+                      onClick={() => setShowLeaderboard(true)}
+                    >
+                      Leaderboard
+                    </button>
+                    <button
+                      type="button"
+                      className="sd-primary-btn"
+                      data-testid="choose-difficulty-btn"
+                      onClick={() => setStartStep("pick")}
+                    >
+                      Choose difficulty
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <div className="sd-phone-pick">
@@ -1609,25 +1635,32 @@ export function StaffDecodeApp() {
                 </span>
               ))}
             </div>
-            <div className="sd-end-actions">
-              <button
-                type="button"
-                className="sd-primary-btn"
-                data-testid="play-again-btn"
-                onClick={() => setState(startRun(state.difficulty))}
-              >
-                Crack Another 5 Rooms
-              </button>
-              <button
-                type="button"
-                className="sd-ghost-btn"
-                onClick={() =>
-                  setState(createInitialGameState(state.difficulty))
-                }
-              >
-                Change Difficulty
-              </button>
-            </div>
+            <LogScoreFlow
+              difficulty={state.difficulty}
+              elapsedSec={state.elapsedSec}
+              onSettled={() => setLogScoreSettled(true)}
+            />
+            {logScoreSettled && (
+              <div className="sd-end-actions">
+                <button
+                  type="button"
+                  className="sd-primary-btn"
+                  data-testid="play-again-btn"
+                  onClick={() => setState(startRun(state.difficulty))}
+                >
+                  Crack Another 5 Rooms
+                </button>
+                <button
+                  type="button"
+                  className="sd-ghost-btn"
+                  onClick={() =>
+                    setState(createInitialGameState(state.difficulty))
+                  }
+                >
+                  Change Difficulty
+                </button>
+              </div>
+            )}
           </section>
         )}
 

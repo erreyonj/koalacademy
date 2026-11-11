@@ -467,6 +467,26 @@
   border-top: 1.5px dashed var(--ka-slate);
 }
 
+.sd-start-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  align-items: center;
+  margin-left: auto;
+}
+
+.sd-phone-rules-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  margin-top: auto;
+}
+
+.sd-phone-rules-actions .sd-primary-btn,
+.sd-phone-rules-actions .sd-ghost-btn {
+  width: 100%;
+}
+
 .sd-lock-tools {
   display: inline-flex;
   align-items: center;
@@ -1181,7 +1201,6 @@ button.sd-code-banner:disabled {
   }
 
   .sd-phone-rules .sd-primary-btn {
-    margin-top: auto;
     width: 100%;
   }
 
@@ -1391,4 +1410,190 @@ button.sd-code-banner:disabled {
   .sd-music-volume input {
     width: 5rem;
   }
+}
+
+/* Leaderboard + log score */
+.sd-leaderboard-panel {
+  overflow: auto;
+  gap: 0.85rem;
+  justify-content: flex-start;
+}
+
+.sd-leaderboard-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.sd-leaderboard-body {
+  display: grid;
+  gap: 0.85rem;
+  min-height: 0;
+}
+
+.sd-leaderboard-group {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.sd-leaderboard-group-title {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0;
+  color: var(--ka-canopy);
+}
+
+.sd-leaderboard-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.3rem;
+}
+
+.sd-leaderboard-row {
+  display: grid;
+  grid-template-columns: 1.6rem 2.6rem 2.4rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.45rem;
+  border: 1.5px solid color-mix(in srgb, var(--ka-edge) 55%, transparent);
+  border-radius: 0.45rem;
+  background: color-mix(in srgb, var(--sd-panel) 88%, var(--ka-pith));
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+}
+
+.sd-leaderboard-rank {
+  font-weight: 700;
+  color: color-mix(in srgb, var(--sd-panel-ink) 70%, transparent);
+}
+
+.sd-leaderboard-alias {
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.sd-leaderboard-cohort {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--ka-canopy);
+}
+
+.sd-leaderboard-diff {
+  justify-self: end;
+}
+
+.sd-leaderboard-time {
+  font-weight: 700;
+  min-width: 3.2rem;
+  text-align: right;
+}
+
+.sd-log-flow {
+  display: grid;
+  gap: 0.55rem;
+  margin-top: 0.15rem;
+}
+
+.sd-log-prompt,
+.sd-log-placement,
+.sd-log-confirm {
+  margin: 0;
+  font-size: 0.98rem;
+  line-height: 1.4;
+  color: var(--sd-panel-ink);
+}
+
+.sd-log-placement {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+}
+
+.sd-log-confirm {
+  font-family: var(--font-mono);
+  font-weight: 700;
+}
+
+.sd-log-error {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--ka-pop, #b04f67);
+}
+
+.sd-log-field {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.sd-log-label {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ka-canopy);
+  font-weight: 700;
+}
+
+.sd-alias-input {
+  width: 6.5rem;
+  padding: 0.45rem 0.55rem;
+  border: 2px solid var(--ka-edge);
+  border-radius: 0.45rem;
+  background: var(--sd-panel);
+  color: var(--sd-panel-ink);
+  font-family: var(--font-mono);
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.sd-alias-input:focus {
+  outline: 2px solid var(--ka-canopy);
+  outline-offset: 1px;
+}
+
+.sd-cohort-fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.sd-cohort-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.sd-cohort-chip {
+  appearance: none;
+  border: 1.5px solid var(--ka-edge);
+  border-radius: 0.4rem;
+  background: var(--sd-panel);
+  color: var(--sd-panel-ink);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.28rem 0.5rem;
+  cursor: pointer;
+  box-shadow: 0 2px 0 var(--ka-edge);
+}
+
+.sd-cohort-chip.is-selected {
+  background: var(--ka-canopy);
+  color: var(--ka-on-dark);
+}
+
+.sd-cohort-chip:focus-visible {
+  outline: 2px solid var(--ka-canopy);
+  outline-offset: 1px;
 }

@@ -174,6 +174,19 @@ export interface Database {
         Update: never;
         Relationships: [];
       };
+      staff_decode_scores: {
+        Row: {
+          id: string;
+          alias: string;
+          cohort: string;
+          difficulty: string;
+          elapsed_sec: number;
+          created_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -302,6 +315,19 @@ export interface Database {
       glossary_delete_term: {
         Args: { p_code: string; p_id: string };
         Returns: undefined;
+      };
+      staff_decode_placement: {
+        Args: { p_difficulty: string; p_elapsed_sec: number };
+        Returns: { beaten: number; total: number }[];
+      };
+      staff_decode_log_score: {
+        Args: {
+          p_alias: string;
+          p_cohort: string;
+          p_difficulty: string;
+          p_elapsed_sec: number;
+        };
+        Returns: string;
       };
     };
     Enums: {

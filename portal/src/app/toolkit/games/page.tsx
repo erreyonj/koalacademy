@@ -28,6 +28,11 @@ export default function GamesPage() {
         sky.
       </p>
       <p>
+        <Link href="/toolkit/games/notehead/">Notehead</Link> — slingshot a
+        notehead ship. Three prototypes: a launch site, a stair run, and a
+        notch with two frequency bands.
+      </p>
+      <p>
         <Link href="/toolkit/games/salad-bowl/">Salad Bowl</Link> — the
         bowl game in three rounds: Describe, Charades, then One Word.
         Free-for-all cards from the class, or a Koala/Music deck from the

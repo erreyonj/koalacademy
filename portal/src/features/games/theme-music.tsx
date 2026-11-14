@@ -3,23 +3,21 @@
 import { Pause, Play, Volume1, Volume2, VolumeX } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-const THEME_SRC = "/assets/staff-decode/Shadow%20Protocol.mp3";
 const DEFAULT_VOLUME = 0.45;
 const DUCK_RATIO = 0.25;
 
 /**
  * Looping background theme. Browsers block autoplay, so `start` must be called
- * from a user gesture (the Enter Room button). `ducked` lowers the theme while
- * the cracked code plays back.
+ * from a user gesture. `ducked` lowers the theme while other notes play back.
  */
-export function useThemeMusic(ducked: boolean) {
+export function useThemeMusic(src: string, ducked: boolean) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const userPausedRef = useRef(false);
   const [playing, setPlaying] = useState(false);
   const [volume, setVolume] = useState(DEFAULT_VOLUME);
 
   useEffect(() => {
-    const audio = new Audio(THEME_SRC);
+    const audio = new Audio(src);
     audio.loop = true;
     audio.preload = "auto";
     const onPlay = () => setPlaying(true);
@@ -33,7 +31,7 @@ export function useThemeMusic(ducked: boolean) {
       audio.removeEventListener("pause", onPause);
       audioRef.current = null;
     };
-  }, []);
+  }, [src]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -44,7 +42,7 @@ export function useThemeMusic(ducked: boolean) {
     audioRef.current?.play().catch(() => setPlaying(false));
   }, []);
 
-  /** Starts the theme on game start unless the player paused it. */
+  /** Starts the theme on first gameplay gesture unless the player paused it. */
   const start = useCallback(() => {
     if (!userPausedRef.current) play();
   }, [play]);
@@ -65,6 +63,9 @@ export function useThemeMusic(ducked: boolean) {
 }
 
 interface MusicTransportProps {
+  title: string;
+  /** CSS class stem, e.g. `obs-music` or `sd-music`. */
+  classPrefix: string;
   playing: boolean;
   volume: number;
   onToggle: () => void;
@@ -72,6 +73,8 @@ interface MusicTransportProps {
 }
 
 export function MusicTransport({
+  title,
+  classPrefix,
   playing,
   volume,
   onToggle,
@@ -79,10 +82,10 @@ export function MusicTransport({
 }: MusicTransportProps) {
   const VolumeIcon = volume === 0 ? VolumeX : volume < 0.5 ? Volume1 : Volume2;
   return (
-    <div className="sd-music" data-testid="music-transport">
+    <div className={classPrefix} data-testid="music-transport">
       <button
         type="button"
-        className="sd-music-play"
+        className={`${classPrefix}-play`}
         data-testid="music-toggle"
         aria-pressed={playing}
         aria-label={playing ? "Pause theme music" : "Play theme music"}
@@ -94,8 +97,8 @@ export function MusicTransport({
           <Play size={16} strokeWidth={2.6} aria-hidden="true" />
         )}
       </button>
-      <span className="sd-music-title">Shadow Protocol</span>
-      <label className="sd-music-volume">
+      <span className={`${classPrefix}-title`}>{title}</span>
+      <label className={`${classPrefix}-volume`}>
         <VolumeIcon size={16} strokeWidth={2.4} aria-hidden="true" />
         <input
           type="range"

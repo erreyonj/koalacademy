@@ -227,6 +227,16 @@ html[data-game-fullscreen="true"] [data-slot="sidebar-inset"] {
     linear-gradient(180deg, #1a1d24, #0b0d12);
 }
 
+.game-boot--field {
+  --game-boot-accent: #7a6b8a;
+  color: #2a2433;
+  background: linear-gradient(180deg, #f7f0f4 0%, #f0e4ec 48%, #f7f0f4 100%);
+}
+
+.game-boot--field .game-boot-sub {
+  color: rgba(42, 36, 51, 0.55);
+}
+
 .game-boot-title {
   font-family: var(--font-display);
   font-size: clamp(2rem, 6vw, 3.4rem);

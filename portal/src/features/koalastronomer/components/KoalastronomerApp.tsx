@@ -27,8 +27,12 @@ import {
   TelescopeRulesModal,
 } from "./Telescope/TelescopeBriefing";
 import { TelescopeScreen } from "./Telescope/TelescopeScreen";
-import { MusicTransport, useThemeMusic } from "./ThemeMusic";
+import {
+  MusicTransport,
+  useThemeMusic,
+} from "@/features/games/theme-music";
 
+const THEME_SRC = "/assets/koalastronomer/Galactic%20Anthem.mp3";
 const NOTE_DUCK_MS = 900;
 
 export function KoalastronomerApp() {
@@ -41,7 +45,7 @@ export function KoalastronomerApp() {
   const [selectedRecordId, setSelectedRecordId] = useState<string | null>(
     null,
   );
-  const music = useThemeMusic(ducked);
+  const music = useThemeMusic(THEME_SRC, ducked);
   const { start: startMusic } = music;
 
   const currentDestination = DESTINATIONS.find(
@@ -345,6 +349,8 @@ export function KoalastronomerApp() {
             />
           )}
           <MusicTransport
+            title="Galactic Anthem"
+            classPrefix="obs-music"
             playing={music.playing}
             volume={music.volume}
             onToggle={music.toggle}

@@ -1,0 +1,215 @@
+.notehead-page {
+  --nh-sky-top: #f7f0f4;
+  --nh-sky-mid: #f0e4ec;
+  --nh-sky-bottom: #faf7f9;
+  --nh-ink: #1a1520;
+  --nh-band: #1a1520;
+  --nh-guide: #6b4f8a;
+  --nh-ring: rgba(180, 140, 170, 0.45);
+  --nh-spark: #8b5cad;
+  --nh-ship: #1a1520;
+  --nh-hint: rgba(42, 36, 51, 0.55);
+
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 100svh;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: linear-gradient(
+    180deg,
+    var(--nh-sky-top) 0%,
+    var(--nh-sky-mid) 48%,
+    var(--nh-sky-bottom) 100%
+  );
+  color: var(--nh-ink);
+  touch-action: none;
+  user-select: none;
+}
+
+.notehead-stage {
+  width: min(100%, 28rem);
+  height: min(100svh, 52rem);
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 0.5rem;
+  padding: 0.75rem 0.75rem 1.25rem;
+}
+
+.notehead-hud {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  color: var(--nh-hint);
+}
+
+.notehead-goal-btn {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  padding: 0.15rem 0.2rem;
+  margin: -0.15rem -0.2rem;
+  font: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+  cursor: pointer;
+  border-radius: 0.35rem;
+}
+
+.notehead-goal-btn:hover,
+.notehead-goal-btn:focus-visible {
+  color: var(--nh-ink);
+  outline: none;
+}
+
+.notehead-goal-btn:focus-visible {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--nh-guide) 45%, transparent);
+}
+
+.notehead-goal-btn:active strong {
+  transform: translateY(1px);
+}
+
+.notehead-hud strong {
+  display: inline-block;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  letter-spacing: -0.01em;
+  color: var(--nh-ink);
+  font-weight: 700;
+}
+
+.notehead-scene {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 18rem;
+}
+
+.notehead-scene svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.notehead-hint {
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  color: var(--nh-hint);
+  min-height: 1.4em;
+}
+
+.notehead-ship {
+  fill: var(--nh-ship);
+}
+
+.notehead-ship.is-lite {
+  fill: #3c3844;
+}
+
+.notehead-terrain {
+  fill: #111111;
+}
+
+.notehead-band.is-hot {
+  stroke: #3ec6d8;
+}
+
+.notehead-tread-mark {
+  fill: none;
+  stroke: #7fd3de;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.notehead-regions {
+  position: absolute;
+  z-index: 5;
+  top: 0.55rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 0.3rem;
+}
+
+.notehead-regions button {
+  appearance: none;
+  border: 1px solid color-mix(in srgb, var(--nh-ink) 25%, transparent);
+  background: color-mix(in srgb, var(--nh-sky-top) 80%, white);
+  color: var(--nh-ink);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.28rem 0.55rem;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.notehead-regions button.is-on {
+  background: var(--nh-ink);
+  color: #f7f0f4;
+  border-color: var(--nh-ink);
+}
+
+.notehead-band {
+  fill: none;
+  stroke: var(--nh-band);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+}
+
+.notehead-guide {
+  fill: none;
+  stroke: var(--nh-guide);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+
+.notehead-ring {
+  fill: none;
+  stroke: var(--nh-ring);
+  stroke-width: 1.2;
+  pointer-events: none;
+}
+
+.notehead-spark {
+  fill: var(--nh-spark);
+  pointer-events: none;
+}
+
+@keyframes notehead-spark-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+
+.notehead-spark-group {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: notehead-spark-pop 720ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .notehead-spark-group {
+    animation: none;
+    opacity: 1;
+  }
+}

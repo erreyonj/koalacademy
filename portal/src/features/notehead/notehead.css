@@ -160,6 +160,31 @@
   border-color: var(--nh-ink);
 }
 
+.notehead-difficulty {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.notehead-difficulty button {
+  appearance: none;
+  border: 1px solid color-mix(in srgb, var(--nh-ink) 25%, transparent);
+  background: transparent;
+  color: var(--nh-hint);
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.45rem;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.notehead-difficulty button.is-on {
+  background: var(--nh-ink);
+  color: #f7f0f4;
+  border-color: var(--nh-ink);
+}
+
 .notehead-band {
   fill: none;
   stroke: var(--nh-band);
@@ -172,6 +197,25 @@
   stroke: var(--nh-guide);
   stroke-width: 1.5;
   stroke-linecap: round;
+}
+
+.notehead-chart {
+  fill: none;
+  stroke: var(--nh-guide);
+  stroke-width: 1.6;
+  stroke-dasharray: 3.5 4.5;
+  stroke-linecap: round;
+  opacity: 0.9;
+}
+
+.notehead-chart-apex {
+  fill: none;
+  stroke: var(--nh-guide);
+  stroke-width: 1.4;
+}
+
+.notehead-chart-end {
+  fill: var(--nh-guide);
 }
 
 .notehead-ring {

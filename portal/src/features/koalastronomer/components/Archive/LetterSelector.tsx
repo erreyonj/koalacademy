@@ -1,7 +1,6 @@
 "use client";
 
-import type React from "react";
-import { useRef } from "react";
+import { useDetentSwipe } from "@/features/games/detent-swipe";
 import type { ControlMode } from "../../engine/game-state";
 import {
   NOTE_SEQUENCE,
@@ -31,16 +30,6 @@ export function LetterSelector({
   disabled,
   error,
 }: LetterSelectorProps) {
-  const gestureRef = useRef<{
-    active: boolean;
-    pointerId: number;
-    startY: number;
-  }>({
-    active: false,
-    pointerId: -1,
-    startY: 0,
-  });
-
   const id = `bearing-${index + 1}`;
   const label = `Bearing ${ROMAN[index] ?? index + 1}`;
   const noteIndex = NOTE_SEQUENCE.indexOf(value);
@@ -51,35 +40,12 @@ export function LetterSelector({
     onChange(stepNoteLetter(value, delta));
   };
 
-  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (disabled || controlMode !== "touch") return;
-    e.currentTarget.setPointerCapture(e.pointerId);
-    gestureRef.current = {
-      active: true,
-      pointerId: e.pointerId,
-      startY: e.clientY,
-    };
-  };
-
-  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    const g = gestureRef.current;
-    if (!g.active || g.pointerId !== e.pointerId || disabled) return;
-    if (controlMode !== "touch") return;
-
-    const dy = e.clientY - g.startY;
-    if (Math.abs(dy) >= BEARING_SWIPE_PX) {
-      // Swiping up advances A -> B -> C; swiping down steps backward
-      const dir = dy < 0 ? 1 : -1;
-      stepBy(dir);
-      g.startY = e.clientY;
-    }
-  };
-
-  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (gestureRef.current.pointerId === e.pointerId) {
-      gestureRef.current.active = false;
-    }
-  };
+  const swipe = useDetentSwipe({
+    threshold: BEARING_SWIPE_PX,
+    mode: "single",
+    enabled: !disabled && controlMode === "touch",
+    onStep: (dir) => stepBy(dir),
+  });
 
   return (
     <div
@@ -91,10 +57,10 @@ export function LetterSelector({
         className="obs-bearing-wheel"
         data-testid={`${id}-wheel`}
         data-value={value}
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerUp}
-        onPointerCancel={handlePointerUp}
+        onPointerDown={swipe.onPointerDown}
+        onPointerMove={swipe.onPointerMove}
+        onPointerUp={swipe.onPointerUp}
+        onPointerCancel={swipe.onPointerCancel}
         role="slider"
         aria-label={`${label} missing letter`}
         aria-valuemin={0}

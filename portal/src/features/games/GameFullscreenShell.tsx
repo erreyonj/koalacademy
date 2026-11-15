@@ -21,7 +21,7 @@ interface GameFullscreenShellProps {
   title: string;
   /** Short status line under the progress bar while booting. */
   bootLabel: string;
-  theme: "observatory" | "vault";
+  theme: "observatory" | "vault" | "field";
   /** What happens to the player's run if they leave now. */
   exitNote: string;
   children: ReactNode;

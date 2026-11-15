@@ -16,12 +16,15 @@ const nextConfig: NextConfig = {
   // imported, but those files live outside app/ so they do not become routes.
   pageExtensions: ["ts", "tsx", "mdx"],
   // Bare hostnames only (no scheme/port) so LAN phones can load /_next in dev.
+  // Include the LAN IP Next prints as "Network:" so phones can load /_next in
+  // dev (HMR + client chunks). 169.254.* is link-local when DHCP is missing.
   allowedDevOrigins: [
     "localhost",
     "127.0.0.1",
     "0.0.0.0",
     "::1",
     "10.64.126.12",
+    "169.254.238.122",
     "::ffff:127.0.0.1",
   ],
   images: { unoptimized: true },

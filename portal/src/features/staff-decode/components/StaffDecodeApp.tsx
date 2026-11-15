@@ -42,7 +42,14 @@ import { NoteValueGlyph } from "./NoteGlyph";
 import { LeaderboardPanel } from "./LeaderboardPanel";
 import { LogScoreFlow } from "./LogScoreFlow";
 import { StethoscopeEnd } from "./StethoscopeEnd";
-import { MusicTransport, useThemeMusic } from "./ThemeMusic";
+import {
+  applyDetentSwipe,
+  useDetentSwipe,
+} from "@/features/games/detent-swipe";
+import {
+  MusicTransport,
+  useThemeMusic,
+} from "@/features/games/theme-music";
 import { staffProgress } from "../staffGuess";
 import {
   ClosedSafeGraphic,
@@ -111,6 +118,7 @@ function RulesCarousel({ lines }: { lines: readonly string[] }) {
   );
 }
 
+const THEME_SRC = "/assets/staff-decode/Shadow%20Protocol.mp3";
 const DIAL_SWIPE_PX = 36;
 const PLAYBACK_STEP_MS = 450;
 
@@ -174,7 +182,7 @@ export function StaffDecodeApp() {
       playbackDone?.rooms === state.rooms &&
       playbackDone.roomIndex === state.currentRoomIndex
     );
-  const music = useThemeMusic(playingBack);
+  const music = useThemeMusic(THEME_SRC, playingBack);
   const [dialTurn, setDialTurn] = useState<{
     dir: "up" | "down" | null;
     n: number;
@@ -192,8 +200,6 @@ export function StaffDecodeApp() {
     mode: "angle" | "swipe" | null;
     accum: number;
   }>({ x: 0, y: 0, mode: null, accum: 0 });
-  const thumbDialSwipeRef = useRef({ y: 0, accum: 0, active: false });
-  const thumbValueSwipeRef = useRef({ y: 0, accum: 0, active: false });
   const codeReplayTimersRef = useRef<number[]>([]);
 
   const currentRoom = state.rooms[state.currentRoomIndex];
@@ -412,73 +418,18 @@ export function StaffDecodeApp() {
     [music.start],
   );
 
-  const handleThumbDialPointerDown = (
-    e: ReactPointerEvent<HTMLDivElement>,
-  ) => {
-    e.preventDefault();
-    thumbDialSwipeRef.current = { y: e.clientY, accum: 0, active: true };
-    e.currentTarget.setPointerCapture(e.pointerId);
-  };
+  const thumbDialSwipe = useDetentSwipe({
+    threshold: DIAL_SWIPE_PX,
+    mode: "accumulate",
+    onStep: (dir) => handleStepDial(dir),
+  });
 
-  const handleThumbDialPointerMove = (
-    e: ReactPointerEvent<HTMLDivElement>,
-  ) => {
-    const gesture = thumbDialSwipeRef.current;
-    if (!gesture.active) return;
-    gesture.accum += e.clientY - gesture.y;
-    gesture.y = e.clientY;
-    while (gesture.accum <= -DIAL_SWIPE_PX) {
-      gesture.accum += DIAL_SWIPE_PX;
-      handleStepDial(1);
-    }
-    while (gesture.accum >= DIAL_SWIPE_PX) {
-      gesture.accum -= DIAL_SWIPE_PX;
-      handleStepDial(-1);
-    }
-  };
-
-  const handleThumbDialPointerUp = (
-    e: ReactPointerEvent<HTMLDivElement>,
-  ) => {
-    thumbDialSwipeRef.current.active = false;
-    if (e.currentTarget.hasPointerCapture(e.pointerId)) {
-      e.currentTarget.releasePointerCapture(e.pointerId);
-    }
-  };
-
-  const handleThumbValuePointerDown = (
-    e: ReactPointerEvent<HTMLDivElement>,
-  ) => {
-    e.preventDefault();
-    thumbValueSwipeRef.current = { y: e.clientY, accum: 0, active: true };
-    e.currentTarget.setPointerCapture(e.pointerId);
-  };
-
-  const handleThumbValuePointerMove = (
-    e: ReactPointerEvent<HTMLDivElement>,
-  ) => {
-    const gesture = thumbValueSwipeRef.current;
-    if (!gesture.active) return;
-    gesture.accum += e.clientY - gesture.y;
-    gesture.y = e.clientY;
-    while (gesture.accum <= -DIAL_SWIPE_PX) {
-      gesture.accum += DIAL_SWIPE_PX;
-      stepDuration(-1);
-    }
-    while (gesture.accum >= DIAL_SWIPE_PX) {
-      gesture.accum -= DIAL_SWIPE_PX;
-      stepDuration(1);
-    }
-  };
-
-  const handleThumbValuePointerUp = (
-    e: ReactPointerEvent<HTMLDivElement>,
-  ) => {
-    thumbValueSwipeRef.current.active = false;
-    if (e.currentTarget.hasPointerCapture(e.pointerId)) {
-      e.currentTarget.releasePointerCapture(e.pointerId);
-    }
-  };
+  const thumbValueSwipe = useDetentSwipe({
+    threshold: DIAL_SWIPE_PX,
+    mode: "accumulate",
+    // Value rail maps swipe-up to the previous duration (inverted from pitch).
+    onStep: (dir) => stepDuration((-dir) as -1 | 1),
+  });
 
   useEffect(() => {
     if (state.phase !== "dial") return;
@@ -553,16 +504,20 @@ export function StaffDecodeApp() {
     }
     if (controlMode === "touch") {
       if (gesture.mode !== "swipe") return;
-      gesture.accum += e.clientY - gesture.y;
+      const deltaY = e.clientY - gesture.y;
       gesture.y = e.clientY;
       gesture.x = e.clientX;
-      while (gesture.accum <= -DIAL_SWIPE_PX) {
-        gesture.accum += DIAL_SWIPE_PX;
-        handleStepDial(1);
-      }
-      while (gesture.accum >= DIAL_SWIPE_PX) {
-        gesture.accum -= DIAL_SWIPE_PX;
-        handleStepDial(-1);
+      const result = applyDetentSwipe(
+        gesture.accum,
+        deltaY,
+        DIAL_SWIPE_PX,
+        "accumulate",
+      );
+      gesture.accum = result.accum;
+      if (result.steps > 0) {
+        for (let i = 0; i < result.steps; i++) handleStepDial(1);
+      } else if (result.steps < 0) {
+        for (let i = 0; i < -result.steps; i++) handleStepDial(-1);
       }
       return;
     }
@@ -1125,9 +1080,10 @@ export function StaffDecodeApp() {
               }`}
               data-testid="thumb-value"
               aria-label={`Note value ${DURATION_LABELS[state.selectedDuration]}`}
-              onPointerDown={handleThumbValuePointerDown}
-              onPointerMove={handleThumbValuePointerMove}
-              onPointerUp={handleThumbValuePointerUp}
+              onPointerDown={thumbValueSwipe.onPointerDown}
+              onPointerMove={thumbValueSwipe.onPointerMove}
+              onPointerUp={thumbValueSwipe.onPointerUp}
+              onPointerCancel={thumbValueSwipe.onPointerCancel}
               onClick={(event) => {
                 if ((event.target as HTMLElement).closest("button")) return;
                 if (controlMode === "buttons") stepDuration(1);
@@ -1185,9 +1141,10 @@ export function StaffDecodeApp() {
               data-testid="thumb-dial"
               data-selected-pitch={state.selectedPitch}
               aria-label="Pitch dial"
-              onPointerDown={handleThumbDialPointerDown}
-              onPointerMove={handleThumbDialPointerMove}
-              onPointerUp={handleThumbDialPointerUp}
+              onPointerDown={thumbDialSwipe.onPointerDown}
+              onPointerMove={thumbDialSwipe.onPointerMove}
+              onPointerUp={thumbDialSwipe.onPointerUp}
+              onPointerCancel={thumbDialSwipe.onPointerCancel}
               onClick={() => {
                 if (controlMode === "buttons") handleStepDial(1);
               }}
@@ -1704,6 +1661,8 @@ export function StaffDecodeApp() {
       </div>
 
       <MusicTransport
+        title="Shadow Protocol"
+        classPrefix="sd-music"
         playing={music.playing}
         volume={music.volume}
         onToggle={music.toggle}

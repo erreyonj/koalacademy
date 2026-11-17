@@ -1,32 +1,39 @@
+import { Band } from "./Band";
+import { BorealisMark } from "./Borealis";
+import { SceneFrame } from "./SceneFrame";
+import { Ship, type ShipLook } from "./Ship";
 import { Sparkles } from "./Sparkles";
 import { Trajectory } from "./Trajectory";
 import {
   STAIR_BAND,
   STAIR_TREADS,
-  SVG_VIEW,
+  ledgeYAt,
   toSvg,
   type Body,
+  type Ledge,
 } from "../sim";
 import { pullOffsetSvg, type FrameGesture } from "../view";
 
-const { w: VIEW_W, h: VIEW_H } = SVG_VIEW;
-
-function bandPath(
-  x0: number,
-  x1: number,
-  y: number,
-  sag: { x: number; y: number },
-) {
-  const mid = (x0 + x1) / 2;
-  return `M ${x0} ${y} Q ${mid + sag.x} ${y + sag.y} ${x1} ${y}`;
+function treadLine(tread: Ledge) {
+  const next = [...STAIR_TREADS]
+    .sort((a, b) => a.y - b.y)
+    .find((entry) => entry.y > tread.y);
+  const x1 = next ? next.x0 : tread.x1;
+  const a = toSvg(tread.x0, ledgeYAt(tread, tread.x0));
+  const b = toSvg(x1, ledgeYAt(tread, x1));
+  return { id: tread.id, x0: a.x, y0: a.y, x1: b.x, y1: b.y };
 }
 
 export function StairArt({
   body,
   gesture,
+  look,
+  warp,
 }: {
   body: Body;
   gesture: FrameGesture;
+  look: ShipLook;
+  warp: Ledge | null;
 }) {
   const sag =
     gesture.phase === "pulling"
@@ -37,74 +44,86 @@ export function StairArt({
   ship.y += sag.y;
   const bandL = toSvg(STAIR_BAND.x0, STAIR_BAND.y);
   const bandR = toSvg(STAIR_BAND.x1, STAIR_BAND.y);
+  const exitBand = gesture.exitBand;
+  const airWarp = Boolean(warp) && gesture.phase === "pulling";
+  const onWarp = body.restingOn === warp?.id || airWarp;
+  const onExit = body.restingOn === exitBand?.id;
 
   return (
-    <svg
-      viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
-      role="img"
-      aria-label="Stair cave. Pull the band so the ship comes down every step."
-      data-testid="stair-canvas"
-      data-phase={gesture.phase}
+    <SceneFrame
+      regionId="stairs"
+      label="Stair cave. Warp and gather Borealis above every tread."
+      testId="stair-canvas"
+      phase={gesture.phase}
     >
-      <defs>
-        <linearGradient id="stair-sky" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#f8eef2" />
-          <stop offset="100%" stopColor="#f3c5d4" />
-        </linearGradient>
-      </defs>
-      <rect width={VIEW_W} height={VIEW_H} fill="url(#stair-sky)" />
-      <line className="notehead-guide" x1={16} x2={184} y1={22} y2={22} />
-      {STAIR_TREADS.map((tread) => {
-        const origin = toSvg(tread.x0, tread.y);
-        const end = toSvg(tread.x1, tread.y);
+      {[...STAIR_TREADS].map((tread) => {
+        const line = treadLine(tread);
         return (
-          <rect
+          <line
             key={tread.id}
-            className="notehead-terrain"
-            x={origin.x}
-            y={origin.y}
-            width={end.x - origin.x}
-            height={VIEW_H - origin.y}
+            className="notehead-tread"
+            x1={line.x0}
+            x2={line.x1}
+            y1={line.y0}
+            y2={line.y1}
             data-testid={`stair-${tread.id}`}
             data-visited={gesture.visited.includes(tread.id) ? "true" : "false"}
           />
         );
       })}
-      {STAIR_TREADS.map((tread) => {
-        if (!gesture.visited.includes(tread.id)) return null;
-        const origin = toSvg(tread.x0, tread.y);
+      <Trajectory points={gesture.chart} apex={gesture.chartApex} />
+      {gesture.borealis.map((entry, index) => {
+        const next = gesture.borealis.findIndex((gem) => !gem.collected);
         return (
-          <line
-            key={`${tread.id}-mark`}
-            className="notehead-tread-mark"
-            x1={origin.x}
-            x2={origin.x + 28}
-            y1={origin.y + 1.5}
-            y2={origin.y + 1.5}
+          <BorealisMark
+            key={entry.id}
+            x={entry.x}
+            y={entry.y}
+            pitch={entry.pitch}
+            collected={entry.collected}
+            active={index === next}
+            testId={`borealis-${entry.id}`}
           />
         );
       })}
-      <Trajectory points={gesture.chart} apex={gesture.chartApex} />
-      <path
-        className="notehead-band"
-        d={bandPath(bandL.x, bandR.x, bandL.y, sag)}
-        data-testid="stair-band"
-        aria-label="Frequency Band"
-      />
-      {gesture.phase === "flight" && (
-        <circle className="notehead-ring" cx={ship.x} cy={ship.y} r={16} />
+      {exitBand && (
+        <Band
+          x0={toSvg(exitBand.x0, exitBand.y).x}
+          x1={toSvg(exitBand.x1, exitBand.y).x}
+          y={toSvg(exitBand.x0, exitBand.y).y}
+          sag={onExit ? sag : { x: 0, y: 0 }}
+          hot={onExit}
+          testId="exit-band"
+        />
       )}
+      {warp && (
+        <Band
+          x0={toSvg(warp.x0, warp.y).x}
+          x1={toSvg(warp.x1, warp.y).x}
+          y={toSvg(warp.x0, warp.y).y}
+          sag={onWarp ? sag : { x: 0, y: 0 }}
+          hot={onWarp}
+          testId="warp-band"
+        />
+      )}
+      <Band
+        x0={bandL.x}
+        x1={bandR.x}
+        y={bandL.y}
+        sag={body.restingOn === STAIR_BAND.id ? sag : { x: 0, y: 0 }}
+        testId="stair-band"
+      />
       {gesture.phase === "sparkle" && (
         <Sparkles cx={ship.x} cy={ship.y} testId="stair-sparkles" />
       )}
-      <ellipse
-        className="notehead-ship is-lite"
+      <Ship
         cx={ship.x}
         cy={ship.y}
         rx={8}
         ry={6}
-        data-testid="stair-ship"
+        look={look}
+        testId="stair-ship"
       />
-    </svg>
+    </SceneFrame>
   );
 }

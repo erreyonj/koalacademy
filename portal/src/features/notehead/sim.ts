@@ -656,6 +656,7 @@ export function step(
 
   if (body.restingOn) {
     const seat = ledgeById(ledges, body.restingOn);
+    if (!seat) return { body, landedId: null };
     if (isSlopedStep(seat)) return slideOnStep(body, seat, dt);
     if (isDockableBand(seat)) {
       return { body: dockOnBand(body, seat, dt), landedId: null };

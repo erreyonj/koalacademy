@@ -1,14 +1,18 @@
 .notehead-page {
-  --nh-sky-top: #f7f0f4;
-  --nh-sky-mid: #f0e4ec;
-  --nh-sky-bottom: #faf7f9;
-  --nh-ink: #1a1520;
-  --nh-band: #1a1520;
-  --nh-guide: #6b4f8a;
-  --nh-ring: rgba(180, 140, 170, 0.45);
-  --nh-spark: #8b5cad;
-  --nh-ship: #1a1520;
-  --nh-hint: rgba(42, 36, 51, 0.55);
+  --nh-void: #03050a;
+  --nh-sky-top: #060a13;
+  --nh-sky-bottom: #0b111d;
+  --nh-sky-cloud: #5f8fd6;
+  --nh-sky-wash: #c9743a;
+  --nh-rock: #0a0a0c;
+  --nh-rock-edge: #3b4c66;
+  --nh-ink: #eaf2fb;
+  --nh-band: #4fc1f6;
+  --nh-guide: #cfe6fb;
+  --nh-chart: #8e99a8;
+  --nh-spark: #ffe27a;
+  --nh-hint: rgba(207, 226, 246, 0.66);
+  --nh-chip: rgba(207, 226, 246, 0.24);
 
   position: relative;
   width: 100%;
@@ -17,12 +21,7 @@
   display: grid;
   place-items: center;
   overflow: hidden;
-  background: linear-gradient(
-    180deg,
-    var(--nh-sky-top) 0%,
-    var(--nh-sky-mid) 48%,
-    var(--nh-sky-bottom) 100%
-  );
+  background: var(--nh-void);
   color: var(--nh-ink);
   touch-action: none;
   user-select: none;
@@ -32,16 +31,85 @@
   width: min(100%, 28rem);
   height: min(100svh, 52rem);
   display: grid;
-  grid-template-rows: auto 1fr auto;
+  grid-template-rows: auto 1fr auto auto;
   gap: 0.5rem;
   padding: 0.75rem 0.75rem 1.25rem;
 }
 
+.notehead-page[data-view="landscape"] {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: stretch;
+  place-items: unset;
+}
+
+.notehead-stage.is-landscape {
+  /* Fill the page under the beat nav — zig canvas should own the playfield. */
+  flex: 1 1 auto;
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  max-width: none;
+  max-height: none;
+  padding: 2.75rem 0.75rem 0.65rem;
+  box-sizing: border-box;
+}
+
+.notehead-scene-wrap {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+.notehead-stage.is-landscape .notehead-scene-wrap {
+  min-height: 12rem;
+}
+
+.notehead-stage.is-landscape .notehead-scene,
+.notehead-stage.is-landscape .notehead-scene svg {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+.notehead-landscape-prompt {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: grid;
+  place-content: center;
+  gap: 0.45rem;
+  padding: 1.25rem;
+  text-align: center;
+  background: color-mix(in srgb, var(--nh-void) 78%, transparent);
+  backdrop-filter: blur(2px);
+}
+
+.notehead-landscape-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--nh-ink);
+}
+
+.notehead-landscape-copy {
+  margin: 0;
+  max-width: 18rem;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  color: var(--nh-hint);
+}
+
 .notehead-hud {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
+  flex-wrap: wrap;
+  gap: 0.55rem 0.75rem;
   padding: 0 0.35rem;
   font-family: var(--font-mono);
   font-size: 0.72rem;
@@ -57,19 +125,23 @@
   margin: -0.15rem -0.2rem;
   font: inherit;
   letter-spacing: inherit;
-  color: inherit;
+  color: var(--nh-ink);
   cursor: pointer;
   border-radius: 0.35rem;
 }
 
 .notehead-goal-btn:hover,
 .notehead-goal-btn:focus-visible {
-  color: var(--nh-ink);
   outline: none;
 }
 
+.notehead-goal-btn:hover strong,
+.notehead-goal-btn:focus-visible strong {
+  color: #ffffff;
+}
+
 .notehead-goal-btn:focus-visible {
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--nh-guide) 45%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--nh-band) 55%, transparent);
 }
 
 .notehead-goal-btn:active strong {
@@ -78,11 +150,21 @@
 
 .notehead-hud strong {
   display: inline-block;
+  margin-left: 0.3em;
   font-family: var(--font-display);
-  font-size: 1.05rem;
-  letter-spacing: -0.01em;
-  color: var(--nh-ink);
+  font-size: 1.15rem;
+  letter-spacing: 0;
+  color: var(--nh-band);
   font-weight: 700;
+  text-shadow: 0 0 0.6em color-mix(in srgb, var(--nh-band) 55%, transparent);
+}
+
+.notehead-hud strong sub {
+  font-size: 0.62em;
+  vertical-align: baseline;
+  position: relative;
+  top: 0.28em;
+  margin-left: 0.08em;
 }
 
 .notehead-scene {
@@ -90,6 +172,11 @@
   width: 100%;
   height: 100%;
   min-height: 18rem;
+}
+
+.notehead-scene-wrap .notehead-scene {
+  min-height: 0;
+  height: 100%;
 }
 
 .notehead-scene svg {
@@ -107,28 +194,245 @@
   min-height: 1.4em;
 }
 
-.notehead-ship {
-  fill: var(--nh-ship);
+.notehead-music {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  width: fit-content;
+  margin: 0.15rem auto 0;
+  padding: 0.35rem 0.8rem 0.35rem 0.4rem;
+  background: color-mix(in srgb, var(--nh-sky-bottom) 82%, #1a2438);
+  border: 1.5px solid color-mix(in srgb, var(--nh-rock-edge) 70%, transparent);
+  border-radius: 999px;
+  box-shadow: 0 3px 0 color-mix(in srgb, var(--nh-void) 70%, #000);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--nh-ink);
 }
 
-.notehead-ship.is-lite {
-  fill: #3c3844;
+.notehead-music-play {
+  appearance: none;
+  display: grid;
+  place-items: center;
+  width: 2.1rem;
+  height: 2.1rem;
+  border: 1.5px solid color-mix(in srgb, var(--nh-rock-edge) 80%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--nh-band) 55%, #16324a);
+  color: var(--nh-ink);
+  cursor: pointer;
 }
+
+.notehead-music-play:active {
+  transform: translateY(1px);
+}
+
+.notehead-music-title {
+  white-space: nowrap;
+  color: var(--nh-guide);
+}
+
+.notehead-music-volume {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--nh-hint);
+}
+
+.notehead-music-volume input {
+  width: 6.5rem;
+  accent-color: var(--nh-band);
+}
+
+/* Sky */
+
+.notehead-sky-top {
+  stop-color: var(--nh-sky-top);
+}
+
+.notehead-sky-bottom {
+  stop-color: var(--nh-sky-bottom);
+}
+
+.notehead-sky-cloud {
+  stop-color: var(--nh-sky-cloud);
+}
+
+.notehead-sky-wash {
+  stop-color: var(--nh-sky-wash);
+}
+
+/* Rock */
 
 .notehead-terrain {
-  fill: #111111;
+  fill: var(--nh-rock);
+  stroke: var(--nh-rock-edge);
+  stroke-width: 2.6;
+  stroke-linejoin: round;
+}
+
+.notehead-terrain-tick {
+  fill: none;
+  stroke: var(--nh-rock-edge);
+  stroke-width: 2.1;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.notehead-tread {
+  fill: none;
+  stroke: var(--nh-rock-edge);
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  transition: stroke 160ms ease-out;
+}
+
+.notehead-tread[data-visited="true"] {
+  stroke: var(--nh-band);
+}
+
+/* Band */
+
+.notehead-band {
+  fill: none;
+  stroke: var(--nh-band);
+  stroke-width: 1.7;
+  stroke-linecap: round;
 }
 
 .notehead-band.is-hot {
-  stroke: #3ec6d8;
+  stroke: color-mix(in srgb, var(--nh-band) 70%, white);
 }
 
-.notehead-tread-mark {
+.notehead-band-glow {
   fill: none;
-  stroke: #7fd3de;
-  stroke-width: 2;
+  stroke: var(--nh-band);
+  stroke-width: 5;
   stroke-linecap: round;
+  opacity: 0.16;
 }
+
+.notehead-band-glow.is-hot {
+  opacity: 0.3;
+}
+
+.notehead-band-node {
+  fill: var(--nh-sky-top);
+  stroke: var(--nh-band);
+  stroke-width: 1.1;
+}
+
+/* Ship */
+
+.notehead-ship-edge {
+  fill: #04060a;
+}
+
+.notehead-ship-glint {
+  fill: #ffffff;
+  opacity: 0.32;
+}
+
+.notehead-trail ellipse {
+  fill: none;
+  stroke: var(--nh-band);
+}
+
+/* Goal line and shot chart */
+
+.notehead-guide {
+  fill: none;
+  stroke: var(--nh-guide);
+  stroke-width: 1.3;
+  stroke-linecap: round;
+  stroke-dasharray: 0.5 4;
+  opacity: 0.85;
+}
+
+.notehead-chart {
+  fill: none;
+  stroke: var(--nh-chart);
+  stroke-width: 1.55;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.notehead-chart-apex {
+  fill: none;
+  stroke: var(--nh-chart);
+  stroke-width: 1.4;
+}
+
+.notehead-chart-end {
+  fill: var(--nh-chart);
+}
+
+.notehead-spark {
+  fill: var(--nh-spark);
+  pointer-events: none;
+}
+
+.notehead-borealis {
+  pointer-events: none;
+  opacity: 0.95;
+  mix-blend-mode: screen;
+}
+
+.notehead-borealis.is-locked {
+  opacity: 0.28;
+  mix-blend-mode: normal;
+  animation: none;
+  filter: grayscale(0.35);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .notehead-borealis:not(.is-locked) {
+    animation: notehead-borealis-pulse 2.4s ease-in-out infinite;
+  }
+}
+
+@keyframes notehead-borealis-pulse {
+  0%,
+  100% {
+    opacity: 0.82;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.notehead-hull {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--nh-hint);
+}
+
+.notehead-hull-pips {
+  display: flex;
+  gap: 0.22rem;
+}
+
+.notehead-hull-pip {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 0.12rem;
+  border: 1px solid color-mix(in srgb, var(--nh-band) 55%, transparent);
+  background: transparent;
+}
+
+.notehead-hull-pip.is-on {
+  background: color-mix(in srgb, var(--nh-band) 78%, #ffffff 12%);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--nh-band) 45%, transparent);
+}
+
+/* Region and difficulty chips */
 
 .notehead-regions {
   position: absolute;
@@ -140,24 +444,23 @@
   gap: 0.3rem;
 }
 
-.notehead-regions button {
+.notehead-regions button,
+.notehead-difficulty button {
   appearance: none;
-  border: 1px solid color-mix(in srgb, var(--nh-ink) 25%, transparent);
-  background: color-mix(in srgb, var(--nh-sky-top) 80%, white);
-  color: var(--nh-ink);
+  border: 1px solid var(--nh-chip);
+  background: transparent;
+  color: var(--nh-hint);
   font-family: var(--font-mono);
-  font-size: 0.68rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  padding: 0.28rem 0.55rem;
   border-radius: 999px;
   cursor: pointer;
 }
 
-.notehead-regions button.is-on {
-  background: var(--nh-ink);
-  color: #f7f0f4;
-  border-color: var(--nh-ink);
+.notehead-regions button {
+  background: color-mix(in srgb, var(--nh-sky-bottom) 80%, transparent);
+  font-size: 0.68rem;
+  padding: 0.28rem 0.55rem;
 }
 
 .notehead-difficulty {
@@ -166,68 +469,22 @@
 }
 
 .notehead-difficulty button {
-  appearance: none;
-  border: 1px solid color-mix(in srgb, var(--nh-ink) 25%, transparent);
-  background: transparent;
-  color: var(--nh-hint);
-  font-family: var(--font-mono);
   font-size: 0.66rem;
   letter-spacing: 0.06em;
-  text-transform: uppercase;
   padding: 0.2rem 0.45rem;
-  border-radius: 999px;
-  cursor: pointer;
 }
 
+.notehead-regions button:focus-visible,
+.notehead-difficulty button:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--nh-band) 60%, transparent);
+  outline-offset: 2px;
+}
+
+.notehead-regions button.is-on,
 .notehead-difficulty button.is-on {
-  background: var(--nh-ink);
-  color: #f7f0f4;
-  border-color: var(--nh-ink);
-}
-
-.notehead-band {
-  fill: none;
-  stroke: var(--nh-band);
-  stroke-width: 2.2;
-  stroke-linecap: round;
-}
-
-.notehead-guide {
-  fill: none;
-  stroke: var(--nh-guide);
-  stroke-width: 1.5;
-  stroke-linecap: round;
-}
-
-.notehead-chart {
-  fill: none;
-  stroke: var(--nh-guide);
-  stroke-width: 1.6;
-  stroke-dasharray: 3.5 4.5;
-  stroke-linecap: round;
-  opacity: 0.9;
-}
-
-.notehead-chart-apex {
-  fill: none;
-  stroke: var(--nh-guide);
-  stroke-width: 1.4;
-}
-
-.notehead-chart-end {
-  fill: var(--nh-guide);
-}
-
-.notehead-ring {
-  fill: none;
-  stroke: var(--nh-ring);
-  stroke-width: 1.2;
-  pointer-events: none;
-}
-
-.notehead-spark {
-  fill: var(--nh-spark);
-  pointer-events: none;
+  background: var(--nh-band);
+  color: #04121c;
+  border-color: var(--nh-band);
 }
 
 @keyframes notehead-spark-pop {

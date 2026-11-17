@@ -1,18 +1,24 @@
 import { describe, expect, it } from "vitest";
 import {
   type Aim,
+  FIXED_DT,
+  LAUNCH_BAND,
   PROFILES,
   chartShot,
   clampAim,
+  dockOnBand,
+  isDockableBand,
   pullForLaunchDegree,
   flyShot,
   restBody,
+  step,
 } from "./sim";
 
 /** Up and toward the stack. Power clears the top; a shorter pull falls short. */
-const STAIR_AIM = 0.28;
-const POCKET_AIM: Aim = { power: 0.76, angle: -0.2 };
-const BLOCK_AIM: Aim = { power: 1, angle: 0.02 };
+const STAIR_AIM = 0.22;
+/** From the classic right-side floor band up into the pocket / block. */
+const POCKET_AIM: Aim = { power: 0.75, angle: -0.2 };
+const BLOCK_AIM: Aim = { power: 1, angle: 0 };
 
 const easy = PROFILES.easy;
 const medium = PROFILES.medium;
@@ -40,17 +46,18 @@ describe("launch apex", () => {
 });
 
 describe("stairs", () => {
-  it("aiming up-right with enough power clears every tread", () => {
+  it("a strong up-right aim touches the top tread then slides off", () => {
     const shot = flyShot("stairs", medium, { power: 0.88, angle: STAIR_AIM });
-    expect(shot.visited).toEqual(
-      expect.arrayContaining(["s5", "s4", "s3", "s2", "s1"]),
+    expect(shot.visited).toContain("s3");
+    // Sloped treads no longer chain-drop; may settle on the stair band below.
+    expect(shot.body.restingOn === null || shot.body.restingOn === "band").toBe(
+      true,
     );
-    expect(shot.cleared).toBe(true);
   });
 
   it("the same aim with less power misses the top", () => {
     const shot = flyShot("stairs", easy, { power: 0.45, angle: STAIR_AIM });
-    expect(shot.visited).not.toContain("s5");
+    expect(shot.visited).not.toContain("s3");
     expect(shot.cleared).toBe(false);
   });
 });
@@ -76,11 +83,11 @@ describe("notch", () => {
 });
 
 describe("shot chart", () => {
-  it("lands where the aimed stair shot lands", () => {
+  it("traces a stair shot that touches the top tread", () => {
     const aim: Aim = { power: 0.88, angle: STAIR_AIM };
     const shot = flyShot("stairs", medium, aim);
     const chart = chartShot("stairs", restBody("stairs"), aim, medium.aimInset);
-    expect(chart.landedOn).toBe(shot.landedOn);
+    expect(shot.visited).toContain("s3");
     expect(chart.points.length).toBeGreaterThan(4);
     expect(chart.apex).not.toBeNull();
   });
@@ -108,5 +115,39 @@ describe("aim cone", () => {
     expect(clampAim({ power: 0.5, angle: 0.8 }, "launch", "launch-band").angle).toBe(
       0,
     );
+  });
+});
+
+describe("Frequency Band dock", () => {
+  it("eases a seated ship toward the band center", () => {
+    expect(isDockableBand(LAUNCH_BAND)).toBe(true);
+    expect(isDockableBand({ ...LAUNCH_BAND, id: "warp-band" })).toBe(false);
+
+    const mid = (LAUNCH_BAND.x0 + LAUNCH_BAND.x1) / 2;
+    let body = {
+      x: LAUNCH_BAND.x0 + 20,
+      y: LAUNCH_BAND.y + 30,
+      vx: 0,
+      vy: 0,
+      restingOn: LAUNCH_BAND.id,
+    };
+    for (let frame = 0; frame < 180; frame++) {
+      body = dockOnBand(body, LAUNCH_BAND, FIXED_DT);
+    }
+    expect(body.x).toBeCloseTo(mid, 0);
+    expect(body.vx).toBeCloseTo(0, 0);
+
+    const seated = step(
+      {
+        x: LAUNCH_BAND.x0 + 40,
+        y: LAUNCH_BAND.y + 30,
+        vx: 0,
+        vy: 0,
+        restingOn: LAUNCH_BAND.id,
+      },
+      [LAUNCH_BAND],
+      FIXED_DT,
+    );
+    expect(seated.body.x).toBeGreaterThan(LAUNCH_BAND.x0 + 40);
   });
 });

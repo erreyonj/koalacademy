@@ -1,115 +1,159 @@
 # Notehead game spec
 
-Source of truth for the Notehead overhaul. Prototypes in this folder are playable references, not the target architecture. If this file and the code disagree, follow this file and change the code.
+Source of truth for the Notehead overhaul. If this file and the code disagree, follow this file and change the code.
 
-Story scenes, dialogue, and level-to-level transitions are out of scope until the sim, audio, and renderer below exist. Do not invent them while extracting the prototypes.
+Story scenes and dialogue are out of scope for the route MVP. Soft beat transitions spawn the next place; there is no continuous scroll between regions.
 
 ## Lore
 
-The player is the Captain of a notehead ship. Music on their world is a force you can harness. The ship is damaged and has set down on a habitable planet that is almost silent. The repair tech is beyond the Captain, but the ship itself is the instrument: a notehead that can take on tails later (quarter, eighth, sixteenth, and so on).
+The player is the Captain of a notehead ship. Music on their world is a force you can harness. The ship is damaged and has set down on a habitable planet that is almost silent. The ship itself is the instrument: a stemless notehead that can take on tails later.
 
-Each region is a calibration. Clearing a calibration repairs one function. Clearing the set repairs the ship enough to leave. A later game can start from that repaired ship. This spec only covers the first planet.
+The Frequency Band is the ship's malleable sling. Pulling it launches the notehead. The first repair restores the Anachrometer: press-to-warp time and seat a Frequency Band under the ship mid-flight so the Captain can pull again. Later repairs add tails. The data model leaves room for tails; this MVP only implements the Anachrometer.
 
-The damaged ship is stemless, which is already a whole note. The first repair restores the Anachrometer (time-warp landing). Later repairs add tails. Do not build the Anachrometer or the tails in the extraction pass. The data model must leave room for them.
-
-Pitch and landing are different skills. A shot can be the right pitch and still fail the landing, or the reverse. Feedback names which one failed. For K–2, a miss is only "try again." Older difficulties may score the two skills apart. The Anachrometer landing, when it exists, is musical: a whole note is four beats, so "hold while falling" means sustaining that note. Easy hold is anywhere during the fall. Harder holds are a four-count sustain, or a release on a count to clear terrain. The first time the ship falls, the crash is unavoidable, then the game teaches the hold. Not every shot is a straight drop.
+The first hard fall is unavoidable. The ship breaks through the band at high fall speed, crashes into the Notch, and the Captain diverts power from the Frequency Band to repair the Anachrometer off screen. After that, soft landings require the warp.
 
 ## Planet
 
-One route, one world, three regions. The player moves between them as places on the same planet, not as separate games. Today that switch is the Launch / Stairs / Notch bar. Story travel replaces that bar later. Do not add a new route per region.
+One route, one world, four places. Default play advances a beat table. A debug HUD can jump beats for the table sandbox. The old free region bar is sandbox-only.
 
-| Region | Working name | What the shot teaches |
+| Region | Working name | Role on the route |
 | --- | --- | --- |
-| `launch` | Launch site | Apex pitch. Pull, rise through a scale, match the guide line at the top of the flight. |
-| `stairs` | Stair cave | Melodic direction. Launch so the ship comes down the stack and touches every tread. |
-| `notch` | Notch | Two bands and a high block. Aim chooses the pocket or the block. Power chooses how far the shot goes. |
+| `launch` | Launch site | Teach the pull; later a bridge back into Stairs |
+| `notch` | Notch | Crash landing, then Anachrometer calibration |
+| `stairs` | Stair cave | Anachrometer hops on sloping treads |
+| `zig` | Zig | Landscape zig-zag Borealis between twin cliffs |
 
-### Launch site
+### Route beats
 
-- The note you play is the apex. Crossing the guide line on the way up does not count. Overshoot is a miss.
+| Beat | Place | Gate |
+| --- | --- | --- |
+| `launch-teach` | Launch | Reach goal height on the way up; fall hard enough to break through the launch band |
+| `notch-crash` | Notch | Enter from above; touch the high block; land on the floor. Unlock `repair.anachrometer` |
+| `notch-calibrate` | Notch | With Anachrometer, collect Borealis at pocket and block (floor starts visited) |
+| `launch-bridge` | Launch | Rest on the launch band; a full-power shot clears into Stairs |
+| `stairs-anach` | Stairs | Collect Borealis above every tread using Anachrometer hops; treads slope so the ship slides off without a warp |
+| `zig-1` | Zig | Landscape; collect Borealis peak → left → right, then exit-band slingshot |
+
+Soft transitions: clearing a beat sparkles, then spawns the next beat's entry body in that beat's region.
+
+## Frequency Band and aim
+
 - Height is a diatonic ruler. Default ladder is one octave of C major, `C4`–`C5`. The scale table is the only place those names live.
 - On ready, and whenever the player taps the goal, the target pitch plays once.
-- The Frequency Band is flat at rest and sags only while the player pulls. The pull is straight down. Sideways drag does not aim the shot.
-- After the apex the ship returns to the band. No damage and no warp-land in this pass.
+- The band is flat at rest and sags only while the player pulls.
+- While resting on a Frequency Band, a slight magnetic dock eases the ship to the band center. This does not apply to Anachrometer warp re-pulls (the warp band tracks the ship).
+- Launch pulls are straight down. Sideways drag does not aim.
+- Stairs and the notch take a drag vector. Length is power (0..1). Direction is aim in radians from straight up. Positive aim points to +x. The ship flies opposite the drag.
+- Each rest spot (except launch) has an aim cone. Hard difficulty shaves both sides (`aimInset`).
+- While pulling with power, a dashed chart traces the flight `launchVelocity` and `step` would produce. The chart disappears on release.
 
-### Aim
+## Break-through
 
-Stairs and the notch take a drag vector. Length is power (0..1). Direction is aim, measured in radians from straight up. Positive aim points to +x. The ship flies opposite the drag: pull down to shoot up, pull down-left to shoot up-right.
+While falling faster than `BREAK_SPEED`, the ship does not land on `kind: "band"` ledges. Blocks and steps can still catch. Break-through is how `launch-teach` leaves the Launch site. Once the Anachrometer is on, a mid-flight warp lets the Captain pull again while still moving so soft landings are reachable.
 
-Each rest spot has a cone. An aim outside the cone is clamped to the edge, so the ship cannot be fired into the cliff. Hard difficulty shaves both sides of that cone (`aimInset`). The launch site has no cone.
+## Borealis
 
-The band and the ship sag along the drag while the finger is down, and the band is flat again at rest. A band the ship is sitting on may still show a small cradle.
+Borealis is the ship's energy resource — glowing mid-air collectibles that mark the spaces a beat needs the Captain to reach. They replace waiting Frequency Bands in the middle of a place: the Captain flies near them, they magnetize toward the ship, and collecting them counts as a visit. The ship does not need to land on terrain to progress; it can keep falling, gather Borealis, then press-to-warp the next pull.
 
-While the finger is down and the pull has power, a dashed chart traces the flight that `launchVelocity` and `step` would produce, including the stair drop-downs. A ring marks the apex. The chart disappears on release. It is the same shot the player is about to fire, not a separate estimate.
+- Placed for visit chains: `notch-calibrate` (pocket, block), `stairs-anach` (one above each tread), and `zig-1` (peak, left, right).
+- Collectible only in goal order: the next uncollected gem magnetizes; later gems wait.
+- Within `MAGNET_RANGE`, the active gem drifts toward the ship.
+- Magnetism and collect run in **real time** — Anachrometer `timeScale` slows the ship, not Borealis.
+- Within `COLLECT_RADIUS`, it is gathered, plays its goal pitch, and adds its id to `visited`. After `launch-teach`, pitched notes come from Borealis gathers only (not landings).
+- Goal tones: `notch-calibrate` plays **E4** then **A4**; `stairs-anach` plays **C4**, **E4**, **G4** (one per tread); `zig-1` plays **C4**, **E4**, **A4**.
+- Gathering every Borealis on a beat restores 1 HP (capped at max).
+- The **last** Borealis plants an `exit-band` Frequency Band on the platform under that gem. The ship keeps its trajectory and lands on the new band, then can slingshot onward. Auto-advance on Borealis clear is off for now — the exit band is the handoff.
+- Terrain masses stay; mid waiting bands at those spots are not drawn.
 
-### Stair cave
+## Hull (HP)
 
-- Black treads rise to the right. The Frequency Band sits in the open sky to their left, flat until pulled.
-- Aim up and to the right, toward the stack. Enough power reaches the top tread. The ship then steps down the rest. Each tread plays its pitch on landing.
-- The same aim with less power lands short and visits only the treads from the impact down, which is not a clear.
-- Clear means every required tread was touched on that shot. Easy asks for the top three. Medium and hard ask for every tread.
-- Default tread pitches, bottom to top: `C4 D4 E4 F4 G4`. The goal control plays `G4`.
+A simple hull bar in the HUD. Easy starts at **5** HP (`profile.maxHp`).
 
-### Notch
+- Landings on `kind: "band"` Frequency Bands never cost HP.
+- Landings on steps / blocks (and hard rock impacts) cost 1 HP.
+- Hard rock impacts (`resolveMasses` with speed into the wall) also cost 1 HP.
+- Gathering all Borealis on the current beat restores 1 HP.
+- At 0 HP the beat restarts with a full hull.
 
-- A cliff pocket, a floor band, and a high block. Bands are flat until pulled. A band the ship is resting on may show a small cradle.
-- From the floor, aim up-left to land in the pocket and aim nearly straight up with more power to land on the block. From the pocket, aim up-right toward the block.
-- Pocket pitch `E4`. Block pitch `A4`, and that is the goal. Floor is `C4`.
-- Clear means the shot lands on the block, except on Easy, where the pocket also clears. The pocket is a legal rest either way.
+## Solid terrain
 
-Frame art (pink sky, black terrain, cyan bands) is a motion and layout reference. Colors stay in theme tokens. Do not hard-code a palette into the sim.
+Rock masses are solid. The ship cannot pass through mass outlines; `resolveMasses` pushes it out and kills inward velocity. Frequency Band break-through still applies only to `kind: "band"` ledges, not to rock.
+
+## Anachrometer (press-to-warp)
+
+Unlocked after `notch-crash` (`repair.anachrometer = true`).
+
+While airborne, a press with Anachrometer on:
+
+1. Sets sim `timeScale` to a slow factor (about 0.10). Ship physics only — Borealis magnet / collect stay real-time.
+2. Places a transient `warp-band` under the ship (it tracks the ship while engaged).
+3. Opens a pull on that same press — the ship keeps its velocity so the Captain can aim the next shot in real time.
+
+Releasing the pull with power clears the warp band, restores `timeScale = 1`, and applies a new launch from the current pose. Releasing with no power cancels the warp and resumes normal flight. Without Anachrometer, the mid-air press is a no-op.
+
+If the ship touches a real surface (tread, band, block) while still holding an air-warp pull: the warp band and slow-mo clear, but the pull/aim stays active. Sloped treads still seat → slide → fall under that same pull.
+
+## Launch
+
+- Goal height is the guide line for the active goal pitch. Crossing it on the way up counts for `launch-teach`; apex match is not the clear rule on the route.
+- `launch-teach` clears when goal height was crossed rising and the ship breaks through the launch band on the way down.
+- `launch-bridge` starts resting on the launch band. A full-power shot clears into `stairs-anach`.
+
+## Notch
+
+- Classic portrait notch: left wall with a first peak above the pocket shelf, high right block, floor band on the lower slope.
+- Open from above so `notch-crash` can fall in and clip the block.
+- Pocket (`E4`). Block (`A4`, goal tonation). Floor band (`C4`).
+- `notch-crash` clears when the ship has visited the block and then rests on the floor; then Anachrometer unlocks.
+- `notch-calibrate` starts on the floor (floor already visited). Clear by collecting Borealis at pocket and block — no need to land on those ledges.
+
+## Zig
+
+- Landscape region (`360×200` art in the same logical world). Force landscape device orientation with an on-screen prompt when portrait. Stage is ~2× the portrait playfield footprint.
+- Twin hanging cliffs + bottom peak (`notehead-mock-zig-1.png`). Left shelf is a deep horizontal platform; right side is a sloping wedge. Goal tonation **A4**.
+- Ledges: `zig-peak` (`C4` band), `zig-left` (`E4` band), `zig-right` (`A4` sloping step). Shelves are spread far apart for a clear zig-zag.
+- `zig-1` starts on the peak (peak already visited). Collect Borealis in order peak → left → right; last gem plants the exit band.
+
+## Stairs
+
+- Three long treads sit in the lower-right stair cave. Each tread slopes down toward open sky (left).
+- The approach Frequency Band sits left of the lowest tread, slightly below its open lip (`C4`).
+- Tread hits always seat (no trampoline bounce). The ship slides toward open sky and drips off the lip; +x into the rock is killed.
+- There is no auto drop-down from tread to tread.
+- Borealis sits over each tread's open face (not buried under higher steps).
+- Default tread pitches, bottom to top: `C4 E4 G4`.
+- `stairs-anach` clears when every tread id has been visited via Borealis collect (tread contact still counts).
 
 ## Difficulty
 
-One profile shared by every region. The shell does not own it. Suggested id: `DifficultyProfile`.
+One profile shared by every region. Route Easy uses the beat table and ignores apex windows. The dial still exists for aim inset and sandbox legacy checks.
 
 | Dial | Easy | Medium | Hard |
 | --- | --- | --- | --- |
-| Apex window | ±1 scale degree | exact degree | exact degree |
-| Stair clear | top three treads | every tread | every tread, narrower aim cone |
-| Notch clear | pocket or block | block only | block only, narrower aim cone |
-| Miss | retry, no score split | retry, name pitch or landing | pitch score and landing score apart |
-| Landing hold | not in this game yet | not in this game yet | not in this game yet |
+| Aim inset | 0 | 0.08 | 0.22 |
+| Max HP | off (0) | 5 | 4 |
+| Miss copy | retry | retry, name the miss | split pitch / landing when useful |
 
-K–2 play uses Easy. The profile is data. Do not fork components per difficulty.
+K–2 play uses Easy. Do not fork components per difficulty.
 
 ## Data shapes
 
-Logical space is portrait, **900 × 1600**, origin at the bottom-left, **+y up**. Physics never reads screen pixels. The view scales this rectangle to fit. The current prototypes do not match this yet: launch math is +y up in abstract units, stair and notch math is SVG **+y down** in a 200 × 360 viewBox. Extraction must convert both into this space.
+Logical space is portrait, **900 × 1600**, origin at the bottom-left, **+y up**. Physics never reads screen pixels.
 
 ```ts
-type PitchName = `${"C" | "D" | "E" | "F" | "G" | "A" | "B"}${"" | "#" | "b"}${number}`;
+type BeatId =
+  | "launch-teach"
+  | "notch-crash"
+  | "notch-calibrate"
+  | "launch-bridge"
+  | "stairs-anach"
+  | "zig-1";
 
-type DifficultyId = "easy" | "medium" | "hard";
+type RegionId = "launch" | "stairs" | "notch" | "zig";
 
-interface Scale {
-  id: string;
-  pitches: readonly PitchName[];
-}
-
-interface Aim {
-  power: number;
-  /** Radians from straight up. Positive aims to +x. */
-  angle: number;
-}
-
-interface DifficultyProfile {
-  id: DifficultyId;
-  apexWindowDegrees: number;
-  stairClear: "top-three" | "all";
-  notchClear: "pocket-or-block" | "block";
-  splitSkills: boolean;
-  /** Radians removed from each side of the aim cone. */
-  aimInset: number;
-}
-
-type RegionId = "launch" | "stairs" | "notch";
-
-interface Region {
-  id: RegionId;
-  label: string;
-  scaleId: string;
-  goalPitch: PitchName;
+interface ShipRepair {
+  anachrometer: boolean;
+  tails: readonly string[];
 }
 
 interface Ledge {
@@ -119,90 +163,62 @@ interface Ledge {
   y: number;
   pitch: PitchName;
   kind: "band" | "step" | "block";
+  /** Rise over run (+y up). Steps use a small slope so the ship slides off. */
+  slope?: number;
 }
 
-interface Body {
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  restingOn: string | null;
-}
-
-interface ShotSample {
-  t: number;
-  body: Body;
-  /** Pitches whose heights were crossed while rising, in order. */
-  crossedUp: PitchName[];
-  apexPitch: PitchName | null;
-}
-
-interface ShotResult {
-  regionId: RegionId;
-  apexPitch: PitchName | null;
-  landedOn: string | null;
-  visited: readonly string[];
-  pitchOk: boolean;
-  landingOk: boolean;
-  cleared: boolean;
+interface StepPolicy {
+  /** Skip landing on bands while falling faster than this (logical |vy|). */
+  breakSpeed: number;
+  /** When true, bands can catch even above breakSpeed (warp / Anachrometer rest). */
+  catchBands: boolean;
 }
 ```
 
-`ShipRepair` can wait as an empty slot on the world: `{ anachrometer: false, tails: [] }`. Do not implement its behavior.
+`ShipRepair` is live: Anachrometer starts false and flips after `notch-crash`.
 
-Sim step is a pure function. Rendering, DOM, and audio call it. They do not contain the rules.
+Sim step is a pure function. Rendering, DOM, and audio call it.
 
 ```ts
-step(body: Body, ledges: readonly Ledge[], dt: number, gravity: number): {
-  body: Body;
-  landedId: string | null;
-};
+step(
+  body: Body,
+  ledges: readonly Ledge[],
+  dt: number,
+  gravity?: number,
+  policy?: StepPolicy,
+): { body: Body; landedId: string | null };
 ```
 
-Fixed timestep inside the sim (use 1/60). The renderer ticker only draws the latest sample. Pause the sim on `visibilitychange`. Launch-site apex tests and the stair/notch landing tests move onto this step. An up-right stair aim with enough power must visit every tread. The same aim with less power must miss the top. A notch aim toward the pocket must land on `pocket`. A near-vertical full-power notch aim must land on `block`. An overshoot that crosses the launch guide must not clear. Launch aim is always straight up.
+Fixed timestep 1/60. Pause the sim on `visibilitychange`.
 
 ## Audio
 
-Use Web Audio, the same context idea as `portal/src/components/keys-lite/piano.ts`. Do not add Tone.js.
+Use Web Audio (same idea as `portal/src/components/keys-lite/piano.ts`). Do not add Tone.js.
 
-Two layers:
+1. **Discrete notes.** Goal taps anytime. After `launch-teach`, gather tones play only on Borealis collect (Notch: E4 then A4; Stairs: C4, E4, G4). Landings stay silent.
+2. **Climb.** `launch-teach` only: while rising, one oscillator glides with height across the scale.
+3. **Aim clicks.** `launch-teach` only: short descending plucks while the trajectory is casting further (rate + level scale with extension). Holding still, retracting, or releasing is silent.
 
-1. **Discrete notes.** Taps on the goal, tread landings, pocket and block landings. One shot per event.
-2. **Climb.** While the ship is rising, a single oscillator glides with height across the scale, retargeting as the ship crosses each degree. Stop or duck it at the apex. Pull strength is what sets the apex, so the climb the player hears is the climb they aimed.
-
-`resume` happens on the pull gesture, same as today. No theme track until a file exists. `useThemeMusic` stays unwired.
+`resume` on the pull gesture. Theme: `public/assets/notehead/Swung Gospel Glide.mp3` via shared `MusicTransport` / `useThemeMusic` (`start` on first pull or goal tap).
 
 ## Renderer
 
-A small interface. The sim never imports Pixi or SVG.
+`NoteheadView` stays SVG for this MVP. Pixi stays deferred. HUD and the goal button stay DOM. Cap `devicePixelRatio` at 2. `prefers-reduced-motion`: no decorative pulse on the warp trail; the shot still plays.
 
-```ts
-interface NoteheadView {
-  mount(host: HTMLElement): void;
-  resize(width: number, height: number): void;
-  frame(sample: ShotSample, region: Region): void;
-  unmount(): void;
-}
-```
-
-- **SVG view.** Adapt the current Launch, Stairs, and Notch drawings to this interface. This is the fallback and the thing tests can ignore.
-- **Pixi view.** Second implementation of the same interface. PixiJS v8 (MIT). Draw with Graphics, or upload the existing SVG art as textures. HUD and the goal button stay DOM, so the current CSS and the "tap the goal to hear it" control remain.
-- Do not install Pixi until the sim tests pass and someone has confirmed current v8 builds of `pixi-filters` (or dropped that plugin). Glow, bloom, shockwave, and displacement are polish, not the first Pixi commit.
-- Particles (dust, sparkle, a pitch-colored trail) come after the view can show a shot.
-- Client only. The portal is a static export. Create the app in `useEffect` and `import()` Pixi with SSR off. Prefer a plain mount component over `@pixi/react` so the sim/view line stays obvious.
-- Cap `devicePixelRatio` at 2.
-- `prefers-reduced-motion`: no bloom, shockwave, or displacement. The shot still plays.
+Ship rim color: blue while rising / calm; blue→yellow while falling (hotter with fall speed and near-ground clearance); red flash only when HP is lost (Frequency Band landings stay soft — no red).
 
 ## Shell
 
-The page stays inside `GameFullscreenShell` (`theme: "field"`). Boot copy can change. Do not put region rules in the shell.
+`GameFullscreenShell` (`theme: "field"`). Beat rules do not live in the shell.
+
+## Table sandbox
+
+Vitest beat tables assert entry bodies, scripted aims/warps, visited sets, repair flags, and next beat. The in-app debug HUD jumps beats; Anachrometer is unlocked after the crash (and for sandbox jumps to later beats) with no HUD toggle. The lore → logic → terrain → sandbox loop may become a Cursor skill later; this MVP is the hand-run version.
 
 ## Work order
 
-1. This spec.
-2. Extract one sim in logical space. Move the launch apex rule and the stair/notch landing rule in as tests. Delete duplicate physics only after those tests pass.
-3. Audio module. Discrete notes plus the rising oscillator. Wire pull to the climb.
-4. `NoteheadView`, then wrap the existing SVG in it.
-5. Pixi view behind that interface, after the plugin check above. Own branch and PR.
-6. Difficulty profile plugged into the sim. The shell only displays the current dial.
-7. Per-element visual polish, then lore and transitions.
+1. This spec (route + Anachrometer + break-through).
+2. Beat progression, break-through `step`, press-to-warp.
+3. Sloping stairs; remove auto drop-downs on the route.
+4. Terrain aligned to open-top notch and sloping treads.
+5. Table sandbox tests and debug HUD.

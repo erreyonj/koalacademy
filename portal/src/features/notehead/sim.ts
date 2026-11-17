@@ -1,26 +1,62 @@
 /**
  * Notehead sim. Logical space is portrait 900×1600, origin bottom-left, +y up.
- * Stair and notch ledges are the old 200×360 y-down layout mapped into this space.
+ * Portrait regions use 200×360 y-down art; zig uses landscape 360×200 art,
+ * both mapped into the same logical world.
  */
 
 export const WORLD_W = 900;
 export const WORLD_H = 1600;
 export const FIXED_DT = 1 / 60;
 
-const SVG_W = 200;
-const SVG_H = 360;
+export interface SvgViewSize {
+  w: number;
+  h: number;
+}
+
+/** Portrait art frame shared by launch, stairs, and notch. */
+export const PORTRAIT_VIEW: SvgViewSize = { w: 200, h: 360 };
+/** Landscape art frame for zig (same 1.8 ratio as the 1920×1080 mocks). */
+export const LANDSCAPE_VIEW: SvgViewSize = { w: 360, h: 200 };
+
+const SVG_W = PORTRAIT_VIEW.w;
+const SVG_H = PORTRAIT_VIEW.h;
 const SX = WORLD_W / SVG_W;
 const SY = WORLD_H / SVG_H;
+
+function scalesFor(view: SvgViewSize): { sx: number; sy: number } {
+  return { sx: WORLD_W / view.w, sy: WORLD_H / view.h };
+}
 
 export const SHIP_R = 7 * SY;
 export const GRAVITY = 700 * SY;
 const LAND_EPS = 0.75 * SY;
+/**
+ * Fall faster than this and bands no longer catch (logical |vy|).
+ * Tuned so a return from the launch guide breaks through, while a short hop still seats.
+ */
+export const BREAK_SPEED = 380 * SY;
+/** Gentle −x kick when seating on a sloping tread. */
+export const SLIDE_SPEED = 90 * SX;
+/** Extra −x acceleration while seated on a sloping tread. */
+export const SLIDE_ACCEL = 220 * SX;
+/** Tread slope: higher toward +x (wall), slides toward open sky (−x). */
+export const STAIR_SLOPE = 0.32;
+/** Soft spring that docks the ship to a Frequency Band's center. */
+export const DOCK_STIFF = 14;
+/** Velocity damping while docking on a band. */
+export const DOCK_DAMP = 7;
+/** Settle threshold (logical px / speed). */
+export const DOCK_EPS = 1.2;
 
 export type PitchName =
   `${"A" | "B" | "C" | "D" | "E" | "F" | "G"}${"" | "#" | "b"}${number}`;
 
 export type DifficultyId = "easy" | "medium" | "hard";
-export type RegionId = "launch" | "stairs" | "notch";
+export type RegionId = "launch" | "stairs" | "notch" | "zig";
+
+export function svgViewFor(regionId: RegionId): SvgViewSize {
+  return regionId === "zig" ? LANDSCAPE_VIEW : PORTRAIT_VIEW;
+}
 export type LedgeKind = "band" | "step" | "block";
 
 export interface Scale {
@@ -36,6 +72,8 @@ export interface DifficultyProfile {
   splitSkills: boolean;
   /** Radians shaved off each side of the aim cone. */
   aimInset: number;
+  /** Hull hit points at full. */
+  maxHp: number;
 }
 
 /** Power is 0..1. Angle is radians from straight up. Positive aims to +x. */
@@ -60,11 +98,26 @@ export interface Ledge {
   id: string;
   x0: number;
   x1: number;
-  /** Top surface, +y up. */
+  /** Top surface at mid-x, +y up. */
   y: number;
   pitch: PitchName;
   kind: LedgeKind;
+  /** Rise over run (+y up). Steps use a small slope so the ship slides off. */
+  slope?: number;
 }
+
+/** Landing rules for one `step` call. */
+export interface StepPolicy {
+  /** Skip landing on bands while falling faster than this (logical |vy|). */
+  breakSpeed: number;
+  /** When true, bands can catch even above breakSpeed. */
+  catchBands: boolean;
+}
+
+export const DEFAULT_STEP_POLICY: StepPolicy = {
+  breakSpeed: BREAK_SPEED,
+  catchBands: false,
+};
 
 export interface Body {
   x: number;
@@ -116,6 +169,8 @@ export const PROFILES: Record<DifficultyId, DifficultyProfile> = {
     notchClear: "pocket-or-block",
     splitSkills: false,
     aimInset: 0,
+    /** 0 = hull off for now (no damage, HUD hidden). */
+    maxHp: 0,
   },
   medium: {
     id: "medium",
@@ -124,6 +179,7 @@ export const PROFILES: Record<DifficultyId, DifficultyProfile> = {
     notchClear: "block",
     splitSkills: false,
     aimInset: 0.08,
+    maxHp: 5,
   },
   hard: {
     id: "hard",
@@ -132,6 +188,7 @@ export const PROFILES: Record<DifficultyId, DifficultyProfile> = {
     notchClear: "block",
     splitSkills: true,
     aimInset: 0.22,
+    maxHp: 4,
   },
 };
 
@@ -144,6 +201,7 @@ export const REGIONS: readonly Region[] = [
   { id: "launch", label: "Launch", scaleId: C_MAJOR.id, goalPitch: "G4" },
   { id: "stairs", label: "Stairs", scaleId: C_MAJOR.id, goalPitch: "G4" },
   { id: "notch", label: "Notch", scaleId: C_MAJOR.id, goalPitch: "A4" },
+  { id: "zig", label: "Zig", scaleId: C_MAJOR.id, goalPitch: "A4" },
 ];
 
 export const LAUNCH_BAND: Ledge = {
@@ -159,45 +217,101 @@ export const LAUNCH_BAND: Ledge = {
 export const LAUNCH_SPACING = 140;
 const LAUNCH_RISE_MAX = LAUNCH_SPACING * 8.8;
 
-function fromSvg(partial: {
-  id: string;
-  x0: number;
-  x1: number;
-  y: number;
-  pitch: PitchName;
-  kind: LedgeKind;
-}): Ledge {
+function fromSvg(
+  partial: {
+    id: string;
+    x0: number;
+    x1: number;
+    y: number;
+    pitch: PitchName;
+    kind: LedgeKind;
+    slope?: number;
+  },
+  view: SvgViewSize = PORTRAIT_VIEW,
+): Ledge {
+  const { sx, sy } = scalesFor(view);
   return {
     id: partial.id,
-    x0: partial.x0 * SX,
-    x1: partial.x1 * SX,
-    y: (SVG_H - partial.y) * SY,
+    x0: partial.x0 * sx,
+    x1: partial.x1 * sx,
+    y: (view.h - partial.y) * sy,
     pitch: partial.pitch,
     kind: partial.kind,
+    slope: partial.slope,
   };
 }
 
+/**
+ * Three long treads tucked into the lower-right stair cave.
+ * Open faces stay wide; slope tips down toward open sky (−x).
+ */
 export const STAIR_TREADS: readonly Ledge[] = [
-  fromSvg({ id: "s1", x0: 86, x1: 200, y: 300, pitch: "C4", kind: "step" }),
-  fromSvg({ id: "s2", x0: 110, x1: 200, y: 254, pitch: "D4", kind: "step" }),
-  fromSvg({ id: "s3", x0: 132, x1: 200, y: 208, pitch: "E4", kind: "step" }),
-  fromSvg({ id: "s4", x0: 152, x1: 200, y: 162, pitch: "F4", kind: "step" }),
-  fromSvg({ id: "s5", x0: 170, x1: 200, y: 116, pitch: "G4", kind: "step" }),
+  fromSvg({
+    id: "s1",
+    x0: 96,
+    x1: 200,
+    y: 318,
+    pitch: "C4",
+    kind: "step",
+    slope: STAIR_SLOPE,
+  }),
+  fromSvg({
+    id: "s2",
+    x0: 128,
+    x1: 200,
+    y: 248,
+    pitch: "E4",
+    kind: "step",
+    slope: STAIR_SLOPE,
+  }),
+  fromSvg({
+    id: "s3",
+    x0: 156,
+    x1: 200,
+    y: 178,
+    pitch: "G4",
+    kind: "step",
+    slope: STAIR_SLOPE,
+  }),
 ];
 
+/** Surface height of a ledge at logical x (+y up). */
+export function ledgeYAt(ledge: Ledge, x: number): number {
+  const mid = (ledge.x0 + ledge.x1) / 2;
+  return ledge.y + (ledge.slope ?? 0) * (x - mid);
+}
+
+export function isSlopedStep(ledge: Ledge | null | undefined): boolean {
+  return Boolean(ledge && ledge.kind === "step" && (ledge.slope ?? 0) !== 0);
+}
+
+/**
+ * Visible open span of a tread (excludes the part buried under higher steps).
+ * Used for Borealis placement along the climb path.
+ */
+export function openTreadSpan(tread: Ledge): { x0: number; x1: number } {
+  const next = [...STAIR_TREADS]
+    .sort((a, b) => a.y - b.y)
+    .find((entry) => entry.y > tread.y);
+  return { x0: tread.x0, x1: next ? next.x0 : tread.x1 };
+}
+
+/** Approach Frequency Band — left of the lowest tread, slightly below its open lip. */
 export const STAIR_BAND: Ledge = fromSvg({
   id: "band",
-  x0: 14,
-  x1: 72,
-  y: 300,
+  x0: 18,
+  x1: 78,
+  y: 336,
   pitch: "C4",
   kind: "band",
 });
 
+/** Classic notch: left pocket, high right block, floor band on the lower slope. */
 export const NOTCH_POCKET: Ledge = fromSvg({
   id: "pocket",
-  x0: 72,
-  x1: 106,
+  // Seat sits further into the shaft so straight-up / up-right charts clear the wall.
+  x0: 78,
+  x1: 118,
   y: 156,
   pitch: "E4",
   kind: "band",
@@ -221,6 +335,49 @@ export const NOTCH_FLOOR: Ledge = fromSvg({
   kind: "band",
 });
 
+/**
+ * Zig landscape: bottom peak → left shelf → right wedge (Borealis zig-zag).
+ * Coords are landscape 360×200 view space. Shelves are spread ~2× farther
+ * apart than the first mock so the climb reads across the wide frame.
+ */
+export const ZIG_PEAK: Ledge = fromSvg(
+  {
+    id: "zig-peak",
+    x0: 128,
+    x1: 232,
+    y: 178,
+    pitch: "C4",
+    kind: "band",
+  },
+  LANDSCAPE_VIEW,
+);
+
+export const ZIG_LEFT: Ledge = fromSvg(
+  {
+    id: "zig-left",
+    x0: 48,
+    x1: 132,
+    y: 102,
+    pitch: "E4",
+    kind: "band",
+  },
+  LANDSCAPE_VIEW,
+);
+
+/** Right wedge tip — slopes down toward the shaft (−x). */
+export const ZIG_RIGHT: Ledge = fromSvg(
+  {
+    id: "zig-right",
+    x0: 228,
+    x1: 318,
+    y: 48,
+    pitch: "A4",
+    kind: "step",
+    slope: -0.28,
+  },
+  LANDSCAPE_VIEW,
+);
+
 export const LAUNCH_LEDGES: readonly Ledge[] = [LAUNCH_BAND];
 export const STAIR_LEDGES: readonly Ledge[] = [STAIR_BAND, ...STAIR_TREADS];
 export const NOTCH_LEDGES: readonly Ledge[] = [
@@ -228,8 +385,9 @@ export const NOTCH_LEDGES: readonly Ledge[] = [
   NOTCH_BLOCK,
   NOTCH_FLOOR,
 ];
+export const ZIG_LEDGES: readonly Ledge[] = [ZIG_PEAK, ZIG_LEFT, ZIG_RIGHT];
 
-const TOP_THREE = ["s3", "s4", "s5"] as const;
+const TOP_THREE = ["s1", "s2", "s3"] as const;
 
 export function createWorld(): NoteheadWorldState {
   return {
@@ -247,6 +405,7 @@ export function regionById(id: RegionId): Region {
 export function ledgesFor(id: RegionId): readonly Ledge[] {
   if (id === "launch") return LAUNCH_LEDGES;
   if (id === "stairs") return STAIR_LEDGES;
+  if (id === "zig") return ZIG_LEDGES;
   return NOTCH_LEDGES;
 }
 
@@ -272,6 +431,7 @@ export function restOn(ledge: Ledge, x?: number): Body {
 export function restBody(regionId: RegionId): Body {
   if (regionId === "launch") return restOn(LAUNCH_BAND);
   if (regionId === "stairs") return restOn(STAIR_BAND);
+  if (regionId === "zig") return restOn(ZIG_PEAK);
   return restOn(NOTCH_FLOOR);
 }
 
@@ -302,7 +462,15 @@ export function dropOnto(from: Ledge, target: Ledge, currentX: number): Body {
 export function aimCone(regionId: RegionId, restingId: string): AimCone | null {
   if (regionId === "launch") return null;
   if (regionId === "stairs") return { min: -0.35, max: 1.05 };
-  if (restingId === "pocket") return { min: -0.25, max: 1.15 };
+  if (regionId === "zig") {
+    if (restingId === ZIG_PEAK.id) return { min: -1.15, max: 0.25 };
+    if (restingId === ZIG_LEFT.id) return { min: -0.15, max: 1.25 };
+    // From the right wedge, aim back up the shaft / toward exit.
+    if (restingId === ZIG_RIGHT.id) return { min: -1.25, max: 0.2 };
+    return { min: -1.0, max: 1.0 };
+  }
+  // Pocket mouth opens upward; allow near-vertical and out into the shaft.
+  if (restingId === "pocket") return { min: -0.15, max: 1.2 };
   if (restingId === "block") return { min: -1.0, max: 0.45 };
   return { min: -1.15, max: 0.55 };
 }
@@ -391,38 +559,161 @@ function degreeMarks(): { pitch: PitchName; y: number }[] {
   }));
 }
 
+function mayCatch(ledge: Ledge, fallSpeed: number, policy: StepPolicy): boolean {
+  if (ledge.kind !== "band") return true;
+  if (policy.catchBands) return true;
+  return fallSpeed <= policy.breakSpeed;
+}
+
+/**
+ * Soft magnetic dock: ease the ship to the band mid-x while seated.
+ * Not used for Anachrometer warp bands (those track the ship mid-flight).
+ */
+export function dockOnBand(
+  body: Body,
+  ledge: Ledge,
+  dt: number,
+): Body {
+  const frame = Math.min(dt, FIXED_DT);
+  const mid = (ledge.x0 + ledge.x1) / 2;
+  const dx = mid - body.x;
+  if (Math.abs(dx) <= DOCK_EPS && Math.abs(body.vx) <= DOCK_EPS * 4) {
+    return {
+      x: mid,
+      y: ledgeYAt(ledge, mid) + SHIP_R,
+      vx: 0,
+      vy: 0,
+      restingOn: ledge.id,
+    };
+  }
+  const ax = dx * DOCK_STIFF - body.vx * DOCK_DAMP;
+  const vx = body.vx + ax * frame;
+  const x = Math.max(ledge.x0, Math.min(ledge.x1, body.x + vx * frame));
+  return {
+    x,
+    y: ledgeYAt(ledge, x) + SHIP_R,
+    vx,
+    vy: 0,
+    restingOn: ledge.id,
+  };
+}
+
+export function isDockableBand(ledge: Ledge | null | undefined): boolean {
+  return Boolean(ledge && ledge.kind === "band" && ledge.id !== "warp-band");
+}
+
+/**
+ * Slide along a sloping tread: stay seated, ease toward open sky, then drip
+ * off the lip without a trampoline bounce. +x into the wall is killed.
+ */
+function slideOnStep(
+  body: Body,
+  ledge: Ledge,
+  dt: number,
+): { body: Body; landedId: string | null } {
+  const frame = Math.min(dt, FIXED_DT);
+  const vx = Math.min(body.vx, 0) - SLIDE_ACCEL * frame;
+  const nextX = body.x + vx * frame;
+  if (nextX < ledge.x0 - 1 || nextX > ledge.x1 + 1) {
+    const lipX = Math.max(ledge.x0, Math.min(ledge.x1, nextX));
+    const surface = ledgeYAt(ledge, lipX);
+    // Leave grounded: keep slide speed, fall under gravity — no upward hop.
+    return {
+      body: {
+        x: nextX,
+        y: surface + SHIP_R,
+        vx: Math.min(vx, -SLIDE_SPEED),
+        vy: 0,
+        restingOn: null,
+      },
+      landedId: null,
+    };
+  }
+  return {
+    body: {
+      x: nextX,
+      y: ledgeYAt(ledge, nextX) + SHIP_R,
+      vx,
+      vy: 0,
+      restingOn: ledge.id,
+    },
+    landedId: null,
+  };
+}
+
 /**
  * One flight frame. Lands only while falling. The highest crossed ledge wins.
+ * Sloped steps always seat, then slide off toward open sky.
  */
 export function step(
   body: Body,
   ledges: readonly Ledge[],
   dt: number,
   gravity = GRAVITY,
+  policy: StepPolicy = DEFAULT_STEP_POLICY,
 ): { body: Body; landedId: string | null } {
-  if (body.restingOn || dt <= 0) return { body, landedId: null };
+  if (dt <= 0) return { body, landedId: null };
+
+  if (body.restingOn) {
+    const seat = ledgeById(ledges, body.restingOn);
+    if (isSlopedStep(seat)) return slideOnStep(body, seat, dt);
+    if (isDockableBand(seat)) {
+      return { body: dockOnBand(body, seat, dt), landedId: null };
+    }
+    return { body, landedId: null };
+  }
 
   const frame = Math.min(dt, FIXED_DT);
   const vy = body.vy - gravity * frame;
   const nextX = body.x + body.vx * frame;
   const nextY = body.y + vy * frame;
+  const fallSpeed = Math.max(0, -vy);
 
   if (vy < 0) {
     const prevBottom = body.y - SHIP_R;
     const nextBottom = nextY - SHIP_R;
     let hit: Ledge | null = null;
     for (const ledge of ledges) {
+      if (!mayCatch(ledge, fallSpeed, policy)) continue;
+      const surface = ledgeYAt(ledge, nextX);
       const withinX = nextX >= ledge.x0 && nextX <= ledge.x1;
-      const crossed = prevBottom >= ledge.y - LAND_EPS && nextBottom <= ledge.y;
+      const crossed =
+        prevBottom >= surface - LAND_EPS && nextBottom <= surface;
       if (!withinX || !crossed) continue;
-      if (!hit || ledge.y > hit.y) hit = ledge;
+      const surfaceY = ledgeYAt(ledge, nextX);
+      const hitY = hit ? ledgeYAt(hit, nextX) : -Infinity;
+      // Prefer Frequency Bands when tied so exit/warp seats stay soft.
+      if (
+        !hit ||
+        surfaceY > hitY + 1e-6 ||
+        (Math.abs(surfaceY - hitY) <= 1e-6 &&
+          ledge.kind === "band" &&
+          hit.kind !== "band")
+      ) {
+        hit = ledge;
+      }
     }
     if (hit) {
+      const surface = ledgeYAt(hit, nextX);
+      if (isSlopedStep(hit)) {
+        // Always land. Kill fall energy; start a gentle slide toward open sky.
+        return {
+          body: {
+            x: nextX,
+            y: surface + SHIP_R,
+            vx: Math.min(body.vx, 0) * 0.35 - SLIDE_SPEED,
+            vy: 0,
+            restingOn: hit.id,
+          },
+          landedId: hit.id,
+        };
+      }
       return {
         body: {
           x: nextX,
-          y: hit.y + SHIP_R,
-          vx: 0,
+          y: surface + SHIP_R,
+          // Keep a little horizontal speed so the center-dock eases in.
+          vx: isDockableBand(hit) ? body.vx * 0.2 : 0,
           vy: 0,
           restingOn: hit.id,
         },
@@ -437,6 +728,10 @@ export function step(
   };
 }
 
+/**
+ * Legacy auto drop-down between stair treads. Route stairs no longer use this;
+ * sloping treads + Anachrometer hops replace it. Kept for older sandbox calls.
+ */
 export function afterLanding(
   regionId: RegionId,
   body: Body,
@@ -444,6 +739,9 @@ export function afterLanding(
 ): Body | null {
   if (regionId !== "stairs" || !landedId.startsWith("s")) return null;
   const from = ledgeById(STAIR_TREADS, landedId);
+  const hit = from;
+  // Sloped route treads never chain-drop.
+  if (hit?.slope) return null;
   const next = lowerTread(landedId);
   if (!from || !next) return null;
   return dropOnto(from, next, body.x);
@@ -513,13 +811,18 @@ export function resolveShot(
   };
 }
 
-/** Fly a pull to rest. Stairs keep stepping down after the first tread. */
+/**
+ * Fly a pull until rest or out of bounds.
+ * Defaults to catching bands so legacy apex / notch checks still land.
+ * Route play passes a policy with `catchBands: false` for break-through.
+ */
 export function flyShot(
   regionId: RegionId,
   profile: DifficultyProfile,
   aim: Aim | number,
   restingId?: string,
-): ShotResult & { crossedUp: readonly PitchName[] } {
+  policy: StepPolicy = { breakSpeed: BREAK_SPEED, catchBands: true },
+): ShotResult & { crossedUp: readonly PitchName[]; body: Body } {
   const region = regionById(regionId);
   const ledges = ledgesFor(regionId);
   let body = restBody(regionId);
@@ -542,7 +845,7 @@ export function flyShot(
   for (let frame = 0; frame < 1500 && !landedOn; frame++) {
     const rising = body.vy > 0;
     const prevY = body.y;
-    const result = step(body, ledges, FIXED_DT);
+    const result = step(body, ledges, FIXED_DT, GRAVITY, policy);
     body = result.body;
     if (body.y > apexY) apexY = body.y;
     if (rising) {
@@ -553,8 +856,13 @@ export function flyShot(
       }
     }
     if (outOfBounds(body)) break;
+    if (result.landedId && !visited.includes(result.landedId)) {
+      visited.push(result.landedId);
+    }
+    // Keep simulating while seated on a sloping tread (land → slide → bounce).
+    if (isSlopedStep(ledgeById(ledges, body.restingOn))) continue;
     if (!result.landedId) continue;
-    visited.push(result.landedId);
+    if (!body.restingOn) continue;
     const follow = afterLanding(regionId, body, result.landedId);
     if (follow) {
       body = follow;
@@ -568,7 +876,7 @@ export function flyShot(
     landedOn,
     visited,
   });
-  return { ...resolved, crossedUp: crossed };
+  return { ...resolved, crossedUp: crossed, body };
 }
 
 export interface ShotChart {
@@ -596,13 +904,18 @@ export function chartShot(
   let landedOn: string | null = null;
 
   for (let frame = 0; frame < 1500 && !landedOn; frame++) {
-    const result = step(current, ledges, FIXED_DT);
+    const result = step(current, ledges, FIXED_DT, GRAVITY, {
+      breakSpeed: BREAK_SPEED,
+      catchBands: true,
+    });
     current = result.body;
     if (frame % 2 === 0) points.push({ x: current.x, y: current.y });
     if (!apex || current.y >= apex.y) apex = { x: current.x, y: current.y };
     if (outOfBounds(current)) break;
+    if (isSlopedStep(ledgeById(ledges, current.restingOn))) continue;
     if (!result.landedId) continue;
     points.push({ x: current.x, y: current.y });
+    if (!current.restingOn) continue;
     const follow = afterLanding(regionId, current, result.landedId);
     if (follow) {
       current = follow;
@@ -615,8 +928,26 @@ export function chartShot(
   return { points, apex, landedOn };
 }
 
-export function toSvg(x: number, y: number): { x: number; y: number } {
-  return { x: x / SX, y: SVG_H - y / SY };
+export function toSvg(
+  x: number,
+  y: number,
+  regionId: RegionId = "launch",
+): { x: number; y: number } {
+  const view = svgViewFor(regionId);
+  const { sx, sy } = scalesFor(view);
+  return { x: x / sx, y: view.h - y / sy };
 }
 
-export const SVG_VIEW = { w: SVG_W, h: SVG_H };
+/** View-space point (+y down) → logical (+y up). */
+export function fromSvgPoint(
+  x: number,
+  y: number,
+  regionId: RegionId = "launch",
+): { x: number; y: number } {
+  const view = svgViewFor(regionId);
+  const { sx, sy } = scalesFor(view);
+  return { x: x * sx, y: (view.h - y) * sy };
+}
+
+/** @deprecated Prefer svgViewFor(regionId). Portrait default for older call sites. */
+export const SVG_VIEW = PORTRAIT_VIEW;

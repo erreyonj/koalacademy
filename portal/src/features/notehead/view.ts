@@ -1,4 +1,5 @@
-import type { Region, ShotSample } from "./sim";
+import type { Borealis } from "./borealis";
+import type { Ledge, Region, ShotSample } from "./sim";
 
 export type GesturePhase = "idle" | "pulling" | "flight" | "sparkle";
 
@@ -12,6 +13,16 @@ export interface FrameGesture {
   /** Logical-space preview of the shot under the current aim. Empty unless pulling. */
   chart: readonly { x: number; y: number }[];
   chartApex: { x: number; y: number } | null;
+  /** Transient Anachrometer band, if any. */
+  warp: Ledge | null;
+  /** Exit Frequency Band planted after the last Borealis, if any. */
+  exitBand: Ledge | null;
+  /** Live Borealis pickups for this beat. */
+  borealis: readonly Borealis[];
+  /** Gap to terrain below (logical). Large when open sky. */
+  clearance: number;
+  /** 0..1 red flash after HP loss (not Frequency Band landings). */
+  sting: number;
 }
 
 /** SVG offset for the band and ship while the player is dragging. */

@@ -17,20 +17,20 @@ export function Sparkles({
     [18, 4],
     [-18, 4],
   ];
+  // The pop animates a CSS transform, which replaces a transform attribute on
+  // the same element. The position lives on the outer group.
   return (
-    <g
-      className="notehead-spark-group"
-      data-testid={testId}
-      transform={`translate(${cx} ${cy})`}
-    >
-      {tips.map(([x, y], i) => (
-        <polygon
-          key={i}
-          className="notehead-spark"
-          points="0,-4 1.2,-1.2 4,0 1.2,1.2 0,4 -1.2,1.2 -4,0 -1.2,-1.2"
-          transform={`translate(${x} ${y})`}
-        />
-      ))}
+    <g data-testid={testId} transform={`translate(${cx} ${cy})`}>
+      <g className="notehead-spark-group">
+        {tips.map(([x, y], i) => (
+          <polygon
+            key={i}
+            className="notehead-spark"
+            points="0,-4 1.2,-1.2 4,0 1.2,1.2 0,4 -1.2,1.2 -4,0 -1.2,-1.2"
+            transform={`translate(${x} ${y})`}
+          />
+        ))}
+      </g>
     </g>
   );
 }

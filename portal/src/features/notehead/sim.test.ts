@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   type Aim,
+  type Body,
   FIXED_DT,
   LAUNCH_BAND,
   PROFILES,
@@ -124,7 +125,7 @@ describe("Frequency Band dock", () => {
     expect(isDockableBand({ ...LAUNCH_BAND, id: "warp-band" })).toBe(false);
 
     const mid = (LAUNCH_BAND.x0 + LAUNCH_BAND.x1) / 2;
-    let body = {
+    let body: Body = {
       x: LAUNCH_BAND.x0 + 20,
       y: LAUNCH_BAND.y + 30,
       vx: 0,

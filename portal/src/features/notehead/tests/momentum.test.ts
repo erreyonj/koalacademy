@@ -7,8 +7,8 @@ import {
   glowColor,
   glowTarget,
   trailStrength,
-} from "./momentum";
-import { LAUNCH_BAND, type Body } from "./sim";
+} from "../modules/momentum";
+import { LAUNCH_BAND, type Body } from "../modules/sim";
 
 const flying = (vx: number, vy: number): Body => ({
   x: 450,

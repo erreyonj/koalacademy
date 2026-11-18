@@ -1,9 +1,9 @@
 "use client";
 
 import { createRoot, type Root } from "react-dom/client";
-import { REST_GLOW, easeGlow, glowTarget, type ShipGlow } from "../momentum";
-import type { Ledge, Region, ShotSample } from "../sim";
-import type { FrameGesture, NoteheadView } from "../view";
+import { REST_GLOW, easeGlow, glowTarget, type ShipGlow } from "../modules/momentum";
+import type { Ledge, Region, ShotSample } from "../modules/sim";
+import type { FrameGesture, NoteheadView } from "../modules/view";
 import { LaunchArt } from "./LaunchSite";
 import { NotchArt } from "./CanyonRun";
 import type { ShipLook } from "./Ship";
@@ -64,10 +64,12 @@ export class SvgNoteheadView implements NoteheadView {
     this.still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   }
 
-  resize(width: number, height: number): void {
+  resize(_width: number, _height: number): void {
     if (!this.host) return;
-    this.host.style.width = `${Math.max(1, Math.floor(width))}px`;
-    this.host.style.height = `${Math.max(1, Math.floor(height))}px`;
+    // Fill the wrap via CSS. Pixel locks from a prior region (e.g. wide zig)
+    // were sticking after beat jumps and shoving portrait stages off-center.
+    this.host.style.width = "100%";
+    this.host.style.height = "100%";
   }
 
   frame(sample: ShotSample, region: Region, gesture: FrameGesture): void {

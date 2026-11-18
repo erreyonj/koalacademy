@@ -1,5 +1,5 @@
 import borealisArt from "../assets/notehead-borealis-collectible-main.png";
-import { toSvg, type PitchName, type RegionId } from "../sim";
+import { toSvg, type PitchName, type RegionId } from "../modules/sim";
 
 /** Soft PNG orb at a logical-world Borealis point. */
 export function BorealisMark({

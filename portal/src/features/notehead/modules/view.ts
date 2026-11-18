@@ -1,4 +1,5 @@
 import type { Borealis } from "./borealis";
+import type { ExitZone } from "./exit-zone";
 import type { Ledge, Region, ShotSample } from "./sim";
 
 export type GesturePhase = "idle" | "pulling" | "flight" | "sparkle";
@@ -19,6 +20,15 @@ export interface FrameGesture {
   exitBand: Ledge | null;
   /** Live Borealis pickups for this beat. */
   borealis: readonly Borealis[];
+  /** Level exit barrier + arrow, when this beat has one. */
+  exitZone: ExitZone | null;
+  /** True once Borealis are gathered (or always on launch-bridge). */
+  exitLit: boolean;
+  /**
+   * Launch break-through impact in logical space, if the Frequency Band
+   * has snapped this flight.
+   */
+  bandBreak: { x: number; y: number } | null;
   /** Gap to terrain below (logical). Large when open sky. */
   clearance: number;
   /** 0..1 red flash after HP loss (not Frequency Band landings). */

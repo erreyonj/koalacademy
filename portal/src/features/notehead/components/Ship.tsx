@@ -1,10 +1,10 @@
-import { glowColor, trailStrength, type ShipGlow } from "../momentum";
+import { glowColor, trailStrength, type ShipGlow } from "../modules/momentum";
 import {
   SHIP_R,
   svgViewFor,
   toSvg,
   type RegionId,
-} from "../sim";
+} from "../modules/sim";
 
 /** The sim's ship radius in view units for a region. */
 function seatFor(regionId: RegionId): number {

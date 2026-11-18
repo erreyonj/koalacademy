@@ -13,7 +13,7 @@ import {
   flyShot,
   restBody,
   step,
-} from "./sim";
+} from "../modules/sim";
 
 /** Up and toward the stack. Power clears the top; a shorter pull falls short. */
 const STAIR_AIM = 0.22;

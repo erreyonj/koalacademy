@@ -1,5 +1,6 @@
 import { Band } from "./Band";
 import { BorealisMark } from "./Borealis";
+import { ExitMark } from "./ExitZone";
 import { SceneFrame } from "./SceneFrame";
 import { Ship, type ShipLook } from "./Ship";
 import { Sparkles } from "./Sparkles";
@@ -10,8 +11,8 @@ import {
   toSvg,
   type Body,
   type Ledge,
-} from "../sim";
-import { pullOffsetSvg, type FrameGesture } from "../view";
+} from "../modules/sim";
+import { pullOffsetSvg, type FrameGesture } from "../modules/view";
 
 /** How far a band dips under a ship that is resting on it. */
 const CRADLE = 1.5;
@@ -116,6 +117,9 @@ export function NotchArt({
           hot={body.restingOn === warp.id || airWarp}
           testId="warp-band"
         />
+      )}
+      {gesture.exitZone && (
+        <ExitMark zone={gesture.exitZone} lit={gesture.exitLit} />
       )}
       {gesture.phase === "sparkle" && (
         <Sparkles cx={ship.x} cy={ship.y} testId="notch-sparkles" />

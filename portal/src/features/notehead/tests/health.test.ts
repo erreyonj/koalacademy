@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { spawnBorealis, stepBorealis, COLLECT_RADIUS } from "./borealis";
+import { spawnBorealis, stepBorealis, COLLECT_RADIUS } from "../modules/borealis";
 import {
   allBorealisCollected,
   applyBorealisHeal,
   applyLandingHit,
   clampHp,
   maxHp,
-} from "./health";
+} from "../modules/health";
 
 describe("hull HP", () => {
   it("easy has hull off for now", () => {

@@ -30,10 +30,31 @@
 .notehead-stage {
   width: min(100%, 28rem);
   height: min(100svh, 52rem);
+  min-width: 0;
+  justify-self: center;
   display: grid;
   grid-template-rows: auto 1fr auto auto;
   gap: 0.5rem;
   padding: 0.75rem 0.75rem 1.25rem;
+}
+
+/*
+ * Zig art is a rotated portrait frame (360×200). Size the playfield a bit
+ * taller than that (360×230) — no terrain changes, just container.
+ */
+.notehead-page[data-region="zig"] .notehead-stage {
+  width: min(100%, 53.13rem);
+  height: auto;
+  max-height: min(100svh, 52rem);
+  justify-self: center;
+  grid-template-rows: auto auto auto auto;
+}
+
+.notehead-page[data-region="zig"] .notehead-scene-wrap {
+  aspect-ratio: 360 / 306;
+  width: 100%;
+  height: auto;
+  max-height: calc(min(100svh, 52rem) - 8rem);
 }
 
 .notehead-page[data-view="landscape"] {
@@ -150,7 +171,7 @@
 
 .notehead-hud strong {
   display: inline-block;
-  margin-left: 0.3em;
+  margin-left: 0.35em;
   font-family: var(--font-display);
   font-size: 1.15rem;
   letter-spacing: 0;
@@ -248,6 +269,27 @@
 
 /* Sky */
 
+/* Deep-space photo crawl — seamless tile, one view-width per loop. */
+.notehead-sky-drift {
+  animation: notehead-sky-crawl 162s linear infinite;
+  will-change: transform;
+}
+
+@keyframes notehead-sky-crawl {
+  from {
+    transform: translate(0, 0);
+  }
+  to {
+    transform: translate(calc(-1px * var(--nh-sky-w, 200)), 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .notehead-sky-drift {
+    animation: none;
+  }
+}
+
 .notehead-sky-top {
   stop-color: var(--nh-sky-top);
 }
@@ -324,7 +366,168 @@
   stroke-width: 1.1;
 }
 
+/* Launch break-through — band snaps and peels from the impact. */
+.notehead-band-break-left {
+  transform-origin: 0 0;
+  animation: notehead-band-snap-left 0.62s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.notehead-band-break-right {
+  transform-origin: 0 0;
+  animation: notehead-band-snap-right 0.62s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes notehead-band-snap-left {
+  0% {
+    transform: rotate(0deg) translate(0, 0);
+    opacity: 1;
+  }
+  18% {
+    transform: rotate(-6deg) translate(-1px, 2px);
+    opacity: 1;
+  }
+  100% {
+    transform: rotate(-22deg) translate(-8px, 14px);
+    opacity: 0.28;
+  }
+}
+
+@keyframes notehead-band-snap-right {
+  0% {
+    transform: rotate(0deg) translate(0, 0);
+    opacity: 1;
+  }
+  18% {
+    transform: rotate(7deg) translate(1px, 2px);
+    opacity: 1;
+  }
+  100% {
+    transform: rotate(24deg) translate(9px, 15px);
+    opacity: 0.28;
+  }
+}
+
+.notehead-band-break-flash-core {
+  fill: #ffffff;
+  opacity: 0;
+  animation: notehead-band-flash-core 0.4s ease-out both;
+}
+
+.notehead-band-break-flash-ring {
+  fill: none;
+  stroke: var(--nh-band);
+  stroke-width: 2;
+  opacity: 0;
+  animation: notehead-band-flash-ring 0.5s ease-out both;
+}
+
+@keyframes notehead-band-flash-core {
+  0% {
+    opacity: 0.95;
+    transform: scale(0.4);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.8);
+  }
+}
+
+@keyframes notehead-band-flash-ring {
+  0% {
+    opacity: 0.85;
+    transform: scale(0.35);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2.4);
+  }
+}
+
+.notehead-band-break-shard {
+  stroke: color-mix(in srgb, var(--nh-band) 55%, #ffffff);
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  opacity: 0;
+  animation: notehead-band-shard 0.58s ease-out both;
+}
+
+@keyframes notehead-band-shard {
+  0% {
+    opacity: 0.95;
+    transform: rotate(var(--nh-shard-rot, 0deg)) translate(0, 0);
+  }
+  100% {
+    opacity: 0;
+    transform: rotate(var(--nh-shard-rot, 0deg))
+      translate(
+        calc(1px * var(--nh-shard-x, 0)),
+        calc(1px * var(--nh-shard-y, 0))
+      );
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .notehead-band-break-left,
+  .notehead-band-break-right,
+  .notehead-band-break-flash-core,
+  .notehead-band-break-flash-ring,
+  .notehead-band-break-shard {
+    animation: none;
+  }
+
+  .notehead-band-break-left {
+    transform: rotate(-14deg) translate(-4px, 8px);
+    opacity: 0.4;
+  }
+
+  .notehead-band-break-right {
+    transform: rotate(14deg) translate(4px, 8px);
+    opacity: 0.4;
+  }
+
+  .notehead-band-break-flash-core,
+  .notehead-band-break-flash-ring,
+  .notehead-band-break-shard {
+    opacity: 0;
+  }
+}
+
 /* Ship */
+
+.notehead-ring {
+  fill: none;
+  stroke: var(--nh-band);
+  stroke-width: 1.2;
+  opacity: 0.35;
+}
+
+/* Level exit — pulsing purple chevron (~20% transparent at peak) */
+.notehead-exit-arrow {
+  fill: none;
+  stroke: #c4a0f5;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transform-origin: center;
+  animation: notehead-exit-pulse 1.15s ease-in-out infinite;
+}
+
+@keyframes notehead-exit-pulse {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .notehead-exit-arrow {
+    animation: none;
+    opacity: 0.8;
+  }
+}
 
 .notehead-ship-edge {
   fill: #04060a;

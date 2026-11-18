@@ -5,7 +5,7 @@ import {
   engageWarp,
   followWarpBand,
   makeWarpBand,
-} from "./anachrometer";
+} from "../modules/anachrometer";
 import {
   FIXED_DT,
   PROFILES,
@@ -13,8 +13,8 @@ import {
   aimFromPull,
   launchVelocity,
   step,
-} from "./sim";
-import { applyWarp, liveLedges } from "./progress";
+} from "../modules/sim";
+import { applyWarp, liveLedges } from "../modules/progress";
 
 describe("Anachrometer mid-flight pull", () => {
   it("can warp only while airborne with Anachrometer on and no active warp", () => {

@@ -50,6 +50,8 @@ export interface BeatFlight {
   crossedGoal: boolean;
   /** Fell through a band without landing (break-through). */
   brokeBand: boolean;
+  /** Left the frame through the beat's exit opening this run. */
+  crossedExit: boolean;
   visited: readonly string[];
   landedOn: string | null;
   /** Last resting ledge after the flight settled, if any. */
@@ -116,6 +118,7 @@ export const PROGRESSION: Record<BeatId, BeatDef> = {
     hint: "Pull the Frequency Band. Reach the guide, then the fall will break through.",
     clearHint: "Through the band",
     enter: () => restOn(LAUNCH_BAND),
+    // Live policy flips this after the guide (see stepPolicyFor).
     catchBands: () => false,
     evaluate: (flight, repair) => {
       const cleared = flight.crossedGoal && flight.brokeBand;
@@ -172,18 +175,20 @@ export const PROGRESSION: Record<BeatId, BeatDef> = {
     regionId: "notch",
     next: "launch-bridge",
     hint: "Warp, then gather Borealis at the pocket and block.",
-    clearHint: "Pull the new Frequency Band",
+    clearHint: "Through the exit",
     enter: () => restOn(NOTCH_FLOOR),
     catchBands: (repair) => repair.anachrometer,
     evaluate: (flight, repair) => {
       const gathered = NOTCH_BANDS.every((id) => flight.visited.includes(id));
-      // Auto-advance off until exit-band slingshot clears the beat.
+      const cleared = gathered && flight.crossedExit;
       return {
-        cleared: false,
+        cleared,
         repair,
-        hint: gathered
-          ? "Pull the Frequency Band to continue"
-          : "Collect Borealis at pocket and block",
+        hint: cleared
+          ? "Through the exit"
+          : gathered
+            ? "Fly out through the exit"
+            : "Collect Borealis at pocket and block",
       };
     },
   },
@@ -192,16 +197,28 @@ export const PROGRESSION: Record<BeatId, BeatDef> = {
     label: "Launch bridge",
     regionId: "launch",
     next: "stairs-anach",
-    hint: "Full-power shot from the launch band into the stairs.",
+    hint: "Full-power shot from the launch band through the exit.",
     clearHint: "Into the stairs",
-    enter: () => restOn(LAUNCH_BAND),
+    // Continue the Notch exit jump: rise from below and seat on the band.
+    enter: () => ({
+      x: (LAUNCH_BAND.x0 + LAUNCH_BAND.x1) / 2,
+      y: 48,
+      vx: 0,
+      vy: 1320,
+      restingOn: null,
+    }),
     catchBands: (repair) => repair.anachrometer,
     evaluate: (flight, repair) => {
-      const cleared = (flight.power ?? 0) >= BRIDGE_POWER && flight.crossedGoal;
+      const powered = (flight.power ?? 0) >= BRIDGE_POWER;
+      const cleared = powered && flight.crossedExit;
       return {
         cleared,
         repair,
-        hint: cleared ? "Into the stairs" : "Full power from the launch band",
+        hint: cleared
+          ? "Into the stairs"
+          : powered
+            ? "Fly out through the exit"
+            : "Full power from the launch band",
       };
     },
   },
@@ -211,19 +228,31 @@ export const PROGRESSION: Record<BeatId, BeatDef> = {
     regionId: "stairs",
     next: "zig-1",
     hint: "Warp and gather Borealis above every tread.",
-    clearHint: "Pull the new Frequency Band",
-    enter: () => restOn(STAIR_BAND),
+    clearHint: "Through the exit",
+    // Arrive like the Launch Bridge exit shot: rise onto the approach band.
+    enter: () => {
+      const mid = (STAIR_BAND.x0 + STAIR_BAND.x1) / 2;
+      return {
+        x: mid - 30,
+        y: 24,
+        vx: 90,
+        vy: 920,
+        restingOn: null,
+      };
+    },
     catchBands: (repair) => repair.anachrometer,
     evaluate: (flight, repair) => {
       const required = STAIR_TREADS.map((ledge) => ledge.id);
       const gathered = required.every((id) => flight.visited.includes(id));
-      // Auto-advance off until exit-band slingshot clears the beat.
+      const cleared = gathered && flight.crossedExit;
       return {
-        cleared: false,
+        cleared,
         repair,
-        hint: gathered
-          ? "Pull the Frequency Band to continue"
-          : "Collect Borealis on every tread",
+        hint: cleared
+          ? "Through the exit"
+          : gathered
+            ? "Fly out through the exit"
+            : "Collect Borealis on every tread",
       };
     },
   },
@@ -232,18 +261,28 @@ export const PROGRESSION: Record<BeatId, BeatDef> = {
     label: "Zig",
     regionId: "zig",
     next: null,
-    hint: "Warp and zig-zag: gather Borealis on the peak, left shelf, then right.",
-    clearHint: "Pull the new Frequency Band",
-    enter: () => restOn(ZIG_PEAK),
+    hint: "Warp and zig-zag: gather Borealis floating, left shelf, then right shelf.",
+    clearHint: "Through the exit",
+    // Rise onto the peak Frequency Band (the starting sling).
+    enter: () => ({
+      x: (ZIG_PEAK.x0 + ZIG_PEAK.x1) / 2,
+      y: 60,
+      vx: 40,
+      vy: 1180,
+      restingOn: null,
+    }),
     catchBands: (repair) => repair.anachrometer,
     evaluate: (flight, repair) => {
       const gathered = ZIG_BANDS.every((id) => flight.visited.includes(id));
+      const cleared = gathered && flight.crossedExit;
       return {
-        cleared: false,
+        cleared,
         repair,
-        hint: gathered
-          ? "Pull the Frequency Band to continue"
-          : "Collect Borealis peak → left → right",
+        hint: cleared
+          ? "Through the exit"
+          : gathered
+            ? "Fly out through the exit"
+            : "Collect Borealis float → left → right",
       };
     },
   },
@@ -256,7 +295,15 @@ export function beatById(id: BeatId): BeatDef {
 export function stepPolicyFor(
   beat: BeatDef,
   repair: ShipRepair,
+  /** Launch teach: band stays soft until the guide is crossed. */
+  crossedGoal = false,
 ): StepPolicy {
+  if (beat.id === "launch-teach") {
+    return {
+      breakSpeed: BREAK_SPEED,
+      catchBands: !crossedGoal,
+    };
+  }
   return {
     breakSpeed: BREAK_SPEED,
     catchBands: beat.catchBands(repair),
@@ -339,7 +386,11 @@ export function simulateFlight(options: {
     const prevY = body.y;
     const prevBottom = body.y - SHIP_R;
     const ledges = liveLedges(options.regionId, warp);
-    const result = step(body, ledges, FIXED_DT, undefined, policy);
+    const livePolicy =
+      options.beatId === "launch-teach"
+        ? { ...policy, catchBands: !crossedGoal }
+        : policy;
+    const result = step(body, ledges, FIXED_DT, undefined, livePolicy);
     body = result.body;
     if (!body.restingOn || isSlopedStep(ledgeById(ledges, body.restingOn))) {
       body = resolveMasses(body, options.regionId).body;
@@ -350,7 +401,7 @@ export function simulateFlight(options: {
     if (
       !result.landedId &&
       body.vy < 0 &&
-      Math.abs(body.vy) > policy.breakSpeed
+      Math.abs(body.vy) > livePolicy.breakSpeed
     ) {
       for (const ledge of ledges) {
         if (ledge.kind !== "band") continue;
@@ -395,6 +446,7 @@ export function simulateFlight(options: {
     apexY,
     crossedGoal,
     brokeBand,
+    crossedExit: false,
     visited,
     landedOn,
     restingOn: body.restingOn,

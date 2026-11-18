@@ -11,16 +11,17 @@ import {
   followWarpBand,
   WARP_BAND_ID,
   WARP_TIME_SCALE,
-} from "../anachrometer";
-import { playPitch, resume, setAimTone, setClimb } from "../audio";
+} from "../modules/anachrometer";
+import { playPitch, resume, setAimTone, setClimb } from "../modules/audio";
 import {
   type Borealis,
   exitBandFor,
   seedVisited,
   spawnBorealis,
   stepBorealis,
-} from "../borealis";
-import { chartShotSolid, resolveMasses } from "../collide";
+  tonationPitches,
+} from "../modules/borealis";
+import { chartShotSolid, resolveMasses } from "../modules/collide";
 import {
   allBorealisCollected,
   applyBorealisHeal,
@@ -28,13 +29,18 @@ import {
   clampHp,
   hullEnabled,
   maxHp,
-} from "../health";
-import { clearanceBelow } from "../momentum";
+} from "../modules/health";
+import { clearanceBelow } from "../modules/momentum";
+import {
+  containAgainstExitFrame,
+  exitZoneFor,
+  exitZoneReady,
+  leftFrameThroughExit,
+} from "../modules/exit-zone";
 import {
   type BeatFlight,
   type BeatId,
   BEAT_ORDER,
-  BRIDGE_POWER,
   applyWarp,
   bounceOffCrashBlock,
   createRoute,
@@ -43,7 +49,7 @@ import {
   PROGRESSION,
   repairForBeat,
   stepPolicyFor,
-} from "../progress";
+} from "../modules/progress";
 import {
   type Aim,
   type Body,
@@ -68,13 +74,12 @@ import {
   pitchAtHeight,
   regionById,
   step,
-} from "../sim";
-import type { FrameGesture, GesturePhase } from "../view";
+} from "../modules/sim";
+import type { FrameGesture, GesturePhase } from "../modules/view";
 import {
   MusicTransport,
   useThemeMusic,
 } from "@/features/games/theme-music";
-import { useLandscape } from "@/components/keys-lite/useLandscape";
 import { SvgNoteheadView } from "./SvgNoteheadView";
 import "../notehead.css";
 
@@ -82,6 +87,8 @@ type Phase = GesturePhase;
 
 const DIFFICULTIES: DifficultyId[] = ["easy", "medium", "hard"];
 const THEME_SRC = "/assets/notehead/Swung%20Gospel%20Glide.mp3";
+/** Slow-mo while the Launch band snaps and the ship falls out of frame. */
+const BREAK_FALL_TIME_SCALE = 0.22;
 
 type JumpFn = (id: BeatId, nextRepair?: ShipRepair) => void;
 
@@ -101,6 +108,8 @@ export function NoteheadApp() {
   const apexRef = useRef(route.body.y);
   const crossedGoalRef = useRef(false);
   const brokeBandRef = useRef(false);
+  const bandBreakRef = useRef<{ x: number; y: number } | null>(null);
+  const crossedExitRef = useRef(false);
   const shotPowerRef = useRef(0);
   const warpRef = useRef<Ledge | null>(null);
   const exitBandRef = useRef<Ledge | null>(null);
@@ -119,12 +128,10 @@ export function NoteheadApp() {
   const [hint, setHint] = useState(PROGRESSION[route.beatId].hint);
   const [phase, setPhase] = useState<Phase>(phaseRef.current);
   const music = useThemeMusic(THEME_SRC, false);
-  const landscape = useLandscape();
 
   const beat = PROGRESSION[beatId];
   const region = regionById(beat.regionId);
-  const needsLandscape = beat.regionId === "zig";
-  const landscapeBlocked = needsLandscape && !landscape;
+  const tonation = tonationPitches(beatId, region.goalPitch);
 
   useEffect(() => {
     const host = hostRef.current;
@@ -137,6 +144,7 @@ export function NoteheadApp() {
       apexY: apexRef.current,
       crossedGoal: crossedGoalRef.current,
       brokeBand: brokeBandRef.current,
+      crossedExit: crossedExitRef.current,
       visited: visitedRef.current,
       landedOn,
       restingOn: bodyRef.current.restingOn,
@@ -165,6 +173,8 @@ export function NoteheadApp() {
       apexRef.current = bodyRef.current.y;
       crossedGoalRef.current = false;
       brokeBandRef.current = false;
+      bandBreakRef.current = null;
+      crossedExitRef.current = false;
       shotPowerRef.current = 0;
       tRef.current = 0;
       setBeatId(id);
@@ -199,7 +209,7 @@ export function NoteheadApp() {
       );
     };
 
-    const advanceIfClear = (landedOn: string | null) => {
+    const advanceIfClear = (landedOn: string | null): boolean => {
       const def = PROGRESSION[beatRef.current];
       const result = def.evaluate(flightSnapshot(landedOn), repairRef.current);
       setHint(result.hint);
@@ -214,21 +224,33 @@ export function NoteheadApp() {
           phaseRef.current = "idle";
           setPhase("idle");
         }
-        return;
+        return false;
       }
       repairRef.current = result.repair;
       setRepair(result.repair);
-      phaseRef.current = "sparkle";
-      setPhase("sparkle");
       setHint(def.clearHint);
-      window.setTimeout(() => {
+      // Launch break-through and Notch crash are escapes/impacts, not wins —
+      // skip the star burst. Launch already waited for the slo-mo fall OOB.
+      const celebrate =
+        def.id !== "launch-teach" && def.id !== "notch-crash";
+      if (celebrate) {
+        phaseRef.current = "sparkle";
+        setPhase("sparkle");
+      }
+      const cut = () => {
         if (def.next) jumpBeat(def.next, result.repair);
         else {
           phaseRef.current = "idle";
           setPhase("idle");
           setHint("Route clear");
         }
-      }, 720);
+      };
+      if (def.id === "launch-teach") {
+        cut();
+        return true;
+      }
+      window.setTimeout(cut, celebrate ? 720 : 280);
+      return true;
     };
 
     const paint = () => {
@@ -271,6 +293,9 @@ export function NoteheadApp() {
         warp: warpRef.current,
         exitBand: exitBandRef.current,
         borealis: borealisRef.current,
+        exitZone: exitZoneFor(beatRef.current),
+        exitLit: exitZoneReady(beatRef.current, borealisRef.current),
+        bandBreak: bandBreakRef.current,
         clearance: clearanceBelow(bodyRef.current, live),
         sting: stingRef.current,
       };
@@ -279,7 +304,11 @@ export function NoteheadApp() {
 
     const tickSim = () => {
       const def = PROGRESSION[beatRef.current];
-      const policy = stepPolicyFor(def, repairRef.current);
+      const policy = stepPolicyFor(
+        def,
+        repairRef.current,
+        crossedGoalRef.current,
+      );
       // Warp is visual + aim home only while the ship is still flying —
       // colliding with the transient band would kill mid-air aim.
       // Calibrate replaces the pocket wait-band with Borealis.
@@ -309,6 +338,18 @@ export function NoteheadApp() {
           ? resolveMasses(bodyRef.current, def.regionId)
           : { body: bodyRef.current, hit: false, massId: null };
       bodyRef.current = solid.body;
+      const liveExit = exitZoneFor(beatRef.current);
+      if (
+        liveExit &&
+        exitZoneReady(beatRef.current, borealisRef.current) &&
+        (!bodyRef.current.restingOn || isSlopedStep(seat))
+      ) {
+        // Seal the frame except the exit gap once Borealis is gathered.
+        bodyRef.current = containAgainstExitFrame(
+          bodyRef.current,
+          liveExit,
+        ).body;
+      }
       if (warpRef.current) {
         warpRef.current = followWarpBand(
           bodyRef.current,
@@ -354,27 +395,23 @@ export function NoteheadApp() {
             prevBottom >= ledge.y &&
             bodyRef.current.y - SHIP_R < ledge.y
           ) {
+            if (!brokeBandRef.current) {
+              bandBreakRef.current = {
+                x: bodyRef.current.x,
+                y: ledge.y,
+              };
+              if (
+                beatRef.current === "launch-teach" &&
+                crossedGoalRef.current
+              ) {
+                // Slo-mo fall while the band break plays; advance on OOB.
+                timeScaleRef.current = BREAK_FALL_TIME_SCALE;
+                setHint(PROGRESSION["launch-teach"].clearHint);
+              }
+            }
             brokeBandRef.current = true;
           }
         }
-      }
-
-      if (
-        beatRef.current === "launch-bridge" &&
-        crossedGoalRef.current &&
-        shotPowerRef.current >= BRIDGE_POWER
-      ) {
-        advanceIfClear(null);
-        return;
-      }
-
-      if (
-        beatRef.current === "launch-teach" &&
-        crossedGoalRef.current &&
-        brokeBandRef.current
-      ) {
-        advanceIfClear(null);
-        return;
       }
 
       if (
@@ -383,7 +420,23 @@ export function NoteheadApp() {
         bodyRef.current.x < -120 ||
         bodyRef.current.x > WORLD_W + 120
       ) {
+        const zone = exitZoneFor(beatRef.current);
+        const sealed =
+          zone && exitZoneReady(beatRef.current, borealisRef.current);
+        if (sealed && leftFrameThroughExit(zone, bodyRef.current)) {
+          crossedExitRef.current = true;
+          if (advanceIfClear(null)) return;
+        }
+        if (sealed) {
+          // Sealed frame: bounce back instead of losing the Borealis run.
+          bodyRef.current = containAgainstExitFrame(
+            bodyRef.current,
+            zone,
+          ).body;
+          return;
+        }
         if (beatRef.current === "launch-teach") {
+          // After break-through, OOB ends the slo-mo fall into Notch.
           advanceIfClear(null);
           return;
         }
@@ -424,7 +477,7 @@ export function NoteheadApp() {
         visitedRef.current = [...visitedRef.current, result.landedId];
       }
       if (result.landedId === exitBandRef.current?.id) {
-        setHint("Pull the Frequency Band to continue");
+        setHint("Fly out through the exit");
       }
 
       if (
@@ -452,8 +505,8 @@ export function NoteheadApp() {
       advanceIfClear(result.landedId);
     };
 
-    // Size the scene from its wrap so landscape zig fills the playfield
-    // instead of collapsing to the SVG viewBox intrinsic size.
+    // Size the scene from its wrap so the SVG fills the playfield
+    // instead of collapsing to the viewBox intrinsic size.
     const wrap = host.parentElement;
     const observer = new ResizeObserver((entries) => {
       const rect = entries[0]?.contentRect;
@@ -486,12 +539,12 @@ export function NoteheadApp() {
         const last = borealisStep.collected[borealisStep.collected.length - 1];
         const planted = last ? exitBandFor(last) : null;
         if (planted) {
-          // Plant the band under the gem; ship keeps flying and lands on it.
           exitBandRef.current = planted;
-          setHint("Land on the Frequency Band");
+        }
+        if (exitZoneFor(beatRef.current)) {
+          setHint("Fly out through the exit");
         }
       }
-      // No auto-advance on Borealis clear — exit band is the handoff.
     };
 
     let raf = 0;
@@ -551,6 +604,7 @@ export function NoteheadApp() {
               stepPolicyFor(
                 PROGRESSION[beatRef.current],
                 repairRef.current,
+                crossedGoalRef.current,
               ),
             );
             bodyRef.current = result.body;
@@ -596,7 +650,6 @@ export function NoteheadApp() {
   }, []);
 
   const onPointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
-    if (landscapeBlocked) return;
     if (phaseRef.current === "sparkle") return;
     resume();
     music.start();
@@ -648,12 +701,7 @@ export function NoteheadApp() {
       pullY,
       PROFILES[difficultyRef.current].aimInset,
     );
-    // Aim ladder ticks only on the first slingshot lesson.
-    if (beatRef.current === "launch-teach") {
-      setAimTone(aimRef.current.power);
-    } else {
-      setAimTone(null);
-    }
+    setAimTone(aimRef.current.power);
   };
 
   const onPointerUp = (event: ReactPointerEvent<HTMLDivElement>) => {
@@ -695,6 +743,7 @@ export function NoteheadApp() {
     warpRef.current = null;
     timeScaleRef.current = 1;
     shotPowerRef.current = aim.power;
+    crossedExitRef.current = false;
     crossedRef.current = [];
     if (
       beatRef.current === "launch-teach" ||
@@ -703,6 +752,7 @@ export function NoteheadApp() {
       visitedRef.current = [];
       crossedGoalRef.current = false;
       brokeBandRef.current = false;
+      bandBreakRef.current = null;
     }
     apexRef.current = bodyRef.current.y;
     tRef.current = 0;
@@ -717,7 +767,7 @@ export function NoteheadApp() {
       data-testid="notehead-stage"
       data-region={beat.regionId}
       data-beat={beatId}
-      data-view={needsLandscape ? "landscape" : "portrait"}
+      data-view="portrait"
     >
       <nav className="notehead-regions" aria-label="Beats">
         {BEAT_ORDER.map((id) => (
@@ -733,29 +783,28 @@ export function NoteheadApp() {
           </button>
         ))}
       </nav>
-      <div
-        className={
-          needsLandscape ? "notehead-stage is-landscape" : "notehead-stage"
-        }
-        data-phase={phase}
-      >
+      <div className="notehead-stage" data-phase={phase}>
         <div className="notehead-hud">
           <button
             type="button"
             className="notehead-goal-btn"
             data-testid="goal-pitch"
-            aria-label={`Play goal pitch ${region.goalPitch}`}
+            aria-label={`Play tonation ${tonation.join(" ")}`}
             onClick={() => {
               resume();
               music.start();
-              playPitch(region.goalPitch);
+              tonation.forEach((pitch, index) => {
+                window.setTimeout(() => playPitch(pitch), index * 280);
+              });
             }}
           >
             tonation:
-            <strong>
-              {region.goalPitch.replace(/\d+$/, "")}
-              <sub>{region.goalPitch.match(/\d+$/)?.[0]}</sub>
-            </strong>
+            {tonation.map((pitch, index) => (
+              <strong key={`${pitch}-${index}`}>
+                {pitch.replace(/\d+$/, "")}
+                <sub>{pitch.match(/\d+$/)?.[0]}</sub>
+              </strong>
+            ))}
           </button>
           {hullEnabled(difficulty) && (
             <div
@@ -819,24 +868,12 @@ export function NoteheadApp() {
             onPointerUp={onPointerUp}
             onPointerCancel={onPointerUp}
           />
-          {landscapeBlocked && (
-            <div
-              className="notehead-landscape-prompt"
-              role="status"
-              data-testid="notehead-landscape-prompt"
-            >
-              <p className="notehead-landscape-title">Turn to landscape</p>
-              <p className="notehead-landscape-copy">
-                Zig needs a wide view. Rotate your device to play.
-              </p>
-            </div>
-          )}
         </div>
         <p className="notehead-hint" data-testid="notehead-hint">
           {hint}
         </p>
         <MusicTransport
-          title="Swung Gospel Glide"
+          title="Cosmic Aether Soul"
           classPrefix="notehead-music"
           playing={music.playing}
           volume={music.volume}

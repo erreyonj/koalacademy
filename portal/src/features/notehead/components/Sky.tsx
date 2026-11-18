@@ -1,9 +1,14 @@
 import { memo } from "react";
-import { seeded } from "../rand";
-import { svgViewFor, type RegionId } from "../sim";
+import { seeded } from "../modules/rand";
+import {
+  svgViewFor,
+  zigCameraFrame,
+  type RegionId,
+  type SvgViewSize,
+} from "../modules/sim";
 import flecks from "../assets/notehead-black-star-flecks.png";
 import haze from "../assets/notehead-haze-30-opacity.png";
-import photo from "../assets/notehead-space-bg.png";
+import photo from "../assets/notehead-space-bg-seamless.png";
 
 const SEEDS: Record<RegionId, number> = {
   launch: 0x11,
@@ -39,8 +44,12 @@ interface SkyField {
   h: number;
 }
 
+function frameFor(regionId: RegionId): SvgViewSize {
+  return regionId === "zig" ? zigCameraFrame().view : svgViewFor(regionId);
+}
+
 function buildSky(regionId: RegionId): SkyField {
-  const { w: W, h: H } = svgViewFor(regionId);
+  const { w: W, h: H } = frameFor(regionId);
   const rand = seeded(SEEDS[regionId]);
 
   // Clouds follow one slanted lane across the frame, like the photo's band.
@@ -107,8 +116,8 @@ function glintPath(r: number): string {
 }
 
 /**
- * Drawn star field over a dim photo. The field is seeded per region, so it
- * holds still between frames. Memoized because the view re-renders every frame.
+ * Drawn star field over a dim seamless space plate that crawls on +x.
+ * Memoized because the view re-renders every frame.
  */
 export const Sky = memo(function Sky({ regionId }: { regionId: RegionId }) {
   const field = skyFor(regionId);
@@ -135,10 +144,36 @@ export const Sky = memo(function Sky({ regionId }: { regionId: RegionId }) {
           <stop offset="0" className="notehead-sky-wash" stopOpacity="0.3" />
           <stop offset="1" className="notehead-sky-wash" stopOpacity="0" />
         </radialGradient>
+        <clipPath id={`nh-sky-clip-${regionId}`}>
+          <rect width={W} height={H} />
+        </clipPath>
       </defs>
       <rect width={W} height={H} fill={`url(#nh-sky-base-${regionId})`} />
+      {/* Seamless tile strip: translate one width, loop — no crossfade needed. */}
+      <g clipPath={`url(#nh-sky-clip-${regionId})`}>
+        <g
+          className="notehead-sky-drift"
+          style={{ ["--nh-sky-w" as string]: `${W}` }}
+        >
+          <image
+            href={photo.src}
+            x={0}
+            width={W}
+            height={H}
+            opacity={0.3}
+            preserveAspectRatio="xMidYMid slice"
+          />
+          <image
+            href={photo.src}
+            x={W}
+            width={W}
+            height={H}
+            opacity={0.3}
+            preserveAspectRatio="xMidYMid slice"
+          />
+        </g>
+      </g>
       {[
-        { src: photo.src, opacity: 0.3 },
         { src: haze.src, opacity: 0.1 },
         { src: flecks.src, opacity: 0.5 },
       ].map((layer) => (

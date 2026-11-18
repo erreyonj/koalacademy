@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { resolveMasses, stepSolid } from "./collide";
+import { resolveMasses, stepSolid } from "../modules/collide";
 import {
   FIXED_DT,
   NOTCH_FLOOR,
   SHIP_R,
   fromSvgPoint,
   restOn,
-} from "./sim";
-import { massesFor } from "./terrain";
+} from "../modules/sim";
+import { massesFor } from "../modules/terrain";
 
 describe("solid terrain", () => {
   it("pushes the ship out of the notch wall mass", () => {

@@ -18,8 +18,8 @@ import {
   restBody,
   restOn,
   toSvg,
-} from "./sim";
-import { INK, insideMass, massesFor } from "./terrain";
+} from "../modules/sim";
+import { INK, insideMass, massesFor } from "../modules/terrain";
 
 const REGION_IDS: RegionId[] = ["launch", "stairs", "notch", "zig"];
 

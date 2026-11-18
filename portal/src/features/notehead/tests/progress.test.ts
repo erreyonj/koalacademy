@@ -13,7 +13,7 @@ import {
   pullForLaunchDegree,
   restOn,
   step,
-} from "./sim";
+} from "../modules/sim";
 import {
   BRIDGE_POWER,
   PROGRESSION,
@@ -25,8 +25,8 @@ import {
   repairForBeat,
   simulateFlight,
   stepPolicyFor,
-} from "./progress";
-import { WARP_BAND_ID } from "./anachrometer";
+} from "../modules/progress";
+import { WARP_BAND_ID } from "../modules/anachrometer";
 
 const easy = PROFILES.easy;
 
@@ -60,6 +60,29 @@ describe("route table", () => {
     const result = beat.evaluate(flight, { anachrometer: false, tails: [] });
     expect(result.cleared).toBe(true);
     expect(beat.next).toBe("notch-crash");
+  });
+
+  it("launch-teach soft-lands when the guide was never crossed", () => {
+    const beat = PROGRESSION["launch-teach"];
+    const body = beat.enter({ anachrometer: false, tails: [] });
+    const power = pullForLaunchDegree(1);
+    const velocity = launchVelocity("launch", LAUNCH_BAND.id, {
+      power,
+      angle: 0,
+    });
+    const flight = simulateFlight({
+      regionId: "launch",
+      body: { ...body, ...velocity, restingOn: null },
+      policy: stepPolicyFor(beat, { anachrometer: false, tails: [] }, false),
+      beatId: "launch-teach",
+      power,
+    });
+    expect(flight.crossedGoal).toBe(false);
+    expect(flight.brokeBand).toBe(false);
+    expect(flight.restingOn).toBe(LAUNCH_BAND.id);
+    expect(beat.evaluate(flight, { anachrometer: false, tails: [] }).cleared).toBe(
+      false,
+    );
   });
 
   it("a hard fall does not rest on a band when catchBands is false", () => {
@@ -124,6 +147,7 @@ describe("route table", () => {
         apexY: body.y,
         crossedGoal: false,
         brokeBand: false,
+        crossedExit: false,
         visited,
         landedOn,
         restingOn: body.restingOn,
@@ -141,33 +165,48 @@ describe("route table", () => {
     expect(repairForBeat("stairs-anach").anachrometer).toBe(true);
   });
 
-  it("notch-calibrate does not auto-clear after Borealis (exit band handoff)", () => {
+  it("notch-calibrate clears only after Borealis and the exit gate", () => {
     const beat = PROGRESSION["notch-calibrate"];
     const repair = { anachrometer: true, tails: [] };
-    const full = beat.evaluate(
-      {
-        apexY: 0,
-        crossedGoal: false,
-        brokeBand: false,
-        visited: [NOTCH_FLOOR.id, NOTCH_POCKET.id, NOTCH_BLOCK.id],
-        landedOn: null,
-        restingOn: null,
-      },
-      repair,
-    );
-    expect(full.cleared).toBe(false);
-    expect(full.hint).toMatch(/Frequency Band/i);
+    const base = {
+      apexY: 0,
+      crossedGoal: false,
+      brokeBand: false,
+      visited: [NOTCH_FLOOR.id, NOTCH_POCKET.id, NOTCH_BLOCK.id],
+      landedOn: null as string | null,
+      restingOn: null as string | null,
+    };
+    const waiting = beat.evaluate({ ...base, crossedExit: false }, repair);
+    expect(waiting.cleared).toBe(false);
+    expect(waiting.hint).toMatch(/exit/i);
+    const cleared = beat.evaluate({ ...base, crossedExit: true }, repair);
+    expect(cleared.cleared).toBe(true);
     expect(beat.next).toBe("launch-bridge");
   });
 
-  it("launch-bridge clears on a full-power shot through the guide", () => {
+  it("launch-bridge clears on a full-power shot through the exit", () => {
     const beat = PROGRESSION["launch-bridge"];
     const repair = { anachrometer: true, tails: [] };
+    const waiting = beat.evaluate(
+      {
+        apexY: launchGoalY() + 40,
+        crossedGoal: true,
+        brokeBand: false,
+        crossedExit: false,
+        visited: [],
+        landedOn: null,
+        restingOn: null,
+        power: BRIDGE_POWER,
+      },
+      repair,
+    );
+    expect(waiting.cleared).toBe(false);
     const result = beat.evaluate(
       {
         apexY: launchGoalY() + 40,
         crossedGoal: true,
         brokeBand: false,
+        crossedExit: true,
         visited: [],
         landedOn: null,
         restingOn: null,
@@ -179,41 +218,69 @@ describe("route table", () => {
     expect(beat.next).toBe("stairs-anach");
   });
 
-  it("stairs-anach does not auto-clear after Borealis (exit band handoff)", () => {
+  it("stairs-anach clears after Borealis and the right-side exit", () => {
     const beat = PROGRESSION["stairs-anach"];
     const ids = STAIR_TREADS.map((tread) => tread.id);
-    const result = beat.evaluate(
+    const waiting = beat.evaluate(
       {
         apexY: 0,
         crossedGoal: false,
         brokeBand: false,
+        crossedExit: false,
         visited: ids,
         landedOn: "s1",
         restingOn: null,
       },
       { anachrometer: true, tails: [] },
     );
-    expect(result.cleared).toBe(false);
-    expect(result.hint).toMatch(/Frequency Band/i);
-    expect(beat.next).toBe("zig-1");
-  });
-
-  it("zig-1 follows stairs and does not auto-clear after Borealis", () => {
-    const beat = PROGRESSION["zig-1"];
-    expect(PROGRESSION["stairs-anach"].next).toBe("zig-1");
-    const result = beat.evaluate(
+    expect(waiting.cleared).toBe(false);
+    expect(waiting.hint).toMatch(/exit/i);
+    const cleared = beat.evaluate(
       {
         apexY: 0,
         crossedGoal: false,
         brokeBand: false,
+        crossedExit: true,
+        visited: ids,
+        landedOn: "s1",
+        restingOn: null,
+      },
+      { anachrometer: true, tails: [] },
+    );
+    expect(cleared.cleared).toBe(true);
+    expect(beat.next).toBe("zig-1");
+  });
+
+  it("zig-1 clears after Borealis and the top exit", () => {
+    const beat = PROGRESSION["zig-1"];
+    expect(PROGRESSION["stairs-anach"].next).toBe("zig-1");
+    const waiting = beat.evaluate(
+      {
+        apexY: 0,
+        crossedGoal: false,
+        brokeBand: false,
+        crossedExit: false,
         visited: ["zig-peak", "zig-left", "zig-right"],
         landedOn: "zig-right",
         restingOn: null,
       },
       { anachrometer: true, tails: [] },
     );
-    expect(result.cleared).toBe(false);
-    expect(result.hint).toMatch(/Frequency Band/i);
+    expect(waiting.cleared).toBe(false);
+    expect(waiting.hint).toMatch(/exit/i);
+    const cleared = beat.evaluate(
+      {
+        apexY: 0,
+        crossedGoal: false,
+        brokeBand: false,
+        crossedExit: true,
+        visited: ["zig-peak", "zig-left", "zig-right"],
+        landedOn: "zig-right",
+        restingOn: null,
+      },
+      { anachrometer: true, tails: [] },
+    );
+    expect(cleared.cleared).toBe(true);
     expect(beat.next).toBeNull();
     expect(beat.regionId).toBe("zig");
   });

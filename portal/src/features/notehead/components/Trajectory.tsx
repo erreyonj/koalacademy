@@ -1,4 +1,4 @@
-import { toSvg, type RegionId } from "../sim";
+import { toSvg, type RegionId } from "../modules/sim";
 
 /** Path parameter → stroke opacity. Strong at the start, soft at the tip. */
 function fadeAt(t: number): number {

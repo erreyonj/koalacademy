@@ -13,6 +13,7 @@ import {
   ZIG_LEDGES,
   ZIG_PEAK,
   ZIG_RIGHT,
+  fromSvgPoint,
   ledgeById,
   ledgeYAt,
   openTreadSpan,
@@ -88,6 +89,20 @@ export function exitBandFor(gem: Borealis): Ledge | null {
   };
 }
 
+/**
+ * Tonation pitches for the HUD / goal button.
+ * Beats with Borealis list every gem tone in gather order; otherwise `fallback`
+ * (the region's guide pitch).
+ */
+export function tonationPitches(
+  beatId: BeatId,
+  fallback: PitchName,
+): readonly PitchName[] {
+  const gems = spawnBorealis(beatId);
+  if (gems.length > 0) return gems.map((gem) => gem.pitch);
+  return [fallback];
+}
+
 /** Spawn Borealis for a beat's visit chain. Empty when the beat has none. */
 export function spawnBorealis(beatId: BeatId): Borealis[] {
   if (beatId === "notch-calibrate") {
@@ -102,11 +117,22 @@ export function spawnBorealis(beatId: BeatId): Borealis[] {
     return STAIR_TREADS.map((tread) => hoverAboveOpenTread(tread));
   }
   if (beatId === "zig-1") {
-    // Zig-zag: peak C4 → left E4 → right A4 (region goal).
+    // Three gems: (1) float in the open shaft, (2) left shelf, (3) right shelf.
+    // Floating spot stays outside start magnet range so it isn't auto-gathered.
+    const float = fromSvgPoint(214, 88, "zig");
+    const rightX =
+      ZIG_RIGHT.x0 + (ZIG_RIGHT.x1 - ZIG_RIGHT.x0) * 0.28;
     return [
-      { ...hoverAbove(ZIG_PEAK, SHIP_R * 2.4), pitch: "C4" },
+      {
+        id: ZIG_PEAK.id,
+        x: float.x,
+        y: float.y,
+        pitch: "C4",
+        collected: false,
+        homeX: float.x,
+      },
       { ...hoverAbove(ZIG_LEFT, SHIP_R * 2.4), pitch: "E4" },
-      { ...hoverAbove(ZIG_RIGHT, SHIP_R * 2.6), pitch: "A4" },
+      { ...hoverAbove(ZIG_RIGHT, SHIP_R * 2.2, rightX), pitch: "A4" },
     ];
   }
   return [];

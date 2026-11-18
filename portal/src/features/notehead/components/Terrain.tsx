@@ -1,6 +1,6 @@
 import { memo } from "react";
-import type { RegionId } from "../sim";
-import { massesFor, type Point } from "../terrain";
+import type { RegionId } from "../modules/sim";
+import { massesFor, type Point } from "../modules/terrain";
 
 function ring(points: readonly Point[]): string {
   return `${stroke(points)} Z`;

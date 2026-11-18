@@ -1,5 +1,6 @@
 import { Band } from "./Band";
 import { BorealisMark } from "./Borealis";
+import { ExitMark } from "./ExitZone";
 import { SceneFrame } from "./SceneFrame";
 import { Ship, type ShipLook } from "./Ship";
 import { Sparkles } from "./Sparkles";
@@ -11,8 +12,8 @@ import {
   toSvg,
   type Body,
   type Ledge,
-} from "../sim";
-import { pullOffsetSvg, type FrameGesture } from "../view";
+} from "../modules/sim";
+import { pullOffsetSvg, type FrameGesture } from "../modules/view";
 
 function treadLine(tread: Ledge) {
   const next = [...STAIR_TREADS]
@@ -113,6 +114,9 @@ export function StairArt({
         sag={body.restingOn === STAIR_BAND.id ? sag : { x: 0, y: 0 }}
         testId="stair-band"
       />
+      {gesture.exitZone && (
+        <ExitMark zone={gesture.exitZone} lit={gesture.exitLit} />
+      )}
       {gesture.phase === "sparkle" && (
         <Sparkles cx={ship.x} cy={ship.y} testId="stair-sparkles" />
       )}

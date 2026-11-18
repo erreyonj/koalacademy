@@ -15,8 +15,30 @@ export interface SvgViewSize {
 
 /** Portrait art frame shared by launch, stairs, and notch. */
 export const PORTRAIT_VIEW: SvgViewSize = { w: 200, h: 360 };
-/** Landscape art frame for zig (same 1.8 ratio as the 1920×1080 mocks). */
+/**
+ * Zig content frame (ledge / terrain authoring, same 1.8 ratio as the mocks).
+ * The on-screen camera zooms out via {@link ZIG_CAMERA} — see {@link zigCameraFrame}.
+ */
 export const LANDSCAPE_VIEW: SvgViewSize = { w: 360, h: 200 };
+/** Zig render scale. Below 1 zooms out (more sky around the level). */
+export const ZIG_CAMERA = 0.88;
+
+/** Outer SVG view + content origin for zig's zoomed-out camera. */
+export function zigCameraFrame(): {
+  content: SvgViewSize;
+  view: SvgViewSize;
+  ox: number;
+  oy: number;
+} {
+  const content = LANDSCAPE_VIEW;
+  const view = { w: content.w / ZIG_CAMERA, h: content.h / ZIG_CAMERA };
+  return {
+    content,
+    view,
+    ox: (view.w - content.w) / 2,
+    oy: (view.h - content.h) / 2,
+  };
+}
 
 const SVG_W = PORTRAIT_VIEW.w;
 const SVG_H = PORTRAIT_VIEW.h;

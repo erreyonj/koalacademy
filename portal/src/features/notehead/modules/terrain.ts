@@ -17,6 +17,7 @@ import {
   ZIG_RIGHT,
   ledgeYAt,
   toSvg,
+  zigCameraFrame,
   type Ledge,
   type RegionId,
   type SvgViewSize,
@@ -366,76 +367,86 @@ function notchMasses(): Mass[] {
 }
 
 /**
- * Zig landscape: twin hanging cliffs + bottom peak. Left shelf is a deep
- * horizontal platform; right side is a triangular wedge (annotated scribble).
- * Vertical spacing is roughly double the first pass so the zig-zag reads.
+ * Zig landscape: twin hanging cliffs + bottom peak.
+ * Keep outer bodies / peak (green). Cut upper inward teeth (red). Fill under
+ * the right mid-shelf (orange). Outlines bleed into the camera pad.
  */
 function zigMasses(): Mass[] {
   const frame = LANDSCAPE_VIEW;
+  const { ox, oy } = zigCameraFrame();
   const rand = seeded(0x5a49);
   const rough = rougher(rand, 2.2);
   const peak = span(ZIG_PEAK, "zig");
   const left = span(ZIG_LEFT, "zig");
-  const right = span(ZIG_RIGHT, "zig");
   const peakLip = peak.y + INK / 2;
   const leftLip = left.y + INK / 2;
   // Sloped right lip: sample both ends so the wedge sits under the step.
   const rightOpen = toSvg(ZIG_RIGHT.x0, ledgeYAt(ZIG_RIGHT, ZIG_RIGHT.x0), "zig");
   const rightWall = toSvg(ZIG_RIGHT.x1, ledgeYAt(ZIG_RIGHT, ZIG_RIGHT.x1), "zig");
-  const fw = frame.w;
-  const fh = frame.h;
+  // Content-space edges that land on the outer camera frame after translate.
+  const edgeL = -ox - OVER;
+  const edgeT = -oy - OVER;
+  const edgeR = frame.w + ox + OVER;
+  const edgeB = frame.h + oy + OVER;
 
   return [
     mass(
       "zig-cliff-left",
       [
-        at(-OVER, -OVER),
-        at(102, -OVER),
+        // Green: keep the outer left body.
+        at(edgeL, edgeT),
+        at(102, edgeT),
         rough(96, 22),
-        rough(88, 48),
-        // Tall face down to the deep left shelf.
-        at(left.x1 + 6, leftLip - 36),
-        at(left.x0 - 6, leftLip - 18),
+        rough(82, 44),
+        // Red: cut the inward tooth above the left shelf (recess the face).
+        rough(64, leftLip - 44),
+        at(left.x0 - 4, leftLip - 16),
+        // Green: keep the left shelf lip.
         at(left.x0 - 6, leftLip),
         at(left.x1 + 4, leftLip),
         rough(left.x1 - 4, leftLip + 28),
         rough(36, leftLip + 56),
         rough(12, 168),
-        at(-OVER, 176),
+        at(edgeL, edgeB),
       ],
       rand,
       frame,
     ),
-    // Right wedge: high tip near the shaft, thick back into the right wall.
+    // Right cliff: green mid body kept; red tip trimmed; orange fill under shelf.
     mass(
       "zig-cliff-right",
       [
-        at(fw + OVER, -OVER),
-        at(268, -OVER),
-        rough(278, 16),
-        at(rightWall.x + 4, rightWall.y - 8),
+        at(edgeR, edgeT),
+        // Red: pull the top tip back (less corridor bite).
+        at(292, edgeT),
+        rough(304, 18),
+        at(rightWall.x + 6, rightWall.y - 4),
         at(rightWall.x + 4, rightWall.y + INK / 2),
         at(rightOpen.x - 2, rightOpen.y + INK / 2),
-        // Triangle under the sloping lip.
-        rough(rightOpen.x + 18, rightOpen.y + 36),
-        rough(300, rightOpen.y + 58),
+        // Orange: solid fill under the mid-right shelf lip.
+        at(rightOpen.x + 6, rightOpen.y + 12),
+        at(rightOpen.x + 22, rightOpen.y + 28),
+        rough(rightOpen.x + 40, rightOpen.y + 46),
+        rough(310, rightOpen.y + 64),
+        // Green: keep the lower right body into the wall.
         rough(340, 150),
-        at(fw + OVER, 168),
+        at(edgeR, edgeB),
       ],
       rand,
       frame,
     ),
+    // Green: keep the bottom peak island.
     mass(
       "zig-peak",
       [
-        at(96, fh + OVER),
+        at(96, edgeB),
         rough(118, peakLip + 22),
         at(peak.x0 - 6, peakLip + 4),
         at(peak.x0 + 6, peakLip),
         at(peak.x1 - 6, peakLip + 1),
         at(peak.x1 + 10, peakLip + 8),
         rough(260, peakLip + 22),
-        at(280, fh + OVER),
+        at(280, edgeB),
       ],
       rand,
       frame,

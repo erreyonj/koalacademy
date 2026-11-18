@@ -8,7 +8,8 @@ import {
   seedVisited,
   spawnBorealis,
   stepBorealis,
-} from "./borealis";
+  tonationPitches,
+} from "../modules/borealis";
 import {
   NOTCH_BLOCK,
   NOTCH_POCKET,
@@ -17,7 +18,7 @@ import {
   ZIG_LEFT,
   ZIG_PEAK,
   ZIG_RIGHT,
-} from "./sim";
+} from "../modules/sim";
 
 describe("Borealis", () => {
   it("spawns pocket and block for notch-calibrate with two goal tones", () => {
@@ -28,6 +29,15 @@ describe("Borealis", () => {
     ]);
     expect(list.map((entry) => entry.pitch)).toEqual(["E4", "A4"]);
     expect(list.every((entry) => !entry.collected)).toBe(true);
+  });
+
+  it("lists tonation pitches from Borealis (or the region fallback)", () => {
+    expect(tonationPitches("notch-calibrate", "A4")).toEqual(["E4", "A4"]);
+    expect(tonationPitches("stairs-anach", "G4")).toEqual(["C4", "E4", "G4"]);
+    expect(tonationPitches("zig-1", "A4")).toEqual(["C4", "E4", "A4"]);
+    expect(tonationPitches("launch-teach", "G4")).toEqual(["G4"]);
+    expect(tonationPitches("launch-bridge", "G4")).toEqual(["G4"]);
+    expect(tonationPitches("notch-crash", "A4")).toEqual(["A4"]);
   });
 
   it("spawns one gem over each tread's open face with tread goal tones", () => {
@@ -52,14 +62,22 @@ describe("Borealis", () => {
     expect(seedVisited("zig-1")).toEqual([ZIG_PEAK.id]);
   });
 
-  it("spawns zig-1 Borealis peak → left → right with goal tones", () => {
+  it("spawns zig-1 Borealis float → left → right shelf with goal tones", () => {
     const list = spawnBorealis("zig-1");
+    expect(list).toHaveLength(3);
     expect(list.map((entry) => entry.id)).toEqual([
       ZIG_PEAK.id,
       ZIG_LEFT.id,
       ZIG_RIGHT.id,
     ]);
     expect(list.map((entry) => entry.pitch)).toEqual(["C4", "E4", "A4"]);
+    const floating = list[0]!;
+    const left = list[1]!;
+    const right = list[2]!;
+    // Floating gem sits in the open shaft (not on the start seat).
+    expect(floating.y).toBeGreaterThan(ZIG_PEAK.y + SHIP_R * 2);
+    expect(left.y).toBeGreaterThan(ZIG_LEFT.y);
+    expect(right.y).toBeGreaterThan(ZIG_RIGHT.y);
   });
 
   it("nextBorealisIndex tracks goal order", () => {

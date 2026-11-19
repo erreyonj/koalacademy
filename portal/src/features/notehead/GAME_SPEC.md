@@ -33,6 +33,7 @@ One route, one world, four places. Default play advances a beat table. A debug H
 | `launch-bridge` | Launch | Enter rising onto the launch band (continues the Notch exit jump); a full-power shot through the top exit clears into Stairs |
 | `stairs-anach` | Stairs | Enter rising onto the approach band (reads as the Launch Bridge exit); collect Borealis above every tread; jump right through the side exit |
 | `zig-1` | Zig | Enter rising onto the peak Frequency Band; collect Borealis float → left shelf → right shelf; jump up through the top exit |
+| `launch-tail` | Tail | Launch terrain; collect the floating eighth-note Note-Tail; unlocks `repair.tails` entry `"eighth"` |
 
 Soft transitions: most clears sparkle, then spawn the next beat's entry body (often already in flight). `launch-teach` skips the star burst and holds a slo-mo fall through the broken band until OOB, then cuts to Notch crash. `notch-crash` also skips the star burst.
 

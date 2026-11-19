@@ -49,6 +49,21 @@ No story interrupt — scripted fall into Notch.
 - **GI:** Collecting Borealis orbs repairs the ship's tonal calibration so you can repair the Note-Tails and gain new abilities!
 - Holds advance to Launch Bridge until dismissed.
 
+## Tail (`launch-tail`)
+
+Launch terrain + Frequency Band. Floating eighth-note Note-Tail pickup.
+
+### Enter — CM then GI
+
+- **CM:**
+  1. Wait a minute… that reading — that's a Note-Tail signature!!
+  2. The first missing tail… it's floating right above the Frequency Band. Grab it!
+- **GI:** Launch up and collect the Note-Tail
+
+### Clear
+
+- Collect the Note-Tail → adds `eighth` to `repair.tails`.
+
 ## Stairs
 
 (Draft only — not wired)

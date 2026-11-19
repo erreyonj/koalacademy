@@ -13,7 +13,8 @@ export type StoryEventId =
   | "notch-calibrate-first-warp"
   | "notch-calibrate-hull-hit"
   | "notch-calibrate-hull-breach"
-  | "notch-calibrate-exit";
+  | "notch-calibrate-exit"
+  | "launch-tail-enter";
 
 /** Optional one-shot SFX when a CM/GI line begins. */
 export type StoryLineSfx = "anach-repair";
@@ -105,6 +106,21 @@ const EVENTS: Record<StoryEventId, readonly StoryInterrupt[]> = {
       ],
     },
   ],
+  "launch-tail-enter": [
+    {
+      kind: "cm",
+      speaker: CAPTAIN,
+      lines: [
+        "Wait a minute… that reading — that's a Note-Tail signature!!",
+        "The first missing tail… it's floating right above the Frequency Band. Grab it!",
+      ],
+    },
+    {
+      kind: "gi",
+      speaker: SYSTEM,
+      lines: ["Launch up and collect the Note-Tail"],
+    },
+  ],
 };
 
 export function interruptsForEvent(
@@ -117,5 +133,6 @@ export function interruptsForEvent(
 export function enterEventsForBeat(id: BeatId): readonly StoryEventId[] {
   if (id === "launch-teach") return ["launch-enter"];
   if (id === "notch-calibrate") return ["notch-calibrate-enter"];
+  if (id === "launch-tail") return ["launch-tail-enter"];
   return [];
 }

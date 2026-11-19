@@ -1,5 +1,5 @@
 /**
- * Beat-driven route: Launch → Notch → Launch → Stairs → Zig.
+ * Beat-driven route: Launch → Notch → Launch → Stairs → Zig → Tail.
  */
 import { engageWarp, WARP_BAND_ID } from "./anachrometer";
 import {
@@ -41,7 +41,8 @@ export type BeatId =
   | "notch-calibrate"
   | "launch-bridge"
   | "stairs-anach"
-  | "zig-1";
+  | "zig-1"
+  | "launch-tail";
 
 export interface BeatFlight {
   /** Highest y this flight. */
@@ -87,6 +88,7 @@ export const BEAT_ORDER: readonly BeatId[] = [
   "launch-bridge",
   "stairs-anach",
   "zig-1",
+  "launch-tail",
 ];
 
 const ZIG_BANDS = [ZIG_PEAK.id, ZIG_LEFT.id, ZIG_RIGHT.id] as const;
@@ -260,7 +262,7 @@ export const PROGRESSION: Record<BeatId, BeatDef> = {
     id: "zig-1",
     label: "Zig",
     regionId: "zig",
-    next: null,
+    next: "launch-tail",
     hint: "Warp and zig-zag: gather Borealis floating, left shelf, then right shelf.",
     clearHint: "Through the exit",
     // Rise onto the peak Frequency Band (the starting sling).
@@ -283,6 +285,33 @@ export const PROGRESSION: Record<BeatId, BeatDef> = {
           : gathered
             ? "Fly out through the exit"
             : "Collect Borealis float → left → right",
+      };
+    },
+  },
+  "launch-tail": {
+    id: "launch-tail",
+    label: "Tail",
+    regionId: "launch",
+    next: null,
+    hint: "The first Note-Tail is floating above the Frequency Band — grab it!",
+    clearHint: "Note-Tail recovered",
+    enter: () => restOn(LAUNCH_BAND),
+    catchBands: (repair) => repair.anachrometer,
+    evaluate: (flight, repair) => {
+      const grabbed = flight.visited.includes("tail-eighth");
+      return {
+        cleared: grabbed,
+        repair: grabbed
+          ? {
+              ...repair,
+              tails: repair.tails.includes("eighth")
+                ? repair.tails
+                : [...repair.tails, "eighth"],
+            }
+          : repair,
+        hint: grabbed
+          ? "Note-Tail recovered"
+          : "Launch up and collect the Note-Tail",
       };
     },
   },

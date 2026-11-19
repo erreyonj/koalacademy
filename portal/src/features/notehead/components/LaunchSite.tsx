@@ -1,6 +1,7 @@
 import { Band } from "./Band";
 import { BandBreak } from "./BandBreak";
 import { ExitMark } from "./ExitZone";
+import { NoteTailMark } from "./NoteTailMark";
 import { SceneFrame } from "./SceneFrame";
 import { Ship, type ShipLook } from "./Ship";
 import { Sparkles } from "./Sparkles";
@@ -28,7 +29,7 @@ export function LaunchArt({
   look: ShipLook;
   warp: Ledge | null;
 }) {
-  const showGuide = !gesture.exitZone;
+  const showGuide = !gesture.exitZone && !gesture.noteTail;
   const goalIndex = Math.max(0, pitchIndex(goalPitch as "G4"));
   const guide = toSvg(0, LAUNCH_BAND.y + (goalIndex + 1) * LAUNCH_SPACING);
   const band = toSvg(LAUNCH_BAND.x0, LAUNCH_BAND.y);
@@ -89,6 +90,14 @@ export function LaunchArt({
         />
       )}
       <Trajectory points={gesture.chart} apex={gesture.chartApex} />
+      {gesture.noteTail && (
+        <NoteTailMark
+          x={gesture.noteTail.x}
+          y={gesture.noteTail.y}
+          collected={gesture.noteTail.collected}
+          testId="note-tail-eighth"
+        />
+      )}
       {gesture.exitZone && (
         <ExitMark zone={gesture.exitZone} lit={gesture.exitLit} />
       )}

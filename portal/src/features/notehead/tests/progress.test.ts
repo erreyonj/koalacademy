@@ -281,8 +281,41 @@ describe("route table", () => {
       { anachrometer: true, tails: [] },
     );
     expect(cleared.cleared).toBe(true);
-    expect(beat.next).toBeNull();
+    expect(beat.next).toBe("launch-tail");
     expect(beat.regionId).toBe("zig");
+  });
+
+  it("launch-tail clears when the eighth Note-Tail is visited", () => {
+    const beat = PROGRESSION["launch-tail"];
+    expect(PROGRESSION["zig-1"].next).toBe("launch-tail");
+    const waiting = beat.evaluate(
+      {
+        apexY: 0,
+        crossedGoal: false,
+        brokeBand: false,
+        crossedExit: false,
+        visited: [],
+        landedOn: "launch-band",
+        restingOn: "launch-band",
+      },
+      { anachrometer: true, tails: [] },
+    );
+    expect(waiting.cleared).toBe(false);
+    const cleared = beat.evaluate(
+      {
+        apexY: 0,
+        crossedGoal: false,
+        brokeBand: false,
+        crossedExit: false,
+        visited: ["tail-eighth"],
+        landedOn: null,
+        restingOn: null,
+      },
+      { anachrometer: true, tails: [] },
+    );
+    expect(cleared.cleared).toBe(true);
+    expect(cleared.repair.tails).toContain("eighth");
+    expect(beat.regionId).toBe("launch");
   });
 
   it("a sloped tread visit lands then slides off without staying seated", () => {

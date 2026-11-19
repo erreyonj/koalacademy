@@ -57,7 +57,7 @@ const ENERGY_FALL = 16;
 
 type Rgb = readonly [number, number, number];
 
-const RISING: Rgb = [79, 193, 246];
+const RISING: Rgb = [143, 180, 196]; // matches --nh-band #8fb4c4
 const LEVEL: Rgb = [241, 207, 72];
 const FALLING: Rgb = [238, 79, 74];
 

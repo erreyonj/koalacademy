@@ -2,17 +2,17 @@
   --nh-void: #03050a;
   --nh-sky-top: #060a13;
   --nh-sky-bottom: #0b111d;
-  --nh-sky-cloud: #5f8fd6;
+  --nh-sky-cloud: #6e7f93;
   --nh-sky-wash: #c9743a;
   --nh-rock: #0a0a0c;
   --nh-rock-edge: #3b4c66;
   --nh-ink: #eaf2fb;
-  --nh-band: #4fc1f6;
-  --nh-guide: #cfe6fb;
+  --nh-band: #8fb4c4;
+  --nh-guide: #c5d4de;
   --nh-chart: #8e99a8;
   --nh-spark: #ffe27a;
-  --nh-hint: rgba(207, 226, 246, 0.66);
-  --nh-chip: rgba(207, 226, 246, 0.24);
+  --nh-hint: rgba(197, 212, 222, 0.66);
+  --nh-chip: rgba(197, 212, 222, 0.24);
 
   position: relative;
   width: 100%;
@@ -123,6 +123,177 @@
   font-size: 0.78rem;
   letter-spacing: 0.04em;
   color: var(--nh-hint);
+}
+
+/* Captain monologue interrupt — classic bottom textbox over a dimmed scene. */
+.notehead-cutscene {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 0.75rem;
+  background: color-mix(in srgb, var(--nh-void) 72%, transparent);
+  backdrop-filter: blur(1.5px);
+  cursor: pointer;
+  outline: none;
+  touch-action: manipulation;
+}
+
+.notehead-cutscene-box {
+  position: relative;
+  width: 100%;
+  max-width: 26rem;
+  margin: 0 auto 0.35rem;
+  padding: 1.35rem 1rem 0.85rem;
+  background: color-mix(in srgb, var(--nh-void) 88%, #122038);
+  border: 2px solid color-mix(in srgb, var(--nh-band) 75%, var(--nh-rock-edge));
+  border-radius: 0.55rem;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--nh-void) 80%, #000),
+    0 8px 0 color-mix(in srgb, var(--nh-void) 65%, #000),
+    inset 0 1px 0 color-mix(in srgb, var(--nh-guide) 18%, transparent);
+}
+
+.notehead-cutscene-speaker {
+  position: absolute;
+  top: 0;
+  left: 0.85rem;
+  transform: translateY(-55%);
+  margin: 0;
+  padding: 0.2rem 0.55rem 0.28rem;
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #04121c;
+  background: var(--nh-band);
+  border-radius: 0.3rem;
+  box-shadow: 0 2px 0 color-mix(in srgb, var(--nh-void) 55%, #000);
+  white-space: nowrap;
+}
+
+.notehead-cutscene-text {
+  margin: 0;
+  min-height: 3.2em;
+  font-family: var(--font-turret), var(--font-display), sans-serif;
+  font-size: 1.15rem;
+  font-weight: 400;
+  line-height: 1.35;
+  letter-spacing: 0.02em;
+  color: var(--nh-ink);
+  text-wrap: pretty;
+}
+
+/* Game interrupt — HUD-style coaching, no mask blur or bubble. */
+.notehead-cutscene[data-kind="gi"] {
+  justify-content: center;
+  background: transparent;
+  backdrop-filter: none;
+}
+
+.notehead-cutscene[data-kind="gi"] .notehead-cutscene-box {
+  max-width: 22rem;
+  margin: 0 auto;
+  padding: 0.5rem 0.75rem;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.notehead-cutscene[data-kind="gi"] .notehead-cutscene-speaker,
+.notehead-cutscene[data-kind="gi"] .notehead-cutscene-prompt {
+  display: none;
+}
+
+.notehead-cutscene[data-kind="gi"] .notehead-cutscene-text {
+  min-height: 0;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  line-height: 1.45;
+  text-align: center;
+  color: var(--nh-ink);
+  text-shadow:
+    0 0 0.55em color-mix(in srgb, var(--nh-void) 85%, transparent),
+    0 1px 2px var(--nh-void);
+  animation: notehead-gi-fade-in 0.14s ease-out both;
+}
+
+.notehead-cutscene[data-kind="gi"].is-leaving .notehead-cutscene-text {
+  animation: notehead-gi-fade-out 0.14s ease-in both;
+}
+
+.notehead-cutscene[data-kind="gi"] .notehead-cutscene-caret {
+  color: var(--nh-guide);
+}
+
+@keyframes notehead-gi-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes notehead-gi-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .notehead-cutscene[data-kind="gi"] .notehead-cutscene-text,
+  .notehead-cutscene[data-kind="gi"].is-leaving .notehead-cutscene-text {
+    animation: none;
+    opacity: 1;
+  }
+}
+
+.notehead-cutscene-caret {
+  display: inline-block;
+  margin-left: 0.35em;
+  font-family: var(--font-mono);
+  font-size: 0.7em;
+  color: var(--nh-band);
+  animation: notehead-cutscene-blink 0.85s steps(1, end) infinite;
+  vertical-align: 0.05em;
+}
+
+.notehead-cutscene-prompt {
+  margin: 0.45rem 0 0;
+  min-height: 1em;
+  text-align: right;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--nh-hint);
+}
+
+@keyframes notehead-cutscene-blink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .notehead-cutscene-caret {
+    animation: none;
+    opacity: 1;
+  }
 }
 
 .notehead-hud {
@@ -533,6 +704,12 @@
   fill: #04060a;
 }
 
+.notehead-ship-hole {
+  fill: #03050a;
+  stroke: color-mix(in srgb, #03050a 70%, #1a2438);
+  stroke-width: 0.35;
+}
+
 .notehead-ship-glint {
   fill: #ffffff;
   opacity: 0.32;
@@ -635,6 +812,37 @@
   box-shadow: 0 0 8px color-mix(in srgb, var(--nh-band) 45%, transparent);
 }
 
+/* Pulse hull pips while the Hard-hits GI tip is on screen. */
+@keyframes notehead-hull-gi-pulse {
+  0%,
+  100% {
+    background: color-mix(in srgb, var(--nh-band) 55%, transparent);
+    border-color: color-mix(in srgb, var(--nh-band) 45%, transparent);
+    box-shadow: none;
+  }
+  50% {
+    background: color-mix(in srgb, var(--nh-band) 88%, #ffffff 18%);
+    border-color: var(--nh-band);
+    box-shadow: 0 0 12px color-mix(in srgb, var(--nh-band) 65%, transparent);
+  }
+}
+
+.notehead-hull.is-gi-pulse .notehead-hull-pip {
+  animation: notehead-hull-gi-pulse 0.85s ease-in-out infinite;
+}
+
+.notehead-hull.is-gi-pulse .notehead-hull-pip.is-on {
+  animation-name: notehead-hull-gi-pulse;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .notehead-hull.is-gi-pulse .notehead-hull-pip {
+    animation: none;
+    background: color-mix(in srgb, var(--nh-band) 88%, #ffffff 18%);
+    border-color: var(--nh-band);
+  }
+}
+
 /* Region and difficulty chips */
 
 .notehead-regions {
@@ -688,6 +896,56 @@
   background: var(--nh-band);
   color: #04121c;
   border-color: var(--nh-band);
+}
+
+/* Idle attract — Tab-like sequential fill flash on chrome outside the scene */
+@keyframes notehead-idle-flash {
+  0%,
+  100% {
+    filter: none;
+  }
+  35%,
+  65% {
+    filter: brightness(1.35);
+  }
+}
+
+.notehead-page.is-idle-attract [data-idle-flash].is-idle-flash {
+  animation: notehead-idle-flash 0.12s ease-in-out;
+}
+
+.notehead-difficulty button[data-idle-flash].is-idle-flash {
+  background: var(--nh-band);
+  color: #04121c;
+  border-color: var(--nh-band);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--nh-band) 45%, transparent);
+}
+
+.notehead-goal-btn[data-idle-flash].is-idle-flash {
+  background: color-mix(in srgb, var(--nh-band) 28%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--nh-band) 55%, transparent);
+}
+
+.notehead-goal-btn[data-idle-flash].is-idle-flash strong {
+  color: #ffffff;
+}
+
+.notehead-hull[data-idle-flash].is-idle-flash {
+  color: var(--nh-ink);
+  border-radius: 0.35rem;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--nh-band) 50%, transparent);
+  background: color-mix(in srgb, var(--nh-band) 18%, transparent);
+}
+
+.notehead-hull[data-idle-flash].is-idle-flash .notehead-hull-pip.is-on {
+  background: #ffffff;
+  box-shadow: 0 0 10px color-mix(in srgb, var(--nh-band) 70%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .notehead-page.is-idle-attract [data-idle-flash].is-idle-flash {
+    animation: none;
+  }
 }
 
 @keyframes notehead-spark-pop {

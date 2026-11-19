@@ -4,6 +4,7 @@
  * Sealed frame edges block every other escape so gathering cannot be lost to OOB.
  */
 import type { Borealis } from "./borealis";
+import { MASS_HIT_SPEED } from "./collide";
 import { allBorealisCollected } from "./health";
 import type { BeatId } from "./progress";
 import {
@@ -125,6 +126,8 @@ export function leftFrameThroughExit(
 /**
  * Soft frame walls once the exit is live: every edge seals except the exit gap.
  * Keeps the ship from OOB-restarting after Borealis is gathered.
+ * `hit` is true only on a hard impact into a sealed edge (speed gate), so
+ * callers can tax hull without draining HP while the ship rests on a wall.
  */
 export function containAgainstExitFrame(
   body: Body,
@@ -135,30 +138,34 @@ export function containAgainstExitFrame(
   let hit = false;
 
   if (x < SHIP_R) {
+    const into = Math.max(0, -vx);
     x = SHIP_R;
     if (vx < 0) vx = 0;
-    hit = true;
+    if (into >= MASS_HIT_SPEED) hit = true;
   }
 
   const inRightGap =
     zone.facing === "right" && y >= gap.y0 && y <= gap.y1;
   if (!inRightGap && x > WORLD_W - SHIP_R) {
+    const into = Math.max(0, vx);
     x = WORLD_W - SHIP_R;
     if (vx > 0) vx = 0;
-    hit = true;
+    if (into >= MASS_HIT_SPEED) hit = true;
   }
 
   if (y < SHIP_R) {
+    const into = Math.max(0, -vy);
     y = SHIP_R;
     if (vy < 0) vy = 0;
-    hit = true;
+    if (into >= MASS_HIT_SPEED) hit = true;
   }
 
   const inTopGap = zone.facing === "up" && x >= gap.x0 && x <= gap.x1;
   if (!inTopGap && y > WORLD_H - SHIP_R) {
+    const into = Math.max(0, vy);
     y = WORLD_H - SHIP_R;
     if (vy > 0) vy = 0;
-    hit = true;
+    if (into >= MASS_HIT_SPEED) hit = true;
   }
 
   return { body: { x, y, vx, vy, restingOn }, hit };

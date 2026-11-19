@@ -67,11 +67,12 @@ Borealis is the ship's energy resource — glowing mid-air collectibles that mar
 
 ## Hull (HP)
 
-A simple hull bar in the HUD. Easy starts at **5** HP (`profile.maxHp`).
+A simple hull bar in the HUD. Easy **8** / Medium **5** / Hard **3** (`profile.maxHp`).
 
 - Landings on `kind: "band"` Frequency Bands never cost HP.
-- Landings on steps / blocks (and hard rock impacts) cost 1 HP.
-- Hard rock impacts (`resolveMasses` with speed into the wall) also cost 1 HP.
+- Landings on steps / blocks cost 1 HP only when fall speed ≥ `LANDING_HIT_SPEED` (~6 ship-radii freefall). Short hops onto adjacent terrain stay free.
+- Hard rock impacts (`resolveMasses` into a wall at ≥ `MASS_HIT_SPEED`) also cost 1 HP — pocket grazes on a short hop do not.
+- After Borealis is gathered, sealed exit-frame barriers bounce the ship on every dial; they cost 1 HP **only on Hard** (so Hard can still lose after a full gather).
 - Gathering all Borealis on the current beat restores 1 HP.
 - At 0 HP the beat restarts with a full hull.
 
@@ -131,7 +132,7 @@ One profile shared by every region. Route Easy uses the beat table and ignores a
 | Dial | Easy | Medium | Hard |
 | --- | --- | --- | --- |
 | Aim inset | 0 | 0.08 | 0.22 |
-| Max HP | off (0) | 5 | 4 |
+| Max HP | 8 | 5 | 3 |
 | Miss copy | retry | retry, name the miss | split pitch / landing when useful |
 
 K–2 play uses Easy. Do not fork components per difficulty.
@@ -199,7 +200,7 @@ Use Web Audio (same idea as `portal/src/components/keys-lite/piano.ts`). Do not 
 2. **Climb.** `launch-teach` only: while rising, one oscillator glides with height across the scale.
 3. **Aim clicks.** Short descending plucks while the trajectory is casting further (rate + level scale with extension). Holding still, retracting, or releasing is silent.
 
-`resume` on the pull gesture. Theme: `public/assets/notehead/Swung Gospel Glide.mp3` via shared `MusicTransport` / `useThemeMusic` (`start` on first pull or goal tap).
+Theme: `public/assets/notehead/notehead-etheral-vibe.wav` via shared `MusicTransport` / `useThemeMusic` — starts when Launch mounts (with pull / goal tap as fallback if the browser blocks autoplay). Display title stays **Cosmic Aether Soul**.
 
 ## Renderer
 

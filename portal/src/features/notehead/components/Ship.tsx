@@ -22,12 +22,23 @@ export interface ShipLook {
   clock: number;
   /** Reduced motion: the trail holds one pose. */
   still: boolean;
+  /**
+   * 0..1 Anachrometer whole-note open. Hull goes white and a center hole
+   * blooms while the glow-colored rim stays.
+   */
+  whole: number;
+}
+
+/** Solid black hull → white as the Anachrometer opens. */
+function hullFill(whole: number): string {
+  const t = Math.max(0, Math.min(1, whole));
+  const c = Math.round(255 * t);
+  return `rgb(${c} ${c} ${c})`;
 }
 
 /**
- * The stemless notehead. The hull stays level. The bright side of the rim
- * faces `glow.angle`, its color follows `glow.lift`, and ripples trail behind
- * while `glow.energy` is up.
+ * The stemless notehead. Solid black body, glow-colored rim. Anachrometer
+ * warp opens a whole-note hole and bleaches the hull white.
  */
 export function Ship({
   cx,
@@ -47,11 +58,12 @@ export function Ship({
   regionId?: RegionId;
 }) {
   const { glow } = look;
+  const whole = Math.max(0, Math.min(1, look.whole));
   const seat = seatFor(regionId);
   const dx = Math.cos(glow.angle);
   const dy = Math.sin(glow.angle);
   const unit = ry / 6;
-  const rim = 1.5 * unit;
+  const rim = (1.5 + 0.35 * whole) * unit;
   // How far the capsule reaches along the heading, and across it.
   const reach = Math.abs(dx) * (rx - ry) + ry;
   const breadth = Math.abs(dy) * (rx - ry) + ry;
@@ -63,18 +75,18 @@ export function Ship({
   };
   const trail = trailStrength(glow.energy);
   const pulse = look.still ? 0.5 : (look.clock * 1.8) % 1;
+  // Whole-note hole — matches the whl-* asset silhouette.
+  const holeRx = rx * 0.42 * whole;
+  const holeRy = ry * 0.36 * whole;
 
   return (
     <g
       className="notehead-ship-group"
       transform={`translate(${cx.toFixed(2)} ${(cy + seat - ry).toFixed(2)})`}
       pointerEvents="none"
+      data-whole={whole.toFixed(2)}
     >
       <defs>
-        <linearGradient id="nh-ship-hull" gradientUnits="userSpaceOnUse" {...axis}>
-          <stop offset="0" stopColor="#07080c" />
-          <stop offset="1" stopColor="#62666f" />
-        </linearGradient>
         <linearGradient id="nh-ship-rim" gradientUnits="userSpaceOnUse" {...axis}>
           <stop offset="0" stopColor={glowColor(glow, SHADE, 0.9)} />
           <stop offset="0.45" stopColor={glowColor(glow, SHADE, 0.5)} />
@@ -132,20 +144,32 @@ export function Ship({
         width={rx * 2}
         height={ry * 2}
         rx={ry}
-        fill="url(#nh-ship-hull)"
+        fill={hullFill(whole)}
         stroke="url(#nh-ship-rim)"
         strokeWidth={rim}
         data-testid={testId}
         data-lift={glow.lift.toFixed(2)}
         data-warn={glow.warn.toFixed(2)}
         data-sting={glow.sting.toFixed(2)}
+        data-whole={whole.toFixed(2)}
       />
+      {holeRx > 0.15 && (
+        <ellipse
+          className="notehead-ship-hole"
+          cx={0}
+          cy={0}
+          rx={holeRx}
+          ry={holeRy}
+          data-testid="ship-hole"
+        />
+      )}
       <ellipse
         className="notehead-ship-glint"
         cx={dx * (reach - rim) * 0.5}
         cy={dy * (reach - rim) * 0.5 - ry * 0.18}
         rx={rx * 0.2}
         ry={ry * 0.13}
+        opacity={0.32 * (1 - whole)}
       />
     </g>
   );

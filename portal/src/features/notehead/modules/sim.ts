@@ -57,10 +57,22 @@ const LAND_EPS = 0.75 * SY;
  * Tuned so a return from the launch guide breaks through, while a short hop still seats.
  */
 export const BREAK_SPEED = 380 * SY;
+/**
+ * Fall speed into a step/block that costs hull.
+ * ≈ freefall from ~6 ship radii (~3 diameters). Short hops onto adjacent
+ * treads stay free; long drops still sting.
+ */
+export const LANDING_HIT_SPEED = 240 * SY;
+/**
+ * Speed into a rock face / sealed exit wall that costs hull.
+ * Kept well below LANDING but high enough that pocket grazes on a short hop
+ * (power ~0.1–0.2) do not tax HP — only committed wall slams.
+ */
+export const MASS_HIT_SPEED = 90 * SY;
 /** Gentle −x kick when seating on a sloping tread. */
-export const SLIDE_SPEED = 90 * SX;
+export const SLIDE_SPEED = 80 * SX;
 /** Extra −x acceleration while seated on a sloping tread. */
-export const SLIDE_ACCEL = 220 * SX;
+export const SLIDE_ACCEL = 200 * SX;
 /** Tread slope: higher toward +x (wall), slides toward open sky (−x). */
 export const STAIR_SLOPE = 0.32;
 /** Soft spring that docks the ship to a Frequency Band's center. */
@@ -191,8 +203,7 @@ export const PROFILES: Record<DifficultyId, DifficultyProfile> = {
     notchClear: "pocket-or-block",
     splitSkills: false,
     aimInset: 0,
-    /** 0 = hull off for now (no damage, HUD hidden). */
-    maxHp: 0,
+    maxHp: 8,
   },
   medium: {
     id: "medium",
@@ -210,7 +221,7 @@ export const PROFILES: Record<DifficultyId, DifficultyProfile> = {
     notchClear: "block",
     splitSkills: true,
     aimInset: 0.22,
-    maxHp: 4,
+    maxHp: 3,
   },
 };
 
@@ -356,6 +367,12 @@ export const NOTCH_FLOOR: Ledge = fromSvg({
   pitch: "C4",
   kind: "band",
 });
+
+/**
+ * Invisible teach height on notch-calibrate (pocket altitude). Crossing it
+ * rising fires the Anachrometer GI. Not drawn — no on-screen guide line.
+ */
+export const ANACH_TEACH_Y = NOTCH_POCKET.y;
 
 /**
  * Zig landscape: bottom peak → left shelf → right wedge (Borealis zig-zag).
@@ -632,7 +649,7 @@ function slideOnStep(
   body: Body,
   ledge: Ledge,
   dt: number,
-): { body: Body; landedId: string | null } {
+): { body: Body; landedId: string | null; impactSpeed: number } {
   const frame = Math.min(dt, FIXED_DT);
   const vx = Math.min(body.vx, 0) - SLIDE_ACCEL * frame;
   const nextX = body.x + vx * frame;
@@ -649,6 +666,7 @@ function slideOnStep(
         restingOn: null,
       },
       landedId: null,
+      impactSpeed: 0,
     };
   }
   return {
@@ -660,12 +678,14 @@ function slideOnStep(
       restingOn: ledge.id,
     },
     landedId: null,
+    impactSpeed: 0,
   };
 }
 
 /**
  * One flight frame. Lands only while falling. The highest crossed ledge wins.
  * Sloped steps always seat, then slide off toward open sky.
+ * `impactSpeed` is the fall speed at contact (0 when not landing).
  */
 export function step(
   body: Body,
@@ -673,17 +693,21 @@ export function step(
   dt: number,
   gravity = GRAVITY,
   policy: StepPolicy = DEFAULT_STEP_POLICY,
-): { body: Body; landedId: string | null } {
-  if (dt <= 0) return { body, landedId: null };
+): { body: Body; landedId: string | null; impactSpeed: number } {
+  if (dt <= 0) return { body, landedId: null, impactSpeed: 0 };
 
   if (body.restingOn) {
     const seat = ledgeById(ledges, body.restingOn);
-    if (!seat) return { body, landedId: null };
+    if (!seat) return { body, landedId: null, impactSpeed: 0 };
     if (isSlopedStep(seat)) return slideOnStep(body, seat, dt);
     if (isDockableBand(seat)) {
-      return { body: dockOnBand(body, seat, dt), landedId: null };
+      return {
+        body: dockOnBand(body, seat, dt),
+        landedId: null,
+        impactSpeed: 0,
+      };
     }
-    return { body, landedId: null };
+    return { body, landedId: null, impactSpeed: 0 };
   }
 
   const frame = Math.min(dt, FIXED_DT);
@@ -729,6 +753,7 @@ export function step(
             restingOn: hit.id,
           },
           landedId: hit.id,
+          impactSpeed: fallSpeed,
         };
       }
       return {
@@ -741,6 +766,7 @@ export function step(
           restingOn: hit.id,
         },
         landedId: hit.id,
+        impactSpeed: fallSpeed,
       };
     }
   }
@@ -748,6 +774,7 @@ export function step(
   return {
     body: { x: nextX, y: nextY, vx: body.vx, vy, restingOn: null },
     landedId: null,
+    impactSpeed: 0,
   };
 }
 

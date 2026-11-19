@@ -28,6 +28,12 @@ import {
   stepBorealis,
   tonationPitches,
 } from "../modules/borealis";
+import {
+  type NoteTail,
+  spawnNoteTail,
+  stepNoteTail,
+  TAIL_EIGHTH_ID,
+} from "../modules/note-tail";
 import { chartShotSolid, resolveMasses } from "../modules/collide";
 import {
   allBorealisCollected,
@@ -106,6 +112,15 @@ const DIFFICULTIES: DifficultyId[] = ["easy", "medium", "hard"];
 const THEME_SRC = "/assets/notehead/notehead-etheral-vibe.wav";
 /** Slow-mo while the Launch band snaps and the ship falls out of frame. */
 const BREAK_FALL_TIME_SCALE = 0.22;
+/**
+ * Dev chrome (beat jump pills + under-stage helper text) — on in local/dev
+ * by default; set NEXT_PUBLIC_NOTEHEAD_LEVEL_SELECT=1 to show in a production
+ * build, or =0 to force-hide even in development.
+ */
+const SHOW_DEV_CHROME =
+  process.env.NEXT_PUBLIC_NOTEHEAD_LEVEL_SELECT === "1" ||
+  (process.env.NODE_ENV === "development" &&
+    process.env.NEXT_PUBLIC_NOTEHEAD_LEVEL_SELECT !== "0");
 
 type JumpFn = (id: BeatId, nextRepair?: ShipRepair) => void;
 
@@ -141,6 +156,7 @@ export function NoteheadApp() {
   const warpRef = useRef<Ledge | null>(null);
   const exitBandRef = useRef<Ledge | null>(null);
   const borealisRef = useRef<Borealis[]>(spawnBorealis(route.beatId));
+  const noteTailRef = useRef<NoteTail | null>(spawnNoteTail(route.beatId));
   const hpRef = useRef(maxHp("easy"));
   const stingRef = useRef(0);
   const timeScaleRef = useRef(1);
@@ -266,6 +282,7 @@ export function NoteheadApp() {
       warpRef.current = null;
       exitBandRef.current = null;
       borealisRef.current = spawnBorealis(id);
+      noteTailRef.current = spawnNoteTail(id);
       timeScaleRef.current = 1;
       aimRef.current = { power: 0, angle: 0 };
       visitedRef.current = seedVisited(id);
@@ -406,6 +423,7 @@ export function NoteheadApp() {
         warp: warpRef.current,
         exitBand: exitBandRef.current,
         borealis: borealisRef.current,
+        noteTail: noteTailRef.current,
         exitZone: exitZoneFor(beatRef.current),
         exitLit: exitZoneReady(beatRef.current, borealisRef.current),
         bandBreak: bandBreakRef.current,
@@ -713,6 +731,22 @@ export function NoteheadApp() {
       }
     };
 
+    /** Note-Tail magnet / collect — same real-time clock as Borealis. */
+    const tickNoteTail = (dt: number) => {
+      if (dt <= 0 || !noteTailRef.current || noteTailRef.current.collected) {
+        return;
+      }
+      const stepped = stepNoteTail(noteTailRef.current, bodyRef.current, dt);
+      noteTailRef.current = stepped.tail;
+      if (!stepped.collected) return;
+      playPitch("A4");
+      if (!visitedRef.current.includes(TAIL_EIGHTH_ID)) {
+        visitedRef.current = [...visitedRef.current, TAIL_EIGHTH_ID];
+      }
+      setHint("Note-Tail recovered");
+      advanceIfClear(null);
+    };
+
     let raf = 0;
     let last = 0;
     let acc = 0;
@@ -732,6 +766,7 @@ export function NoteheadApp() {
       }
       // Real-time magnet / collect — not scaled by warp timeScale.
       tickBorealis(dt);
+      tickNoteTail(dt);
       const pulling = phaseRef.current === "pulling";
       const airWarp = pulling && warpRef.current !== null;
       // Keep physics while aiming in the air or on a sloping tread. Grounded
@@ -945,20 +980,22 @@ export function NoteheadApp() {
       data-beat={beatId}
       data-view="portrait"
     >
-      <nav className="notehead-regions" aria-label="Beats">
-        {BEAT_ORDER.map((id) => (
-          <button
-            key={id}
-            type="button"
-            className={beatId === id ? "is-on" : ""}
-            aria-pressed={beatId === id}
-            data-testid={`beat-${id}`}
-            onClick={() => jumpRef.current?.(id)}
-          >
-            {PROGRESSION[id].label}
-          </button>
-        ))}
-      </nav>
+      {SHOW_DEV_CHROME ? (
+        <nav className="notehead-regions" aria-label="Beats">
+          {BEAT_ORDER.map((id) => (
+            <button
+              key={id}
+              type="button"
+              className={beatId === id ? "is-on" : ""}
+              aria-pressed={beatId === id}
+              data-testid={`beat-${id}`}
+              onClick={() => jumpRef.current?.(id)}
+            >
+              {PROGRESSION[id].label}
+            </button>
+          ))}
+        </nav>
+      ) : null}
       <div className="notehead-stage" data-phase={phase}>
         <div className="notehead-hud">
           <button
@@ -1054,9 +1091,11 @@ export function NoteheadApp() {
             />
           ) : null}
         </div>
-        <p className="notehead-hint" data-testid="notehead-hint">
-          {hint}
-        </p>
+        {SHOW_DEV_CHROME ? (
+          <p className="notehead-hint" data-testid="notehead-hint">
+            {hint}
+          </p>
+        ) : null}
         <MusicTransport
           title="Cosmic Aether Soul"
           classPrefix="notehead-music"

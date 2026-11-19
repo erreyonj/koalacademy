@@ -1,5 +1,6 @@
 import type { Borealis } from "./borealis";
 import type { ExitZone } from "./exit-zone";
+import type { NoteTail } from "./note-tail";
 import type { Ledge, Region, ShotSample } from "./sim";
 
 export type GesturePhase = "idle" | "pulling" | "flight" | "sparkle";
@@ -20,6 +21,8 @@ export interface FrameGesture {
   exitBand: Ledge | null;
   /** Live Borealis pickups for this beat. */
   borealis: readonly Borealis[];
+  /** Floating Note-Tail pickup, when this beat has one. */
+  noteTail: NoteTail | null;
   /** Level exit barrier + arrow, when this beat has one. */
   exitZone: ExitZone | null;
   /** True once Borealis are gathered (or always on launch-bridge). */

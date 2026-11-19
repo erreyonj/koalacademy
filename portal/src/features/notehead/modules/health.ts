@@ -1,9 +1,9 @@
 /**
- * Hull HP: landings cost 1; clearing a beat's Borealis restores 1.
- * Easy currently uses maxHp 0 — hull is off (no damage, no HUD).
+ * Hull HP: hard impacts cost 1; clearing a beat's Borealis restores 1.
+ * Exit-frame barrier impacts cost HP on Hard only.
  */
 import type { Borealis } from "./borealis";
-import { PROFILES, type DifficultyId } from "./sim";
+import { LANDING_HIT_SPEED, PROFILES, type DifficultyId } from "./sim";
 
 export function maxHp(difficulty: DifficultyId): number {
   return PROFILES[difficulty].maxHp;
@@ -20,10 +20,27 @@ export function clampHp(hp: number, difficulty: DifficultyId): number {
   return Math.max(0, Math.min(cap, Math.floor(hp)));
 }
 
-/** Every landing from `step` costs one hull point (no-op when hull is off). */
+/** True when a ledge landing is fast enough to tax hull. */
+export function isHardLanding(impactSpeed: number): boolean {
+  return impactSpeed >= LANDING_HIT_SPEED;
+}
+
+/** Hard landing / rock impact costs one hull point (no-op when hull is off). */
 export function applyLandingHit(hp: number, difficulty?: DifficultyId): number {
   if (difficulty && !hullEnabled(difficulty)) return hp;
   return Math.max(0, hp - 1);
+}
+
+/**
+ * Sealed exit-frame barriers only tax hull on Hard — Easy/Medium bounce without
+ * damage so gathering Borealis does not soft-lock into a hull death.
+ */
+export function applyExitBarrierHit(
+  hp: number,
+  difficulty: DifficultyId,
+): number {
+  if (difficulty !== "hard") return hp;
+  return applyLandingHit(hp, difficulty);
 }
 
 /** Gathering every Borealis on the beat restores one hull point. */

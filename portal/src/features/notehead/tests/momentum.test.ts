@@ -46,7 +46,7 @@ describe("ship glow target", () => {
 
   it("is blue rising and yellow when falling hard near ground", () => {
     const rising = glowTarget(flying(300, 2000), flight, 0);
-    expect(glowColor(rising)).toBe("rgb(79 193 246)");
+    expect(glowColor(rising)).toBe("rgb(143 180 196)");
     expect(rising.warn).toBe(0);
 
     const falling = glowTarget(

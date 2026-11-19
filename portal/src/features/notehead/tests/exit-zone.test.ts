@@ -6,7 +6,7 @@ import {
   leftFrameThroughExit,
 } from "../modules/exit-zone";
 import { spawnBorealis } from "../modules/borealis";
-import { SHIP_R, WORLD_H, WORLD_W } from "../modules/sim";
+import { MASS_HIT_SPEED, SHIP_R, WORLD_H, WORLD_W } from "../modules/sim";
 
 describe("exit zones", () => {
   it("defines exits for notch, launch-bridge, stairs, and zig", () => {
@@ -61,8 +61,20 @@ describe("exit zones", () => {
   it("seals every edge except the exit gap", () => {
     const notch = exitZoneFor("notch-calibrate");
     if (!notch) throw new Error("expected notch exit");
+    const slam = MASS_HIT_SPEED + 50;
+    const soft = MASS_HIT_SPEED * 0.25;
+
+    // Soft bump: still sealed, but not a hull-taxing hit.
+    const softTop = containAgainstExitFrame(
+      { x: 40, y: WORLD_H + 20, vx: 0, vy: soft, restingOn: null },
+      notch,
+    );
+    expect(softTop.hit).toBe(false);
+    expect(softTop.body.y).toBeLessThanOrEqual(WORLD_H - SHIP_R + 0.01);
+    expect(softTop.body.vy).toBe(0);
+
     const offTop = containAgainstExitFrame(
-      { x: 40, y: WORLD_H + 20, vx: 0, vy: 200, restingOn: null },
+      { x: 40, y: WORLD_H + 20, vx: 0, vy: slam, restingOn: null },
       notch,
     );
     expect(offTop.hit).toBe(true);
@@ -70,7 +82,7 @@ describe("exit zones", () => {
     expect(offTop.body.vy).toBe(0);
 
     const throughGap = containAgainstExitFrame(
-      { x: 450, y: WORLD_H + 20, vx: 0, vy: 200, restingOn: null },
+      { x: 450, y: WORLD_H + 20, vx: 0, vy: slam, restingOn: null },
       notch,
     );
     expect(throughGap.hit).toBe(false);
@@ -79,14 +91,14 @@ describe("exit zones", () => {
     const stairs = exitZoneFor("stairs-anach");
     if (!stairs) throw new Error("expected stairs exit");
     const offRight = containAgainstExitFrame(
-      { x: WORLD_W + 20, y: 80, vx: 200, vy: 0, restingOn: null },
+      { x: WORLD_W + 20, y: 80, vx: slam, vy: 0, restingOn: null },
       stairs,
     );
     expect(offRight.hit).toBe(true);
     expect(offRight.body.x).toBeLessThanOrEqual(WORLD_W - SHIP_R + 0.01);
 
     const rightGap = containAgainstExitFrame(
-      { x: WORLD_W + 20, y: 1100, vx: 200, vy: 0, restingOn: null },
+      { x: WORLD_W + 20, y: 1100, vx: slam, vy: 0, restingOn: null },
       stairs,
     );
     expect(rightGap.hit).toBe(false);

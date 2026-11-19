@@ -49,12 +49,17 @@ function SceneArt({
   );
 }
 
+/** How fast the whole-note hole opens / closes with Anachrometer warp. */
+const WHOLE_RATE = 10;
+
 /** SVG adapter for NoteheadView. The sim never imports this module. */
 export class SvgNoteheadView implements NoteheadView {
   private root: Root | null = null;
   private host: HTMLElement | null = null;
   /** Eased between frames here, so the rim glides when React re-renders the scene. */
   private glow: ShipGlow = REST_GLOW;
+  /** 0..1 whole-note open amount while warp is engaged. */
+  private whole = 0;
   private lastFrame = 0;
   private still = false;
 
@@ -81,12 +86,25 @@ export class SvgNoteheadView implements NoteheadView {
       glowTarget(sample.body, gesture, this.glow.angle),
       dt,
     );
+    const wholeTarget = gesture.warp ? 1 : 0;
+    if (this.still || dt <= 0) {
+      this.whole = wholeTarget;
+    } else {
+      const toward = 1 - Math.exp(-WHOLE_RATE * dt);
+      this.whole += (wholeTarget - this.whole) * toward;
+      if (Math.abs(wholeTarget - this.whole) < 0.002) this.whole = wholeTarget;
+    }
     this.root?.render(
       <SceneArt
         sample={sample}
         region={region}
         gesture={gesture}
-        look={{ glow: this.glow, clock: now, still: this.still }}
+        look={{
+          glow: this.glow,
+          clock: now,
+          still: this.still,
+          whole: this.whole,
+        }}
         warp={gesture.warp}
       />,
     );

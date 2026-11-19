@@ -59,6 +59,54 @@ export function resume(): void {
   if (ctx?.state === "suspended") void ctx.resume();
 }
 
+const HULL_HIT_SRC = "/assets/notehead/sfx/MO_SV1_fx_caution.wav";
+/** Default gain for terrain / HP-loss caution hit. */
+const HULL_HIT_VOLUME = 0.12;
+let hullHitAudio: HTMLAudioElement | null = null;
+
+/** Caution sting when the ship strikes terrain hard enough to lose HP. */
+export function playHullHit(): void {
+  resume();
+  if (typeof window === "undefined") return;
+  if (!hullHitAudio) {
+    hullHitAudio = new Audio(HULL_HIT_SRC);
+    hullHitAudio.preload = "auto";
+  }
+  hullHitAudio.volume = HULL_HIT_VOLUME;
+  try {
+    hullHitAudio.currentTime = 0;
+  } catch {
+    // Ignore seek errors before the buffer is ready.
+  }
+  void hullHitAudio.play().catch(() => {
+    /* autoplay / gesture gates — ignore */
+  });
+}
+
+const ANACH_REPAIR_SRC = "/assets/notehead/sfx/RU_TF_fx_reboot.wav";
+/** Gain for the Anachrometer repair reboot cue. */
+const ANACH_REPAIR_VOLUME = 0.25;
+let anachRepairAudio: HTMLAudioElement | null = null;
+
+/** Reboot sting when the Captain finishes repairing the Anachrometer. */
+export function playAnachRepair(): void {
+  resume();
+  if (typeof window === "undefined") return;
+  if (!anachRepairAudio) {
+    anachRepairAudio = new Audio(ANACH_REPAIR_SRC);
+    anachRepairAudio.preload = "auto";
+  }
+  anachRepairAudio.volume = ANACH_REPAIR_VOLUME;
+  try {
+    anachRepairAudio.currentTime = 0;
+  } catch {
+    // Ignore seek errors before the buffer is ready.
+  }
+  void anachRepairAudio.play().catch(() => {
+    /* autoplay / gesture gates — ignore */
+  });
+}
+
 export function playPitch(pitch: string): void {
   const ctx = context();
   const hz = noteToHz(pitch);
@@ -74,6 +122,108 @@ export function playPitch(pitch: string): void {
   osc.connect(gain).connect(ctx.destination);
   osc.start(now);
   osc.stop(now + 0.46);
+}
+
+const TYPE_TICK_SRCS = [
+  "/assets/notehead/sfx/ESM_Sci-fi_Device_or_Item_Noise_5_Computing_Glitch_Morph_Mechanism_Texture_Futuristic.wav",
+  "/assets/notehead/sfx/ESM_Scifi_Loading_Screen_Loop_27_Sci_Fi_Glitch_Morph_Mechanism_Texture_Futuristic.wav",
+] as const;
+/** Per-character burst from the CM glitch textures. */
+const TYPE_TICK_VOLUME = 0.16;
+const TYPE_TICK_DUR = 0.055;
+let typeTickBuffers: AudioBuffer[] | null = null;
+let typeTickLoading: Promise<AudioBuffer[] | null> | null = null;
+
+async function loadTypeTickBuffers(
+  ctx: AudioContext,
+): Promise<AudioBuffer[] | null> {
+  if (typeTickBuffers) return typeTickBuffers;
+  if (!typeTickLoading) {
+    typeTickLoading = Promise.all(
+      TYPE_TICK_SRCS.map(async (src) => {
+        const res = await fetch(src);
+        const raw = await res.arrayBuffer();
+        return ctx.decodeAudioData(raw.slice(0));
+      }),
+    )
+      .then((buffers) => {
+        typeTickBuffers = buffers;
+        return buffers;
+      })
+      .catch(() => {
+        typeTickLoading = null;
+        return null;
+      });
+  }
+  return typeTickLoading;
+}
+
+const IDLE_FLASH_SRC = TYPE_TICK_SRCS[0];
+/** Gain for the idle HUD flash attract cue. */
+const IDLE_FLASH_VOLUME = 0.16;
+let idleFlashAudio: HTMLAudioElement | null = null;
+
+/** Glitch texture while the idle chrome flash marches across the HUD. */
+export function playIdleFlash(): void {
+  resume();
+  if (typeof window === "undefined") return;
+  if (!idleFlashAudio) {
+    idleFlashAudio = new Audio(IDLE_FLASH_SRC);
+    idleFlashAudio.preload = "auto";
+  }
+  idleFlashAudio.volume = IDLE_FLASH_VOLUME;
+  try {
+    idleFlashAudio.currentTime = 0;
+  } catch {
+    // Ignore seek errors before the buffer is ready.
+  }
+  void idleFlashAudio.play().catch(() => {
+    /* autoplay / gesture gates — ignore */
+  });
+}
+
+/** Cut the idle flash cue when the attract ends or the player moves. */
+export function stopIdleFlash(): void {
+  if (!idleFlashAudio) return;
+  idleFlashAudio.pause();
+  try {
+    idleFlashAudio.currentTime = 0;
+  } catch {
+    // Ignore seek errors before the buffer is ready.
+  }
+}
+
+/**
+ * CM typewriter tick: short random slice from one of two glitch textures.
+ * Picks a buffer at random each character so the crawl jumps between them.
+ */
+export function playTypeTick(): void {
+  const ctx = context();
+  if (!ctx) return;
+  if (ctx.state === "suspended") void ctx.resume();
+
+  const playSlice = (buffers: AudioBuffer[]) => {
+    if (buffers.length === 0) return;
+    const buffer = buffers[Math.floor(Math.random() * buffers.length)]!;
+    const maxOffset = Math.max(0, buffer.duration - TYPE_TICK_DUR);
+    const offset = Math.random() * maxOffset;
+    const now = ctx.currentTime;
+    const src = ctx.createBufferSource();
+    const gain = ctx.createGain();
+    src.buffer = buffer;
+    gain.gain.setValueAtTime(TYPE_TICK_VOLUME, now);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + TYPE_TICK_DUR);
+    src.connect(gain).connect(ctx.destination);
+    src.start(now, offset, TYPE_TICK_DUR);
+  };
+
+  if (typeTickBuffers) {
+    playSlice(typeTickBuffers);
+    return;
+  }
+  void loadTypeTickBuffers(ctx).then((buffers) => {
+    if (buffers) playSlice(buffers);
+  });
 }
 
 function aimIntervalMs(power: number): number {

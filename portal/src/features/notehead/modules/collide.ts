@@ -6,6 +6,7 @@ import {
   BREAK_SPEED,
   FIXED_DT,
   GRAVITY,
+  MASS_HIT_SPEED,
   SHIP_R,
   WORLD_H,
   WORLD_W,
@@ -23,8 +24,7 @@ import {
 } from "./sim";
 import { insideMass, massesFor, type Mass, type Point } from "./terrain";
 
-/** Speed into a wall that counts as a hull impact (logical). */
-export const MASS_HIT_SPEED = 70;
+export { MASS_HIT_SPEED };
 
 interface LogicalMass {
   id: string;

@@ -20,6 +20,8 @@ interface NotationStaffProps {
   wrapSystems?: boolean;
   /** Uniform zoom for the drawn staff (1 = default). */
   scale?: number;
+  /** Tighter vertical canvas so the staff fills more of the box. */
+  compact?: boolean;
   label?: string;
   onStaffClick?: (click: StaffClick) => void;
   onEventClick?: (hit: HitEvent, pitch: string) => void;
@@ -34,6 +36,7 @@ export function NotationStaff({
   interactive = false,
   wrapSystems = false,
   scale = 1,
+  compact = false,
   label = "Musical staff",
   onStaffClick,
   onEventClick,
@@ -68,6 +71,13 @@ export function NotationStaff({
         const width = Math.max(240, Math.floor(cssWidth / zoom));
         resultRef.current = await renderScore(hostRef.current, score, width, {
           wrapSystems,
+          ...(compact
+            ? {
+                systemTop: 20,
+                // Wrapped systems need room for stems/beams so rows don't overlap.
+                systemHeight: wrapSystems ? 155 : 112,
+              }
+            : {}),
         });
         if (!cancelled) setError(null);
       } catch (err) {
@@ -93,7 +103,7 @@ export function NotationStaff({
       observer.disconnect();
       clearPendingEventClick();
     };
-  }, [score, wrapSystems, scale]);
+  }, [score, wrapSystems, scale, compact]);
 
   function handlePointerDown(event: PointerEvent<HTMLDivElement>) {
     if (!interactive || error) return;
@@ -114,7 +124,13 @@ export function NotationStaff({
     if (!staveInfo) return;
 
     const first = rendered.staves[0];
-    if (first && point.x < first.noteStartX) {
+    // Key-signature clicks only apply on the first system — later systems start
+    // further left without a clef, so x < first.noteStartX would steal note hits.
+    const onFirstSystem =
+      first != null &&
+      point.y >= first.y - 8 &&
+      point.y <= first.y + first.height + 8;
+    if (onFirstSystem && first && point.x < first.noteStartX) {
       clearPendingEventClick();
       const mid = first.x + (first.noteStartX - first.x) * 0.55;
       onKeyAreaClick?.({ action: point.x < mid ? "remove" : "add" });
@@ -123,7 +139,7 @@ export function NotationStaff({
 
     const line = staveInfo.stave.getLineForY(point.y);
     const pitch = pitchFromStaffLine(score.clef, line);
-    const hit = hitEvent(rendered.events, point.x, point.y);
+    const hit = hitEvent(rendered.events, point.x, point.y, staveInfo.measureIndex);
     if (hit) {
       const hitKey = `${hit.measureIndex}:${hit.eventIndex}`;
       const now = performance.now();
@@ -168,10 +184,15 @@ export function NotationStaff({
   );
 }
 
-function hitEvent(events: HitEvent[], x: number, y: number): HitEvent | null {
+function hitEvent(
+  events: HitEvent[],
+  x: number,
+  y: number,
+  preferMeasure?: number,
+): HitEvent | null {
   const pad = 10;
   let best: HitEvent | null = null;
-  let bestDist = Infinity;
+  let bestScore = Infinity;
   for (const event of events) {
     const inside =
       x >= event.x - pad &&
@@ -180,10 +201,14 @@ function hitEvent(events: HitEvent[], x: number, y: number): HitEvent | null {
       y <= event.y + event.h + pad;
     if (!inside) continue;
     const cx = event.x + event.w / 2;
-    const dist = Math.abs(x - cx);
-    if (dist < bestDist) {
+    const cy = event.y + event.h / 2;
+    // Prefer same-measure hits, then nearest 2D center (avoids cross-system steals).
+    const measureBias =
+      preferMeasure != null && event.measureIndex !== preferMeasure ? 40 : 0;
+    const dist = Math.hypot(x - cx, y - cy) + measureBias;
+    if (dist < bestScore) {
       best = event;
-      bestDist = dist;
+      bestScore = dist;
     }
   }
   return best;

@@ -143,6 +143,10 @@ function systemGroups(measureCount: number, wrapSystems: boolean): number[][] {
 export type RenderOptions = {
   /** First bar on its own row; remaining bars wrap two per row. */
   wrapSystems?: boolean;
+  /** Top padding before the first system (default 28). */
+  systemTop?: number;
+  /** Vertical room per system (default 150). */
+  systemHeight?: number;
 };
 
 const SYSTEM_TOP = 28;
@@ -158,9 +162,11 @@ export async function renderScore(
   container.innerHTML = "";
 
   const wrapSystems = options.wrapSystems ?? false;
+  const systemTop = options.systemTop ?? SYSTEM_TOP;
+  const systemHeight = options.systemHeight ?? SYSTEM_HEIGHT;
   const measures = score.measures.length > 0 ? score.measures : [{ events: [] }];
   const groups = systemGroups(measures.length, wrapSystems);
-  const height = SYSTEM_TOP + SYSTEM_HEIGHT * groups.length;
+  const height = systemTop + systemHeight * groups.length;
   const renderer = new Renderer(container, Renderer.Backends.SVG);
   renderer.resize(Math.max(width, 240), height);
   const ctx = renderer.getContext();
@@ -171,19 +177,20 @@ export async function renderScore(
   const events: HitEvent[] = [];
 
   groups.forEach((group, systemIndex) => {
-    const y = SYSTEM_TOP + systemIndex * SYSTEM_HEIGHT;
-    const clefPad = 52;
-    const even = Math.max(Math.floor((inner - clefPad) / group.length), 120);
+    const y = systemTop + systemIndex * systemHeight;
+    // Clef / key / time only on the first system of a piece.
+    const leadPad = systemIndex === 0 ? 52 : 8;
+    const even = Math.max(Math.floor((inner - leadPad) / group.length), 120);
     let x = padding;
 
     group.forEach((measureIndex, slot) => {
-      const measureWidth = slot === 0 ? even + clefPad : even;
+      const measureWidth = slot === 0 ? even + leadPad : even;
       const stave = new Stave(x, y, measureWidth);
-      if (slot === 0) {
-        stave.addClef(score.clef);
-        if (systemIndex === 0) {
-          stave.addKeySignature(vexKeySpec(score.key)).addTimeSignature(score.time);
-        }
+      if (slot === 0 && systemIndex === 0) {
+        stave
+          .addClef(score.clef)
+          .addKeySignature(vexKeySpec(score.key))
+          .addTimeSignature(score.time);
       }
       if (measureIndex === measures.length - 1) {
         stave.setEndBarType(BarlineType.END);

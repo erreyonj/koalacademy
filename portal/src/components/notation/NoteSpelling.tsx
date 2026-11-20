@@ -1,23 +1,35 @@
 "use client";
 
-import { splitPitch } from "@/lib/notation/key";
+import {
+  scaleDegreeLabel,
+  solfegeLabel,
+  splitPitch,
+} from "@/lib/notation/key";
 import type { ScoreExcerpt } from "@/lib/notation/types";
 
 /** Letter names from placed notes, left-to-right / measure order. Rests skipped. */
 export function spellLetters(score: ScoreExcerpt): string[] {
-  const letters: string[] = [];
+  return spellPitches(score).map((pitch) => splitPitch(pitch).letter.toUpperCase());
+}
+
+/** Sounding pitches from placed notes, left-to-right / measure order. Rests skipped. */
+export function spellPitches(score: ScoreExcerpt): string[] {
+  const pitches: string[] = [];
   for (const measure of score.measures) {
     for (const event of measure.events) {
       if (event.kind !== "note") continue;
-      letters.push(splitPitch(event.pitch).letter.toUpperCase());
+      pitches.push(event.pitch);
     }
   }
-  return letters;
+  return pitches;
 }
 
 export function NoteSpelling({ score }: { score: ScoreExcerpt }) {
-  const letters = spellLetters(score);
+  const pitches = spellPitches(score);
+  const letters = pitches.map((pitch) => splitPitch(pitch).letter.toUpperCase());
   const word = letters.join("");
+  const degrees = pitches.map((pitch) => scaleDegreeLabel(pitch, score.key)).join(" ");
+  const solfege = pitches.map((pitch) => solfegeLabel(pitch, score.key)).join(" ");
 
   return (
     <aside className="notation-spelling" aria-label="Note spelling">
@@ -25,18 +37,17 @@ export function NoteSpelling({ score }: { score: ScoreExcerpt }) {
       {letters.length === 0 ? (
         <p className="notation-spelling-empty">Place notes to spell a word</p>
       ) : (
-        <>
-          <ol className="notation-spelling-letters" aria-hidden="true">
-            {letters.map((letter, index) => (
-              <li key={`${letter}-${index}`} className="notation-spelling-letter">
-                {letter}
-              </li>
-            ))}
-          </ol>
-          <p className="notation-spelling-word" aria-live="polite">
-            {word}
+        <div className="notation-spelling-readings" aria-live="polite">
+          <p className="notation-spelling-word">{word}</p>
+          <p className="notation-spelling-or">or</p>
+          <p className="notation-spelling-alt" aria-label="Scale degrees">
+            {degrees}
           </p>
-        </>
+          <p className="notation-spelling-or">or</p>
+          <p className="notation-spelling-alt" aria-label="Solfege">
+            {solfege}
+          </p>
+        </div>
       )}
     </aside>
   );

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { resolveMasses, stepSolid } from "../modules/collide";
 import {
   FIXED_DT,
+  MASS_HIT_SPEED,
   NOTCH_FLOOR,
   SHIP_R,
   fromSvgPoint,
@@ -63,6 +64,51 @@ describe("solid terrain", () => {
     expect(hitWall).toBe(true);
     expect(body.x).toBeGreaterThan(40);
     expect(body.vx).toBeGreaterThanOrEqual(start.vx);
+  });
+
+  it("short wall taps stay below the hard-hit bar; slams cross it", () => {
+    const origin = fromSvgPoint(140, 120, "notch");
+    const soft = resolveMasses(
+      {
+        x: origin.x,
+        y: origin.y,
+        vx: -(MASS_HIT_SPEED * 0.4),
+        vy: 0,
+        restingOn: null,
+      },
+      "notch",
+    );
+    // May or may not touch rock from this pose; if it does, it must not hard-hit.
+    if (soft.into > 0) expect(soft.hit).toBe(false);
+
+    const slam = resolveMasses(
+      {
+        x: origin.x,
+        y: origin.y,
+        vx: -(MASS_HIT_SPEED * 1.5),
+        vy: 0,
+        restingOn: null,
+      },
+      "notch",
+    );
+    // Drive toward the wall over a few frames so contact is guaranteed.
+    let body = {
+      x: origin.x,
+      y: origin.y,
+      vx: -MASS_HIT_SPEED * 1.8,
+      vy: 0,
+      restingOn: null as string | null,
+    };
+    let hard = slam.hit;
+    for (let frame = 0; frame < 90; frame++) {
+      const result = stepSolid(body, [], FIXED_DT, "notch", 0, {
+        breakSpeed: 0,
+        catchBands: true,
+      });
+      body = result.body;
+      if (result.massHit) hard = true;
+    }
+    expect(hard).toBe(true);
   });
 
   it("ejects a ship buried in the stair stack", () => {

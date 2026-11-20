@@ -68,14 +68,14 @@ Borealis is the ship's energy resource — glowing mid-air collectibles that mar
 
 ## Hull (HP)
 
-A simple hull bar in the HUD. Easy **8** / Medium **5** / Hard **3** (`profile.maxHp`).
+A simple hull bar in the HUD. Easy **10** / Medium **8** / Hard **5** (`profile.maxHp`).
 
 - Landings on `kind: "band"` Frequency Bands never cost HP.
 - Landings on steps / blocks cost 1 HP only when fall speed ≥ `LANDING_HIT_SPEED` (~6 ship-radii freefall). Short hops onto adjacent terrain stay free.
 - Hard rock impacts (`resolveMasses` into a wall at ≥ `MASS_HIT_SPEED`) also cost 1 HP — pocket grazes on a short hop do not.
 - After Borealis is gathered, sealed exit-frame barriers bounce the ship on every dial; they cost 1 HP **only on Hard** (so Hard can still lose after a full gather).
 - Gathering all Borealis on the current beat restores 1 HP.
-- At 0 HP the beat restarts with a full hull.
+- At 0 HP the ship plays a short shatter burst (`phase: "breach"`), then any hull teach GI (empty bar), then the beat restarts with a full hull.
 
 ## Solid terrain
 

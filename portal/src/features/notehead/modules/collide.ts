@@ -24,7 +24,7 @@ import {
 } from "./sim";
 import { insideMass, massesFor, type Mass, type Point } from "./terrain";
 
-export { MASS_HIT_SPEED };
+export { MASS_BUMP_SPEED, MASS_HIT_SPEED } from "./sim";
 
 interface LogicalMass {
   id: string;
@@ -123,11 +123,12 @@ function resolveOne(
 /**
  * Push the ship out of every rock mass for this region.
  * `hit` is true when an impact should cost hull (hard contact).
+ * `into` is the strongest inward speed seen this resolve (for soft bumps).
  */
 export function resolveMasses(
   body: Body,
   regionId: RegionId,
-): { body: Body; hit: boolean; massId: string | null } {
+): { body: Body; hit: boolean; massId: string | null; into: number } {
   let current = body;
   let hit = false;
   let massId: string | null = null;
@@ -140,18 +141,15 @@ export function resolveMasses(
       if (!result.resolved) continue;
       current = result.body;
       moved = true;
-      if (result.hit && result.into >= bestInto) {
-        hit = true;
+      if (result.into > bestInto) {
         bestInto = result.into;
         massId = mass.id;
-      } else if (result.hit) {
-        hit = true;
-        massId = massId ?? mass.id;
       }
+      if (result.hit) hit = true;
     }
     if (!moved) break;
   }
-  return { body: current, hit, massId };
+  return { body: current, hit, massId: hit ? massId : null, into: bestInto };
 }
 
 /** Test helper: view-space mass still available for drawing checks. */

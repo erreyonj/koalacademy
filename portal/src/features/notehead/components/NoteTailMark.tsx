@@ -1,14 +1,24 @@
+import ethArt from "../assets/notehead-ship-eth-blue.png";
 import { toSvg, type RegionId } from "../modules/sim";
 
-/** Capsule size in SVG view units — reads as a collectible sibling of the ship. */
-const RX = 16;
-const RY = 11;
-const RIM = 2.2;
+const SRC_W = 1920;
+const SRC_H = 1080;
+/**
+ * Opaque bounds of `notehead-ship-eth-blue.png` — must use alpha, not
+ * luminance, or the black stem + eighth-note flag disappear into the void.
+ */
+const FRAME = { x: 787, y: 366, w: 403, h: 369 };
+/** ~50% of the previous on-screen pickup size (~66 → ~33 view units). */
+const SCALE = 0.082;
+const DISP_W = FRAME.w * SCALE;
+const DISP_H = FRAME.h * SCALE;
+/** Notehead center in source pixels (glow oval, not the stem). */
+const HEAD_CX = 1062;
+const HEAD_CY = 467;
 
 /**
  * Floating eighth-note Note-Tail pickup.
- * Same language as the live ship: black hull, cool rim, small window glint,
- * with three trailing rings for the eighth-note silhouette.
+ * Full eth-blue art (stem + flag) with a pulsing soft glow.
  */
 export function NoteTailMark({
   x,
@@ -25,8 +35,9 @@ export function NoteTailMark({
 }) {
   if (collected) return null;
   const center = toSvg(x, y, regionId);
-  const uid = "nh-tail";
-
+  // Place the notehead at the pickup point; stem + flag hang below/left.
+  const shipX = -(HEAD_CX - FRAME.x) * SCALE;
+  const shipY = -(HEAD_CY - FRAME.y) * SCALE;
   return (
     <g
       className="notehead-note-tail"
@@ -34,81 +45,29 @@ export function NoteTailMark({
       pointerEvents="none"
       data-testid={testId}
     >
-      <defs>
-        <linearGradient
-          id={`${uid}-rim`}
-          x1={-RX}
-          y1={0}
-          x2={RX}
-          y2={0}
-          gradientUnits="userSpaceOnUse"
-        >
-          <stop offset="0" stopColor="#1a2438" />
-          <stop offset="0.4" stopColor="var(--nh-band)" stopOpacity="0.75" />
-          <stop offset="0.85" stopColor="var(--nh-band)" />
-          <stop offset="1" stopColor="#ffffff" stopOpacity="0.45" />
-        </linearGradient>
-        <radialGradient id={`${uid}-halo`} cx="55%" cy="45%" r="60%">
-          <stop offset="0" stopColor="var(--nh-band)" stopOpacity="0.4" />
-          <stop offset="1" stopColor="var(--nh-band)" stopOpacity="0" />
-        </radialGradient>
-      </defs>
-
       <ellipse
         className="notehead-note-tail-halo"
-        cx={2}
+        cx={0}
         cy={0}
-        rx={RX * 1.65}
-        ry={RY * 1.7}
-        fill={`url(#${uid}-halo)`}
+        rx={DISP_W * 0.72}
+        ry={DISP_H * 0.42}
       />
-
-      <g className="notehead-note-tail-rings" aria-hidden="true">
-        {[
-          { cx: -RX - 10, rx: 5.2, ry: 9.5, op: 0.9 },
-          { cx: -RX - 17, rx: 4.2, ry: 7.6, op: 0.65 },
-          { cx: -RX - 23, rx: 3.2, ry: 5.8, op: 0.4 },
-        ].map((ring) => (
-          <ellipse
-            key={ring.cx}
-            className="notehead-note-tail-ring"
-            cx={ring.cx}
-            cy={0}
-            rx={ring.rx}
-            ry={ring.ry}
-            opacity={ring.op}
-          />
-        ))}
-      </g>
-
-      <rect
-        className="notehead-ship-edge"
-        x={-RX - RIM / 2 - 0.6}
-        y={-RY - RIM / 2 - 0.6}
-        width={(RX + RIM / 2 + 0.6) * 2}
-        height={(RY + RIM / 2 + 0.6) * 2}
-        rx={RY + RIM / 2 + 0.6}
-      />
-
-      <rect
-        className="notehead-note-tail-hull"
-        x={-RX}
-        y={-RY}
-        width={RX * 2}
-        height={RY * 2}
-        rx={RY}
-        fill="#04060a"
-        stroke={`url(#${uid}-rim)`}
-        strokeWidth={RIM}
-      />
-
-      <ellipse
-        className="notehead-ship-glint"
-        cx={RX * 0.28}
-        cy={-RY * 0.32}
-        rx={RX * 0.2}
-        ry={RY * 0.14}
-      />
+      <svg
+        className="notehead-note-tail-ship"
+        x={shipX}
+        y={shipY}
+        width={DISP_W}
+        height={DISP_H}
+        viewBox={`${FRAME.x} ${FRAME.y} ${FRAME.w} ${FRAME.h}`}
+        overflow="visible"
+      >
+        <image
+          href={ethArt.src}
+          width={SRC_W}
+          height={SRC_H}
+          preserveAspectRatio="none"
+        />
+      </svg>
     </g>
   );
 }

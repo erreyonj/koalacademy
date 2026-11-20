@@ -85,13 +85,14 @@ const EVENTS: Record<StoryEventId, readonly StoryInterrupt[]> = {
       kind: "gi",
       speaker: SYSTEM,
       accent: "hull",
-      lines: ["Hard hits against terrain damage the hull"],
+      lines: ["Hard hits or impacts against terrain damage the hull"],
     },
   ],
   "notch-calibrate-hull-breach": [
     {
       kind: "gi",
       speaker: SYSTEM,
+      accent: "hull",
       lines: [
         "If there's a breach the Anachrometer resets you to try again.",
       ],

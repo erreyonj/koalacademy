@@ -3,7 +3,13 @@ import type { ExitZone } from "./exit-zone";
 import type { NoteTail } from "./note-tail";
 import type { Ledge, Region, ShotSample } from "./sim";
 
-export type GesturePhase = "idle" | "pulling" | "flight" | "sparkle";
+export type GesturePhase =
+  | "idle"
+  | "pulling"
+  | "flight"
+  | "sparkle"
+  /** Hull at 0 HP — ship shatter, then GI / beat restart. */
+  | "breach";
 
 /** Aim and phase sit beside the sample. They are gesture state, not sim state. */
 export interface FrameGesture {

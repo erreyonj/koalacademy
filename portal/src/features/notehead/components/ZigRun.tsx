@@ -3,6 +3,7 @@ import { BorealisMark } from "./Borealis";
 import { ExitMark } from "./ExitZone";
 import { SceneFrame } from "./SceneFrame";
 import { Ship, type ShipLook } from "./Ship";
+import { ShipBreach } from "./ShipBreach";
 import { Sparkles } from "./Sparkles";
 import { Trajectory } from "./Trajectory";
 import {
@@ -119,7 +120,26 @@ export function ZigArt({
       {gesture.phase === "sparkle" && (
         <Sparkles cx={ship.x} cy={ship.y} testId="zig-sparkles" />
       )}
-      <Ship cx={ship.x} cy={ship.y} rx={10} ry={7} look={look} testId="zig-ship" regionId={REGION} />
+      {gesture.phase === "breach" ? (
+        <ShipBreach
+          cx={ship.x}
+          cy={ship.y}
+          rx={10}
+          ry={7}
+          regionId={REGION}
+          testId="zig-ship-breach"
+        />
+      ) : (
+        <Ship
+          cx={ship.x}
+          cy={ship.y}
+          rx={10}
+          ry={7}
+          look={look}
+          testId="zig-ship"
+          regionId={REGION}
+        />
+      )}
     </SceneFrame>
   );
 }

@@ -238,6 +238,10 @@ export async function renderScore(
   if (svg) {
     svg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
     svg.setAttribute("role", "img");
+    // Let CSS size the SVG (width: 100%; height: auto) so callers can zoom
+    // by rendering at a smaller logical width.
+    svg.style.width = "100%";
+    svg.style.height = "auto";
     if (!svg.querySelector("[data-bg]")) {
       const bg = document.createElementNS("http://www.w3.org/2000/svg", "rect");
       bg.setAttribute("data-bg", "true");

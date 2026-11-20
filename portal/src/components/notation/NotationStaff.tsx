@@ -18,24 +18,40 @@ interface NotationStaffProps {
   score: ScoreExcerpt;
   interactive?: boolean;
   wrapSystems?: boolean;
+  /** Uniform zoom for the drawn staff (1 = default). */
+  scale?: number;
   label?: string;
   onStaffClick?: (click: StaffClick) => void;
   onEventClick?: (hit: HitEvent, pitch: string) => void;
+  onEventDoubleClick?: (hit: HitEvent) => void;
   onKeyAreaClick?: (click: KeyAreaClick) => void;
 }
+
+const DOUBLE_CLICK_MS = 350;
 
 export function NotationStaff({
   score,
   interactive = false,
   wrapSystems = false,
+  scale = 1,
   label = "Musical staff",
   onStaffClick,
   onEventClick,
+  onEventDoubleClick,
   onKeyAreaClick,
 }: NotationStaffProps) {
   const hostRef = useRef<HTMLDivElement>(null);
   const resultRef = useRef<RenderResult | null>(null);
+  const pendingEventClickRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // pointerdown.detail is always 0 in Chrome — track double-clicks ourselves.
+  const lastEventTapRef = useRef<{ key: string; at: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  function clearPendingEventClick() {
+    if (pendingEventClickRef.current == null) return;
+    clearTimeout(pendingEventClickRef.current);
+    pendingEventClickRef.current = null;
+  }
 
   useEffect(() => {
     const host = hostRef.current;
@@ -47,7 +63,9 @@ export function NotationStaff({
       try {
         const { renderScore } = await import("./renderScore");
         if (cancelled || !hostRef.current) return;
-        const width = Math.floor(hostRef.current.clientWidth) || 480;
+        const zoom = scale > 0 ? scale : 1;
+        const cssWidth = hostRef.current.clientWidth || 480;
+        const width = Math.max(240, Math.floor(cssWidth / zoom));
         resultRef.current = await renderScore(hostRef.current, score, width, {
           wrapSystems,
         });
@@ -73,8 +91,9 @@ export function NotationStaff({
     return () => {
       cancelled = true;
       observer.disconnect();
+      clearPendingEventClick();
     };
-  }, [score, wrapSystems]);
+  }, [score, wrapSystems, scale]);
 
   function handlePointerDown(event: PointerEvent<HTMLDivElement>) {
     if (!interactive || error) return;
@@ -96,6 +115,7 @@ export function NotationStaff({
 
     const first = rendered.staves[0];
     if (first && point.x < first.noteStartX) {
+      clearPendingEventClick();
       const mid = first.x + (first.noteStartX - first.x) * 0.55;
       onKeyAreaClick?.({ action: point.x < mid ? "remove" : "add" });
       return;
@@ -105,9 +125,28 @@ export function NotationStaff({
     const pitch = pitchFromStaffLine(score.clef, line);
     const hit = hitEvent(rendered.events, point.x, point.y);
     if (hit) {
-      onEventClick?.(hit, pitch);
+      const hitKey = `${hit.measureIndex}:${hit.eventIndex}`;
+      const now = performance.now();
+      const prev = lastEventTapRef.current;
+      const isDouble =
+        prev != null && prev.key === hitKey && now - prev.at <= DOUBLE_CLICK_MS;
+      if (isDouble) {
+        clearPendingEventClick();
+        lastEventTapRef.current = null;
+        onEventDoubleClick?.(hit);
+        return;
+      }
+      lastEventTapRef.current = { key: hitKey, at: now };
+      // Defer so a double-click can cancel and remove instead of replace.
+      clearPendingEventClick();
+      pendingEventClickRef.current = setTimeout(() => {
+        pendingEventClickRef.current = null;
+        onEventClick?.(hit, pitch);
+      }, DOUBLE_CLICK_MS);
       return;
     }
+    clearPendingEventClick();
+    lastEventTapRef.current = null;
     onStaffClick?.({ pitch, measureIndex: staveInfo.measureIndex });
   }
 

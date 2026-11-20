@@ -1,10 +1,14 @@
 import { describe, expect, it } from "vitest";
 import {
   WARP_BAND_ID,
+  WHOLE_PULSE_FALL,
+  WHOLE_PULSE_PERIOD,
+  WHOLE_PULSE_RISE,
   canWarp,
   engageWarp,
   followWarpBand,
   makeWarpBand,
+  wholePulseAmount,
 } from "../modules/anachrometer";
 import {
   FIXED_DT,
@@ -95,5 +99,30 @@ describe("Anachrometer mid-flight pull", () => {
     expect(band.id).toBe(WARP_BAND_ID);
     expect(body.x).toBeGreaterThanOrEqual(band.x0);
     expect(body.x).toBeLessThanOrEqual(band.x1);
+  });
+});
+
+describe("Anachrometer hull bleach pulse", () => {
+  it("pings white right after engage, then eases back to black", () => {
+    expect(wholePulseAmount(0)).toBe(0);
+    // Mid-rise is climbing; peak at end of rise.
+    expect(wholePulseAmount(WHOLE_PULSE_RISE * 0.5)).toBeGreaterThan(0.4);
+    expect(wholePulseAmount(WHOLE_PULSE_RISE)).toBeCloseTo(1, 5);
+    // Mid-fall is fading; rest is black until the next ping.
+    expect(
+      wholePulseAmount(WHOLE_PULSE_RISE + WHOLE_PULSE_FALL * 0.5),
+    ).toBeLessThan(0.6);
+    expect(
+      wholePulseAmount(WHOLE_PULSE_RISE + WHOLE_PULSE_FALL - 1e-9),
+    ).toBeLessThan(0.05);
+    expect(
+      wholePulseAmount(WHOLE_PULSE_RISE + WHOLE_PULSE_FALL + 0.05),
+    ).toBe(0);
+  });
+
+  it("repeats on the period", () => {
+    const a = wholePulseAmount(WHOLE_PULSE_RISE * 0.5);
+    const b = wholePulseAmount(WHOLE_PULSE_PERIOD + WHOLE_PULSE_RISE * 0.5);
+    expect(b).toBeCloseTo(a, 5);
   });
 });

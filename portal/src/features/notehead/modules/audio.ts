@@ -83,6 +83,30 @@ export function playHullHit(): void {
   });
 }
 
+const SOFT_LANDING_SRC = "/assets/notehead/sfx/ship-landing-1.wav";
+/** Soft Frequency Band / gentle terrain contact (no HP loss). */
+const SOFT_LANDING_VOLUME = 0.22;
+let softLandingAudio: HTMLAudioElement | null = null;
+
+/** Thud for landings and bumps that do not cost hull. */
+export function playSoftLanding(): void {
+  resume();
+  if (typeof window === "undefined") return;
+  if (!softLandingAudio) {
+    softLandingAudio = new Audio(SOFT_LANDING_SRC);
+    softLandingAudio.preload = "auto";
+  }
+  softLandingAudio.volume = SOFT_LANDING_VOLUME;
+  try {
+    softLandingAudio.currentTime = 0;
+  } catch {
+    // Ignore seek errors before the buffer is ready.
+  }
+  void softLandingAudio.play().catch(() => {
+    /* autoplay / gesture gates — ignore */
+  });
+}
+
 const ANACH_REPAIR_SRC = "/assets/notehead/sfx/RU_TF_fx_reboot.wav";
 /** Gain for the Anachrometer repair reboot cue. */
 const ANACH_REPAIR_VOLUME = 0.25;
@@ -105,6 +129,144 @@ export function playAnachRepair(): void {
   void anachRepairAudio.play().catch(() => {
     /* autoplay / gesture gates — ignore */
   });
+}
+
+const ANACH_WARP_SRC = "/assets/notehead/sfx/anach-warp-sound-loopable.wav";
+/** Sustained warp pulse while the Anachrometer is held. */
+const ANACH_WARP_VOLUME = 0.2;
+/**
+ * Koala HOLD+LOOP style: play the attack once, then loop the energy pulse
+ * at the sample tail (~0.14s period ending at EOF).
+ */
+const ANACH_WARP_LOOP_START = 0.419;
+const ANACH_WARP_FADE_OUT = 0.09;
+
+let anachWarpBuffer: AudioBuffer | null = null;
+let anachWarpLoading: Promise<AudioBuffer | null> | null = null;
+let anachWarpSource: AudioBufferSourceNode | null = null;
+let anachWarpGain: GainNode | null = null;
+let anachWarpWanted = false;
+
+async function loadAnachWarpBuffer(
+  ctx: AudioContext,
+): Promise<AudioBuffer | null> {
+  if (anachWarpBuffer) return anachWarpBuffer;
+  if (!anachWarpLoading) {
+    anachWarpLoading = fetch(ANACH_WARP_SRC)
+      .then((res) => res.arrayBuffer())
+      .then((raw) => ctx.decodeAudioData(raw.slice(0)))
+      .then((buffer) => {
+        anachWarpBuffer = buffer;
+        return buffer;
+      })
+      .catch(() => {
+        anachWarpLoading = null;
+        return null;
+      });
+  }
+  return anachWarpLoading;
+}
+
+function haltAnachWarpNodes(ctx: AudioContext | null): void {
+  const gain = anachWarpGain;
+  const source = anachWarpSource;
+  anachWarpGain = null;
+  anachWarpSource = null;
+  if (!gain && !source) return;
+  const now = ctx?.currentTime ?? 0;
+  try {
+    if (gain && ctx) {
+      gain.gain.cancelScheduledValues(now);
+      gain.gain.setValueAtTime(0.0001, now);
+    }
+    source?.stop(now);
+  } catch {
+    // already stopped
+  }
+  try {
+    source?.disconnect();
+    gain?.disconnect();
+  } catch {
+    // already disconnected
+  }
+}
+
+function armAnachWarp(ctx: AudioContext, buffer: AudioBuffer): void {
+  if (!anachWarpWanted) return;
+  haltAnachWarpNodes(ctx);
+  const now = ctx.currentTime;
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(0.0001, now);
+  gain.gain.exponentialRampToValueAtTime(ANACH_WARP_VOLUME, now + 0.02);
+  gain.connect(ctx.destination);
+
+  const source = ctx.createBufferSource();
+  source.buffer = buffer;
+  source.loop = true;
+  const loopStart = Math.min(
+    ANACH_WARP_LOOP_START,
+    Math.max(0, buffer.duration - 0.05),
+  );
+  source.loopStart = loopStart;
+  source.loopEnd = buffer.duration;
+  source.connect(gain);
+  source.start(now);
+  anachWarpGain = gain;
+  anachWarpSource = source;
+}
+
+/**
+ * Engage the Anachrometer warp pulse: full sample attack, then loop the
+ * tail energy region until `stopAnachWarp`.
+ */
+export function startAnachWarp(): void {
+  if (typeof window === "undefined") return;
+  anachWarpWanted = true;
+  const ctx = context();
+  if (!ctx) return;
+  if (ctx.state === "suspended") void ctx.resume();
+
+  if (anachWarpBuffer) {
+    armAnachWarp(ctx, anachWarpBuffer);
+    return;
+  }
+  void loadAnachWarpBuffer(ctx).then((buffer) => {
+    if (buffer && anachWarpWanted) armAnachWarp(ctx, buffer);
+  });
+}
+
+/** Release the Anachrometer warp pulse with a short fade-out. */
+export function stopAnachWarp(): void {
+  anachWarpWanted = false;
+  const ctx = context();
+  const gain = anachWarpGain;
+  const source = anachWarpSource;
+  if (!gain && !source) return;
+  anachWarpGain = null;
+  anachWarpSource = null;
+  const now = ctx?.currentTime ?? 0;
+  try {
+    if (gain && ctx) {
+      const level = Math.max(gain.gain.value, 0.0001);
+      gain.gain.cancelScheduledValues(now);
+      gain.gain.setValueAtTime(level, now);
+      gain.gain.exponentialRampToValueAtTime(
+        0.0001,
+        now + ANACH_WARP_FADE_OUT,
+      );
+    }
+    source?.stop(now + ANACH_WARP_FADE_OUT + 0.02);
+  } catch {
+    // already stopped
+  }
+  window.setTimeout(() => {
+    try {
+      source?.disconnect();
+      gain?.disconnect();
+    } catch {
+      // already disconnected
+    }
+  }, (ANACH_WARP_FADE_OUT + 0.05) * 1000);
 }
 
 export function playPitch(pitch: string): void {

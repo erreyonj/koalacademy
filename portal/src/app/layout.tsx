@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
-import { Outfit, Space_Grotesk, Orbitron } from "next/font/google";
+import { Bungee_Hairline, Outfit, Space_Grotesk, Orbitron } from "next/font/google";
 import { AppShell } from "@/components/app-shell";
 import { ThemeProvider } from "@/features/theme/ThemeProvider";
 import { cn } from "@/lib/utils";
@@ -36,6 +36,13 @@ const tickingTimebomb = localFont({
   display: "swap",
 });
 
+const bungeeHairline = Bungee_Hairline({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-bungee-hairline",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: {
     default: "Koalacademy Portal",
@@ -61,7 +68,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang="en"
-      className={cn(outfit.variable, spaceGrotesk.variable, orbitron.variable, tickingTimebomb.variable, "font-sans")}
+      className={cn(
+        outfit.variable,
+        spaceGrotesk.variable,
+        orbitron.variable,
+        tickingTimebomb.variable,
+        bungeeHairline.variable,
+        "font-sans",
+      )}
       suppressHydrationWarning
     >
       <head>

@@ -4,6 +4,7 @@ import { ExitMark } from "./ExitZone";
 import { NoteTailMark } from "./NoteTailMark";
 import { SceneFrame } from "./SceneFrame";
 import { Ship, type ShipLook } from "./Ship";
+import { ShipBreach } from "./ShipBreach";
 import { Sparkles } from "./Sparkles";
 import { Trajectory } from "./Trajectory";
 import {
@@ -104,14 +105,24 @@ export function LaunchArt({
       {gesture.phase === "sparkle" && (
         <Sparkles cx={ship.x} cy={showGuide ? guide.y : ship.y} />
       )}
-      <Ship
-        cx={ship.x}
-        cy={ship.y}
-        rx={14}
-        ry={10}
-        look={look}
-        testId="launch-ship"
-      />
+      {gesture.phase === "breach" ? (
+        <ShipBreach
+          cx={ship.x}
+          cy={ship.y}
+          rx={14}
+          ry={10}
+          testId="launch-ship-breach"
+        />
+      ) : (
+        <Ship
+          cx={ship.x}
+          cy={ship.y}
+          rx={14}
+          ry={10}
+          look={look}
+          testId="launch-ship"
+        />
+      )}
     </SceneFrame>
   );
 }

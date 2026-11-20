@@ -7,15 +7,21 @@ import {
   applyLandingHit,
   clampHp,
   isHardLanding,
+  isHardMassHit,
+  isSoftMassBump,
   maxHp,
 } from "../modules/health";
-import { LANDING_HIT_SPEED } from "../modules/sim";
+import {
+  LANDING_HIT_SPEED,
+  MASS_BUMP_SPEED,
+  MASS_HIT_SPEED,
+} from "../modules/sim";
 
 describe("hull HP", () => {
-  it("starts at 8 / 5 / 3 by difficulty", () => {
-    expect(maxHp("easy")).toBe(8);
-    expect(maxHp("medium")).toBe(5);
-    expect(maxHp("hard")).toBe(3);
+  it("starts at 10 / 8 / 5 by difficulty", () => {
+    expect(maxHp("easy")).toBe(10);
+    expect(maxHp("medium")).toBe(8);
+    expect(maxHp("hard")).toBe(5);
   });
 
   it("landings cost 1 and floor at 0", () => {
@@ -27,13 +33,13 @@ describe("hull HP", () => {
 
   it("clearing Borealis restores 1 up to max when hull is on", () => {
     expect(applyBorealisHeal(3, "medium")).toBe(4);
-    expect(applyBorealisHeal(5, "medium")).toBe(5);
+    expect(applyBorealisHeal(8, "medium")).toBe(8);
     expect(applyBorealisHeal(3, "easy")).toBe(4);
   });
 
   it("clampHp respects the difficulty max", () => {
-    expect(clampHp(9, "easy")).toBe(8);
-    expect(clampHp(9, "hard")).toBe(3);
+    expect(clampHp(11, "easy")).toBe(10);
+    expect(clampHp(9, "hard")).toBe(5);
   });
 
   it("exit barriers only tax hull on hard", () => {
@@ -48,6 +54,15 @@ describe("hull HP", () => {
     expect(isHardLanding(LANDING_HIT_SPEED - 1)).toBe(false);
     expect(isHardLanding(LANDING_HIT_SPEED)).toBe(true);
     expect(isHardLanding(LANDING_HIT_SPEED * 2)).toBe(true);
+  });
+
+  it("rock hits share the landing hard-hit bar; softer bumps stay free", () => {
+    expect(MASS_HIT_SPEED).toBe(LANDING_HIT_SPEED);
+    expect(isHardMassHit(MASS_HIT_SPEED - 1)).toBe(false);
+    expect(isHardMassHit(MASS_HIT_SPEED)).toBe(true);
+    expect(isSoftMassBump(MASS_BUMP_SPEED)).toBe(true);
+    expect(isSoftMassBump(MASS_HIT_SPEED)).toBe(false);
+    expect(isSoftMassBump(MASS_BUMP_SPEED - 1)).toBe(false);
   });
 });
 

@@ -23,13 +23,13 @@ export interface ShipLook {
   /** Reduced motion: the trail holds one pose. */
   still: boolean;
   /**
-   * 0..1 Anachrometer whole-note open. Hull goes white and a center hole
-   * blooms while the glow-colored rim stays.
+   * 0..1 Anachrometer whole-note bleach. While warping, a beacon ping eases
+   * to white then back to black; drives hull fill and the center hole.
    */
   whole: number;
 }
 
-/** Solid black hull → white as the Anachrometer opens. */
+/** Solid black hull → white as the Anachrometer bleach peaks. */
 function hullFill(whole: number): string {
   const t = Math.max(0, Math.min(1, whole));
   const c = Math.round(255 * t);
@@ -38,7 +38,7 @@ function hullFill(whole: number): string {
 
 /**
  * The stemless notehead. Solid black body, glow-colored rim. Anachrometer
- * warp opens a whole-note hole and bleaches the hull white.
+ * warp pulses a whole-note hole and bleaches the hull white in staggered hits.
  */
 export function Ship({
   cx,

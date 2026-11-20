@@ -16,9 +16,12 @@ import {
 import {
   playHullHit,
   playPitch,
+  playSoftLanding,
   resume,
   setAimTone,
   setClimb,
+  startAnachWarp,
+  stopAnachWarp,
 } from "../modules/audio";
 import {
   type Borealis,
@@ -43,6 +46,7 @@ import {
   clampHp,
   hullEnabled,
   isHardLanding,
+  isSoftMassBump,
   maxHp,
 } from "../modules/health";
 import { clearanceBelow } from "../modules/momentum";
@@ -102,16 +106,20 @@ import {
   type StoryEventId,
   type StoryInterrupt as StoryInterruptData,
 } from "../modules/story";
+import { HullCueMark } from "./ExitZone";
+import { StartScreen } from "./StartScreen";
 import { StoryInterrupt } from "./StoryInterrupt";
 import { SvgNoteheadView } from "./SvgNoteheadView";
 import "../notehead.css";
 
 type Phase = GesturePhase;
+type ScreenPhase = "start" | "play";
 
-const DIFFICULTIES: DifficultyId[] = ["easy", "medium", "hard"];
 const THEME_SRC = "/assets/notehead/notehead-etheral-vibe.wav";
 /** Slow-mo while the Launch band snaps and the ship falls out of frame. */
 const BREAK_FALL_TIME_SCALE = 0.22;
+/** Hull-breach shatter before GI / beat restart. */
+const HULL_BREACH_MS = 880;
 /**
  * Dev chrome (beat jump pills + under-stage helper text) — on in local/dev
  * by default; set NEXT_PUBLIC_NOTEHEAD_LEVEL_SELECT=1 to show in a production
@@ -168,24 +176,35 @@ export function NoteheadApp() {
   const [, setRepair] = useState<ShipRepair>(route.repair);
   const [difficulty, setDifficulty] = useState<DifficultyId>("easy");
   const [hp, setHp] = useState(maxHp("easy"));
+  const [borealisGot, setBorealisGot] = useState(0);
+  const [borealisTotal, setBorealisTotal] = useState(
+    () => spawnBorealis(route.beatId).length,
+  );
   const [hint, setHint] = useState(PROGRESSION[route.beatId].hint);
   const [phase, setPhase] = useState<Phase>(phaseRef.current);
+  const [screenPhase, setScreenPhase] = useState<ScreenPhase>("start");
+  const screenPhaseRef = useRef<ScreenPhase>("start");
   const [activeInterrupt, setActiveInterrupt] =
-    useState<StoryInterruptData | null>(() => {
-      const batch = enterEventsForBeat(route.beatId).flatMap((eventId) => [
-        ...interruptsForEvent(eventId),
-      ]);
-      interruptQueueRef.current = batch.slice(1);
-      cutsceneOpenRef.current = batch.length > 0;
-      return batch[0] ?? null;
-    });
+    useState<StoryInterruptData | null>(null);
   const music = useThemeMusic(THEME_SRC, false);
 
-  // Start the theme as soon as Launch mounts (boot splash already finished).
-  useEffect(() => {
+  const beginRun = (id: DifficultyId) => {
+    difficultyRef.current = id;
+    setDifficulty(id);
+    const cap = maxHp(id);
+    hpRef.current = cap;
+    setHp(cap);
+    screenPhaseRef.current = "play";
+    setScreenPhase("play");
     resume();
     music.start();
-  }, [music.start]);
+    const batch = enterEventsForBeat(beatRef.current).flatMap((eventId) => [
+      ...interruptsForEvent(eventId),
+    ]);
+    interruptQueueRef.current = batch.slice(1);
+    cutsceneOpenRef.current = batch.length > 0;
+    setActiveInterrupt(batch[0] ?? null);
+  };
 
   const promoteInterrupt = (batch: readonly StoryInterruptData[]) => {
     if (batch.length === 0) return;
@@ -259,6 +278,11 @@ export function NoteheadApp() {
       setHp(clamped);
     };
 
+    const syncBorealisHud = (list: readonly Borealis[]) => {
+      setBorealisTotal(list.length);
+      setBorealisGot(list.filter((gem) => gem.collected).length);
+    };
+
     /** Notch hull tips — once per beat visit, on first damage / first breach. */
     const teachHullDamage = (prev: number, next: number) => {
       if (beatRef.current !== "notch-calibrate" || next >= prev) return;
@@ -272,6 +296,37 @@ export function NoteheadApp() {
       }
     };
 
+    /**
+     * At 0 HP: shatter the ship, then teach GIs (empty hull) or restart.
+     * Teach is deferred so the destroy anim reads before the tip text.
+     */
+    const handleHullBreach = (prevHp: number, nextHp: number) => {
+      setHint("Hull breached");
+      stopAnachWarp();
+      timeScaleRef.current = 1;
+      warpRef.current = null;
+      phaseRef.current = "breach";
+      setPhase("breach");
+
+      const restart = () => {
+        jumpBeat(beatRef.current, repairRef.current);
+        setHull(maxHp(difficultyRef.current));
+      };
+
+      window.setTimeout(() => {
+        teachHullDamage(prevHp, nextHp);
+        if (
+          beatRef.current === "notch-calibrate" &&
+          (cutsceneOpenRef.current || interruptQueueRef.current.length > 0)
+        ) {
+          // Keep 0 HP so the hull cue points at empty pips until dismiss.
+          pendingAfterDismissRef.current = restart;
+          return;
+        }
+        restart();
+      }, HULL_BREACH_MS);
+    };
+
     const jumpBeat: JumpFn = (id, nextRepair) => {
       const prevId = beatRef.current;
       const repair = nextRepair ?? repairForBeat(id);
@@ -282,8 +337,10 @@ export function NoteheadApp() {
       warpRef.current = null;
       exitBandRef.current = null;
       borealisRef.current = spawnBorealis(id);
+      syncBorealisHud(borealisRef.current);
       noteTailRef.current = spawnNoteTail(id);
       timeScaleRef.current = 1;
+      stopAnachWarp();
       aimRef.current = { power: 0, angle: 0 };
       visitedRef.current = seedVisited(id);
       crossedRef.current = [];
@@ -467,7 +524,7 @@ export function NoteheadApp() {
       const solid =
         !bodyRef.current.restingOn || isSlopedStep(seat)
           ? resolveMasses(bodyRef.current, def.regionId)
-          : { body: bodyRef.current, hit: false, massId: null };
+          : { body: bodyRef.current, hit: false, massId: null, into: 0 };
       bodyRef.current = solid.body;
       const liveExit = exitZoneFor(beatRef.current);
       let exitBarrierHit = false;
@@ -580,12 +637,13 @@ export function NoteheadApp() {
               stingRef.current = 1;
               playHullHit();
               setHull(next);
-              teachHullDamage(prev, next);
               if (next <= 0) {
-                setHint("Hull breached");
-                jumpBeat(beatRef.current, repairRef.current);
-                setHull(maxHp(difficultyRef.current));
+                handleHullBreach(prev, next);
+              } else {
+                teachHullDamage(prev, next);
               }
+            } else {
+              playSoftLanding();
             }
           }
           return;
@@ -602,45 +660,59 @@ export function NoteheadApp() {
       const landed = result.landedId
         ? ledgeById(ledges, result.landedId)
         : null;
-      // Frequency Bands are always soft. Steps/blocks only tax hull above
-      // LANDING_HIT_SPEED. Rock + exit-barrier hits are already speed-gated;
-      // exit barriers only deduct on Hard.
+      // Frequency Bands are always soft. Steps/blocks and rock walls share the
+      // same hard-hit bar (LANDING_HIT_SPEED / MASS_HIT_SPEED). Exit barriers
+      // use that gate too, and only deduct HP on Hard.
       const bandLand = landed?.kind === "band";
       const hardLand =
         Boolean(result.landedId) &&
         !bandLand &&
         isHardLanding(result.impactSpeed);
       const terrainHit = hardLand || solid.hit;
+      const softMassBump = isSoftMassBump(solid.into);
+      let hullDamaged = false;
       if (exitBarrierHit) {
         const prev = hpRef.current;
         const next = applyExitBarrierHit(prev, difficultyRef.current);
         if (next !== prev) {
+          hullDamaged = true;
           stingRef.current = 1;
           playHullHit();
           setHull(next);
-          teachHullDamage(prev, next);
           if (next <= 0) {
-            setHint("Hull breached");
-            jumpBeat(beatRef.current, repairRef.current);
-            setHull(maxHp(difficultyRef.current));
+            handleHullBreach(prev, next);
             return;
           }
+          teachHullDamage(prev, next);
         }
       } else if (terrainHit && hullEnabled(difficultyRef.current)) {
         const prev = hpRef.current;
         const next = applyLandingHit(prev, difficultyRef.current);
         stingRef.current = 1;
-        if (next !== prev) playHullHit();
+        if (next !== prev) {
+          hullDamaged = true;
+          playHullHit();
+        }
         setHull(next);
-        teachHullDamage(prev, next);
         if (next <= 0) {
-          setHint("Hull breached");
-          jumpBeat(beatRef.current, repairRef.current);
-          setHull(maxHp(difficultyRef.current));
+          handleHullBreach(prev, next);
           return;
         }
+        if (next !== prev) teachHullDamage(prev, next);
       } else if (terrainHit) {
         stingRef.current = 1;
+      }
+
+      // Soft Frequency Band seats, gentle ledge landings, and non-damaging
+      // wall bumps — not the HP caution sting.
+      if (
+        !hullDamaged &&
+        (Boolean(result.landedId) ||
+          softMassBump ||
+          solid.hit ||
+          exitBarrierHit)
+      ) {
+        playSoftLanding();
       }
 
       if (!result.landedId) {
@@ -648,7 +720,6 @@ export function NoteheadApp() {
         return;
       }
 
-      // Landings stay silent — Borealis (and the launch climb ladder) carry pitch.
       if (!visitedRef.current.includes(result.landedId)) {
         visitedRef.current = [...visitedRef.current, result.landedId];
       }
@@ -678,6 +749,7 @@ export function NoteheadApp() {
 
       warpRef.current = null;
       timeScaleRef.current = 1;
+      stopAnachWarp();
       const cleared = advanceIfClear(result.landedId);
       if (
         !cleared &&
@@ -711,6 +783,7 @@ export function NoteheadApp() {
       );
       borealisRef.current = borealisStep.list;
       if (!borealisStep.collected.length) return;
+      syncBorealisHud(borealisStep.list);
       for (const gem of borealisStep.collected) {
         // After launch-teach, pitched notes come from Borealis only.
         playPitch(gem.pitch);
@@ -827,6 +900,7 @@ export function NoteheadApp() {
           ) {
             warpRef.current = null;
             timeScaleRef.current = 1;
+            stopAnachWarp();
           }
         }
       }
@@ -839,6 +913,7 @@ export function NoteheadApp() {
       if (document.hidden) {
         setClimb(null);
         setAimTone(null);
+        stopAnachWarp();
       }
     };
     document.addEventListener("visibilitychange", onHide);
@@ -849,6 +924,7 @@ export function NoteheadApp() {
       document.removeEventListener("visibilitychange", onHide);
       setClimb(null);
       setAimTone(null);
+      stopAnachWarp();
       view.unmount();
       viewRef.current = null;
       jumpRef.current = null;
@@ -856,8 +932,9 @@ export function NoteheadApp() {
   }, []);
 
   const onPointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (screenPhaseRef.current !== "play") return;
     if (cutsceneOpenRef.current) return;
-    if (phaseRef.current === "sparkle") return;
+    if (phaseRef.current === "sparkle" || phaseRef.current === "breach") return;
     resume();
     music.start();
     // Mid-flight press: warp a band under the ship and start the next pull
@@ -874,6 +951,7 @@ export function NoteheadApp() {
       bodyRef.current = engaged.body;
       warpRef.current = engaged.warp;
       timeScaleRef.current = WARP_TIME_SCALE;
+      startAnachWarp();
       event.currentTarget.setPointerCapture(event.pointerId);
       originX.current = event.clientX;
       originY.current = event.clientY;
@@ -929,6 +1007,7 @@ export function NoteheadApp() {
         // Cancel warp; keep current velocity and resume flight.
         warpRef.current = null;
         timeScaleRef.current = 1;
+        stopAnachWarp();
         phaseRef.current = "flight";
         setPhase("flight");
         setHint(PROGRESSION[beatRef.current].hint);
@@ -952,6 +1031,7 @@ export function NoteheadApp() {
     bodyRef.current = { ...bodyRef.current, ...velocity, restingOn: null };
     warpRef.current = null;
     timeScaleRef.current = 1;
+    stopAnachWarp();
     shotPowerRef.current = aim.power;
     crossedExitRef.current = false;
     crossedRef.current = [];
@@ -996,7 +1076,20 @@ export function NoteheadApp() {
           ))}
         </nav>
       ) : null}
-      <div className="notehead-stage" data-phase={phase}>
+      <div className="notehead-stage" data-phase={phase} data-screen={screenPhase}>
+        {screenPhase === "start" ? (
+          <StartScreen
+            difficulty={difficulty}
+            onDifficulty={(id) => {
+              difficultyRef.current = id;
+              setDifficulty(id);
+              const cap = maxHp(id);
+              hpRef.current = cap;
+              setHp(cap);
+            }}
+            onBegin={beginRun}
+          />
+        ) : null}
         <div className="notehead-hud">
           <button
             type="button"
@@ -1044,36 +1137,25 @@ export function NoteheadApp() {
                   />
                 ))}
               </div>
+              <HullCueMark lit={activeInterrupt?.accent === "hull"} />
             </div>
           )}
-          <div
-            className="notehead-difficulty"
-            role="group"
-            aria-label="Difficulty"
-          >
-            {DIFFICULTIES.map((id) => (
-              <button
-                key={id}
-                type="button"
-                className={difficulty === id ? "is-on" : ""}
-                aria-pressed={difficulty === id}
-                data-testid={`difficulty-${id}`}
-                data-idle-flash=""
-                onClick={() => {
-                  const prevCap = maxHp(difficultyRef.current);
-                  difficultyRef.current = id;
-                  setDifficulty(id);
-                  const cap = maxHp(id);
-                  const next =
-                    cap === 0 ? 0 : prevCap === 0 ? cap : clampHp(hpRef.current, id);
-                  hpRef.current = next;
-                  setHp(next);
-                }}
-              >
-                {id}
-              </button>
-            ))}
-          </div>
+          {borealisTotal > 0 ? (
+            <div
+              className="notehead-borealis-count"
+              role="status"
+              aria-label={`Borealis ${borealisGot} of ${borealisTotal}`}
+              data-testid="borealis-count"
+              data-idle-flash=""
+            >
+              <span>borealis</span>
+              <strong>
+                {borealisGot}
+                <span className="notehead-borealis-count-sep">/</span>
+                {borealisTotal}
+              </strong>
+            </div>
+          ) : null}
         </div>
         <div className="notehead-scene-wrap">
           <div

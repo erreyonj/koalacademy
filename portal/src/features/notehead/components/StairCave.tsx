@@ -3,6 +3,7 @@ import { BorealisMark } from "./Borealis";
 import { ExitMark } from "./ExitZone";
 import { SceneFrame } from "./SceneFrame";
 import { Ship, type ShipLook } from "./Ship";
+import { ShipBreach } from "./ShipBreach";
 import { Sparkles } from "./Sparkles";
 import { Trajectory } from "./Trajectory";
 import {
@@ -120,14 +121,24 @@ export function StairArt({
       {gesture.phase === "sparkle" && (
         <Sparkles cx={ship.x} cy={ship.y} testId="stair-sparkles" />
       )}
-      <Ship
-        cx={ship.x}
-        cy={ship.y}
-        rx={8}
-        ry={6}
-        look={look}
-        testId="stair-ship"
-      />
+      {gesture.phase === "breach" ? (
+        <ShipBreach
+          cx={ship.x}
+          cy={ship.y}
+          rx={8}
+          ry={6}
+          testId="stair-ship-breach"
+        />
+      ) : (
+        <Ship
+          cx={ship.x}
+          cy={ship.y}
+          rx={8}
+          ry={6}
+          look={look}
+          testId="stair-ship"
+        />
+      )}
     </SceneFrame>
   );
 }

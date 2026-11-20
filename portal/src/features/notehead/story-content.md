@@ -38,11 +38,13 @@ No story interrupt — scripted fall into Notch.
 
 ### First hull HP loss on this beat — GI
 
-- **GI:** Hard hits against terrain damage the hull
+- **GI:** Hard hits or impacts against terrain damage the hull
+- Hull pips pulse at the **current** HP (not a full bar); purple up-arrow on the playfield points at the hull HUD.
 
 ### First hull breach (HP → 0) on this beat — GI
 
 - **GI:** If there's a breach the Anachrometer resets you to try again.
+- Ship shatter plays first (`breach` phase); hull stays empty (0 HP) through the GI until dismiss, then the beat restarts with a full hull.
 
 ### Exit (clear / leave Notch) — GI
 

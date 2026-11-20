@@ -65,10 +65,16 @@ export const BREAK_SPEED = 380 * SY;
 export const LANDING_HIT_SPEED = 240 * SY;
 /**
  * Speed into a rock face / sealed exit wall that costs hull.
- * Kept well below LANDING but high enough that pocket grazes on a short hop
- * (power ~0.1–0.2) do not tax HP — only committed wall slams.
+ * Matches {@link LANDING_HIT_SPEED} so a short hop (aim power ≲ 0.35) into a
+ * wall stays free, while committed slams still tax HP. Softer contacts still
+ * resolve and can play the soft-landing cue via {@link MASS_BUMP_SPEED}.
  */
-export const MASS_HIT_SPEED = 90 * SY;
+export const MASS_HIT_SPEED = LANDING_HIT_SPEED;
+/**
+ * Inward speed that counts as an audible wall bump (no HP). Below this the
+ * resolve may still push the ship out of rock without a soft-landing cue.
+ */
+export const MASS_BUMP_SPEED = 25 * SY;
 /** Gentle −x kick when seating on a sloping tread. */
 export const SLIDE_SPEED = 80 * SX;
 /** Extra −x acceleration while seated on a sloping tread. */
@@ -203,7 +209,7 @@ export const PROFILES: Record<DifficultyId, DifficultyProfile> = {
     notchClear: "pocket-or-block",
     splitSkills: false,
     aimInset: 0,
-    maxHp: 8,
+    maxHp: 10,
   },
   medium: {
     id: "medium",
@@ -212,7 +218,7 @@ export const PROFILES: Record<DifficultyId, DifficultyProfile> = {
     notchClear: "block",
     splitSkills: false,
     aimInset: 0.08,
-    maxHp: 5,
+    maxHp: 8,
   },
   hard: {
     id: "hard",
@@ -221,7 +227,7 @@ export const PROFILES: Record<DifficultyId, DifficultyProfile> = {
     notchClear: "block",
     splitSkills: true,
     aimInset: 0.22,
-    maxHp: 3,
+    maxHp: 5,
   },
 };
 

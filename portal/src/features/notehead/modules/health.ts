@@ -3,7 +3,13 @@
  * Exit-frame barrier impacts cost HP on Hard only.
  */
 import type { Borealis } from "./borealis";
-import { LANDING_HIT_SPEED, PROFILES, type DifficultyId } from "./sim";
+import {
+  LANDING_HIT_SPEED,
+  MASS_BUMP_SPEED,
+  MASS_HIT_SPEED,
+  PROFILES,
+  type DifficultyId,
+} from "./sim";
 
 export function maxHp(difficulty: DifficultyId): number {
   return PROFILES[difficulty].maxHp;
@@ -23,6 +29,16 @@ export function clampHp(hp: number, difficulty: DifficultyId): number {
 /** True when a ledge landing is fast enough to tax hull. */
 export function isHardLanding(impactSpeed: number): boolean {
   return impactSpeed >= LANDING_HIT_SPEED;
+}
+
+/** True when a rock / exit-wall impact is fast enough to tax hull. */
+export function isHardMassHit(intoSpeed: number): boolean {
+  return intoSpeed >= MASS_HIT_SPEED;
+}
+
+/** True when a rock contact is hard enough for the soft-landing cue. */
+export function isSoftMassBump(intoSpeed: number): boolean {
+  return intoSpeed >= MASS_BUMP_SPEED && intoSpeed < MASS_HIT_SPEED;
 }
 
 /** Hard landing / rock impact costs one hull point (no-op when hull is off). */

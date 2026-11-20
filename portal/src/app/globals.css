@@ -1819,6 +1819,10 @@ button.lesson-toolbar-item {
   min-height: 9.75rem;
 }
 
+.notation-sandbox > .notation-stage.has-spelling .notation-staff {
+  min-height: 14rem;
+}
+
 .notation-staff-host {
   width: 100%;
   min-height: inherit;
@@ -2197,7 +2201,20 @@ button.lesson-toolbar-item {
   display: flex;
   flex-wrap: wrap;
   align-items: end;
+  justify-content: flex-start;
   gap: 0.55rem 0.65rem;
+}
+
+.notation-controls-main,
+.notation-controls-end {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 0.55rem 0.65rem;
+}
+
+.notation-controls-end {
+  margin-left: auto;
 }
 
 .notation-control {
@@ -2310,11 +2327,14 @@ button.lesson-toolbar-item {
   background: #fff;
   border-left: 3px solid var(--ka-edge);
   text-align: center;
+  color: #000;
+  container-type: inline-size;
 }
 
 .notation-spelling > .eyebrow {
   font-size: 0.72rem;
   letter-spacing: 0.14em;
+  color: #000;
 }
 
 .notation-spelling-empty {
@@ -2322,35 +2342,52 @@ button.lesson-toolbar-item {
   max-width: 7rem;
   font-size: 0.82rem;
   line-height: 1.35;
-  color: var(--ka-charcoal);
+  color: #000;
 }
 
-.notation-spelling-letters {
+.notation-spelling-readings {
   display: grid;
-  gap: 0.35rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.notation-spelling-letter {
-  font-family: var(--font-display);
-  font-size: clamp(1.45rem, 1.1rem + 1.2vw, 2rem);
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  line-height: 1;
-  color: var(--ka-ink);
+  justify-items: center;
+  gap: 0.45rem;
+  width: 100%;
 }
 
 .notation-spelling-word {
-  margin: 0.25rem 0 0;
+  margin: 0;
+  width: 100%;
   font-family: var(--font-display);
-  font-size: 0.95rem;
+  font-size: clamp(0.7rem, 22cqi, 1.85rem);
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.08em;
+  line-height: 1.15;
   text-transform: uppercase;
-  color: var(--ka-charcoal);
-  word-break: break-all;
+  text-align: center;
+  color: #000;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.notation-spelling-or {
+  margin: 0;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: lowercase;
+  color: #000;
+  opacity: 0.55;
+}
+
+.notation-spelling-alt {
+  margin: 0;
+  width: 100%;
+  font-family: var(--font-display);
+  font-size: clamp(0.62rem, 14cqi, 1.05rem);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  line-height: 1.25;
+  text-align: center;
+  color: #000;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 @media (max-width: 47.99rem) {
@@ -2361,12 +2398,6 @@ button.lesson-toolbar-item {
   .notation-spelling {
     border-left: 0;
     border-top: 3px solid var(--ka-edge);
-  }
-
-  .notation-spelling-letters {
-    grid-auto-flow: column;
-    justify-content: center;
-    gap: 0.45rem;
   }
 }
 

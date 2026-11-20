@@ -76,6 +76,39 @@ export function keyPitchClasses(key: string): string[] {
   return Scale.get(scaleName).notes;
 }
 
+const MAJOR_SOLFEGE = ["Do", "Re", "Mi", "Fa", "Sol", "La", "Ti"] as const;
+/** Do-based natural minor (tonic = Do). */
+const MINOR_SOLFEGE = ["Do", "Re", "Me", "Fa", "Sol", "Le", "Te"] as const;
+
+/**
+ * 0-based degree in the key's scale, or -1 when the pitch is outside the scale.
+ */
+export function scaleDegreeIndex(pitch: string, key: string): number {
+  const pcs = keyPitchClasses(key);
+  const chroma = Note.chroma(pitch);
+  if (chroma != null) {
+    const byChroma = pcs.findIndex((pc) => Note.chroma(pc) === chroma);
+    if (byChroma >= 0) return byChroma;
+  }
+  const letter = Note.get(pitch).letter;
+  if (!letter) return -1;
+  return pcs.findIndex((pc) => pc[0] === letter);
+}
+
+/** Scale-degree numeral (1–7) for a pitch in the current key/mode. */
+export function scaleDegreeLabel(pitch: string, key: string): string {
+  const idx = scaleDegreeIndex(pitch, key);
+  return idx >= 0 ? String(idx + 1) : "?";
+}
+
+/** Movable-do solfege for a pitch in the current key/mode. */
+export function solfegeLabel(pitch: string, key: string): string {
+  const idx = scaleDegreeIndex(pitch, key);
+  if (idx < 0) return "?";
+  const mode = parseKeyName(key).mode;
+  return (mode === "major" ? MAJOR_SOLFEGE : MINOR_SOLFEGE)[idx];
+}
+
 /**
  * Apply the key signature to a natural staff letter+octave (e.g. "F4" in G → "F#4").
  */
@@ -192,4 +225,29 @@ export const COMMON_MINOR_KEYS = [
 
 export function withKey(score: ScoreExcerpt, key: string): ScoreExcerpt {
   return { ...score, key: parseKeyName(key).name };
+}
+
+/** Build a key name from a spelling-letter tonic, e.g. F + major → "F", F + minor → "Fm". */
+export function keyFromTonicLetter(letter: string, mode: KeyMode): string {
+  const tonic = (letter.trim().charAt(0) || "C").toUpperCase();
+  return parseKeyName(mode === "major" ? tonic : `${tonic}m`).name;
+}
+
+/** Change key and rewrite note pitches to match the new signature (naturals + key accidentals). */
+export function remapScoreToKey(score: ScoreExcerpt, key: string): ScoreExcerpt {
+  const name = parseKeyName(key).name;
+  return {
+    ...score,
+    key: name,
+    measures: score.measures.map((measure) => ({
+      events: measure.events.map((event) => {
+        if (event.kind !== "note") return event;
+        const { letter, octave } = splitPitch(event.pitch);
+        return {
+          ...event,
+          pitch: applyKeyToPitch(`${letter}${octave}`, name),
+        };
+      }),
+    })),
+  };
 }

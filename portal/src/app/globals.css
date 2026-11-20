@@ -2237,6 +2237,32 @@ button.lesson-toolbar-item {
   color: var(--ka-ink);
 }
 
+.notation-palette-item {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding-right: 2rem;
+}
+
+.notation-palette-label {
+  flex: 0 0 auto;
+  min-width: 4.25rem;
+}
+
+.notation-palette-swatches {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.notation-palette-swatch {
+  display: block;
+  width: 0.7rem;
+  height: 0.7rem;
+  border: 1px solid color-mix(in srgb, var(--ka-edge) 70%, transparent);
+  border-radius: 2px;
+}
+
 .notation-sidebar {
   padding: 1rem 1.05rem 1.15rem;
   background: var(--ka-snow);

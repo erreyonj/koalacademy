@@ -13,6 +13,7 @@ import {
 } from "vexflow/bravura";
 import VexFlow from "vexflow/bravura";
 import { keyImpliesAccidental, parseKeyName, splitPitch } from "@/lib/notation/key";
+import { colorForPitch, type PaletteId } from "@/lib/notation/noteColors";
 import { voiceTime } from "@/lib/notation/parse";
 import type { Clef, ScoreExcerpt, ScoreEvent } from "@/lib/notation/types";
 
@@ -23,6 +24,12 @@ export type HitEvent = {
   y: number;
   w: number;
   h: number;
+};
+
+/** Which score event is “now playing” (notehead flash). */
+export type PlayHighlight = {
+  measureIndex: number;
+  eventIndex: number;
 };
 
 export type RenderedStave = {
@@ -71,7 +78,17 @@ function toVexKey(pitch: string): string {
   return `${letter.toLowerCase()}${accidental ?? ""}/${octave}`;
 }
 
-function toStaveNote(event: ScoreEvent, clef: Clef, key: string): StaveNote {
+function toStaveNote(
+  event: ScoreEvent,
+  clef: Clef,
+  key: string,
+  options: {
+    highlighted?: boolean;
+    colorize?: boolean;
+    paletteId?: PaletteId;
+  } = {},
+): StaveNote {
+  const { highlighted = false, colorize = false, paletteId = "roygbiv" } = options;
   const dots = event.dots === 1 ? 1 : 0;
   if (event.kind === "rest") {
     const rest = new StaveNote({
@@ -96,6 +113,29 @@ function toStaveNote(event: ScoreEvent, clef: Clef, key: string): StaveNote {
     note.addModifier(new Accidental(accidental), 0);
   } else if (!accidental && !keyImpliesAccidental(key, letter, null)) {
     note.addModifier(new Accidental("n"), 0);
+  }
+  const pitchColor = colorForPitch(event.pitch, paletteId);
+  if (colorize) {
+    note.setKeyStyle(0, {
+      fillStyle: pitchColor,
+      strokeStyle: pitchColor,
+      ...(highlighted
+        ? { shadowColor: pitchColor, shadowBlur: 14 }
+        : {}),
+    });
+    if (highlighted) {
+      note.setStemStyle({ strokeStyle: pitchColor });
+      note.setFlagStyle({ fillStyle: pitchColor, strokeStyle: pitchColor });
+    }
+  } else if (highlighted) {
+    note.setKeyStyle(0, {
+      fillStyle: pitchColor,
+      strokeStyle: pitchColor,
+      shadowColor: pitchColor,
+      shadowBlur: 10,
+    });
+    note.setStemStyle({ strokeStyle: pitchColor });
+    note.setFlagStyle({ fillStyle: pitchColor, strokeStyle: pitchColor });
   }
   return note;
 }
@@ -147,6 +187,12 @@ export type RenderOptions = {
   systemTop?: number;
   /** Vertical room per system (default 150). */
   systemHeight?: number;
+  /** Flash this event’s notehead during playback. */
+  highlight?: PlayHighlight | null;
+  /** Persistent absolute-pitch notehead colors. */
+  colorize?: boolean;
+  /** Active absolute-pitch palette. */
+  paletteId?: PaletteId;
 };
 
 const SYSTEM_TOP = 28;
@@ -164,6 +210,9 @@ export async function renderScore(
   const wrapSystems = options.wrapSystems ?? false;
   const systemTop = options.systemTop ?? SYSTEM_TOP;
   const systemHeight = options.systemHeight ?? SYSTEM_HEIGHT;
+  const highlight = options.highlight ?? null;
+  const colorize = options.colorize ?? false;
+  const paletteId = options.paletteId ?? "roygbiv";
   const measures = score.measures.length > 0 ? score.measures : [{ events: [] }];
   const groups = systemGroups(measures.length, wrapSystems);
   const height = systemTop + systemHeight * groups.length;
@@ -209,7 +258,17 @@ export async function renderScore(
 
       const measureEvents = measures[measureIndex].events;
       if (measureEvents.length > 0) {
-        const tickables = measureEvents.map((event) => toStaveNote(event, score.clef, score.key));
+        const tickables = measureEvents.map((event, eventIndex) =>
+          toStaveNote(event, score.clef, score.key, {
+            highlighted:
+              highlight != null &&
+              highlight.measureIndex === measureIndex &&
+              highlight.eventIndex === eventIndex &&
+              event.kind === "note",
+            colorize,
+            paletteId,
+          }),
+        );
         const tuplets = tupletBrackets(measureEvents, tickables);
         const voice = new Voice(voiceTime(score.time)).setMode(VoiceMode.SOFT);
         voice.addTickables(tickables);
@@ -219,6 +278,19 @@ export async function renderScore(
           beams = Beam.generateBeams(tickables);
         } catch {
           // Incomplete or mixed rhythms can refuse a beam; notes still draw.
+        }
+        // Tint the beam that contains the highlighted note, if any.
+        if (highlight != null && highlight.measureIndex === measureIndex) {
+          const activeEvent = measureEvents[highlight.eventIndex];
+          const active = tickables[highlight.eventIndex];
+          if (active && activeEvent?.kind === "note") {
+            const color = colorForPitch(activeEvent.pitch, paletteId);
+            for (const beam of beams) {
+              if (beam.getNotes().includes(active)) {
+                beam.setStyle({ fillStyle: color, strokeStyle: color });
+              }
+            }
+          }
         }
         voice.draw(ctx, stave);
         for (const beam of beams) beam.setContext(ctx).draw();

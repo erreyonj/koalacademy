@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   DropdownMenu,
+  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
@@ -25,6 +26,12 @@ import {
 } from "@/lib/notation/key";
 import { playNote, resumePiano } from "@/components/keys-lite/piano";
 import { ALL_WORDS } from "@/features/staff-decode/words";
+import {
+  NOTE_LETTERS,
+  PALETTES,
+  swatchesFor,
+  type PaletteId,
+} from "@/lib/notation/noteColors";
 import { emptyScore, eventBeats } from "@/lib/notation/parse";
 import { PRESETS } from "@/lib/notation/presets";
 import {
@@ -115,6 +122,12 @@ export function NotationSandbox({ initial }: { initial?: ScoreExcerpt }) {
   const [family, setFamily] = useState<AccidentalFamily>(familyFromKey(score.key));
   const [activity, setActivity] = useState<ActivityMode>("off");
   const [playing, setPlaying] = useState(false);
+  const [playHighlight, setPlayHighlight] = useState<{
+    measureIndex: number;
+    eventIndex: number;
+  } | null>(null);
+  const [colorizeOn, setColorizeOn] = useState(false);
+  const [paletteId, setPaletteId] = useState<PaletteId>("roygbiv");
   const lastGeneratedWordRef = useRef<string | null>(null);
 
   const parsed = useMemo(() => parseKeyName(score.key), [score.key]);
@@ -222,6 +235,7 @@ export function NotationSandbox({ initial }: { initial?: ScoreExcerpt }) {
   function stopPlayback() {
     playGenRef.current += 1;
     setPlaying(false);
+    setPlayHighlight(null);
   }
 
   async function playStaff() {
@@ -234,15 +248,25 @@ export function NotationSandbox({ initial }: { initial?: ScoreExcerpt }) {
     const gen = ++playGenRef.current;
     setPlaying(true);
     const beatMs = 60_000 / PLAYBACK_BPM;
-    for (const measure of score.measures) {
-      for (const event of measure.events) {
+    for (let measureIndex = 0; measureIndex < score.measures.length; measureIndex += 1) {
+      const measure = score.measures[measureIndex];
+      for (let eventIndex = 0; eventIndex < measure.events.length; eventIndex += 1) {
         if (gen !== playGenRef.current) return;
+        const event = measure.events[eventIndex];
         const holdMs = Math.max(eventBeats(event) * beatMs, 80);
-        if (event.kind === "note") playNote(event.pitch);
+        if (event.kind === "note") {
+          setPlayHighlight({ measureIndex, eventIndex });
+          playNote(event.pitch);
+        } else {
+          setPlayHighlight(null);
+        }
         await sleep(holdMs);
       }
     }
-    if (gen === playGenRef.current) setPlaying(false);
+    if (gen === playGenRef.current) {
+      setPlayHighlight(null);
+      setPlaying(false);
+    }
   }
 
   return (
@@ -291,32 +315,34 @@ export function NotationSandbox({ initial }: { initial?: ScoreExcerpt }) {
             </DropdownMenu>
           </Control>
 
-          <Control eyebrow="Key">
-            <DropdownMenu>
-              <DropdownMenuTrigger className="tools-button" disabled={spellingOn}>
-                {keyDisplayName(score.key)}
-              </DropdownMenuTrigger>
-              <DropdownMenuContent side="bottom" align="start" className="notation-menu">
-                <DropdownMenuLabel>Major</DropdownMenuLabel>
-                <DropdownMenuRadioGroup value={score.key} onValueChange={applyKey}>
-                  {COMMON_MAJOR_KEYS.map((key) => (
-                    <DropdownMenuRadioItem key={key} value={key}>
-                      {key} major
-                    </DropdownMenuRadioItem>
-                  ))}
-                </DropdownMenuRadioGroup>
-                <DropdownMenuSeparator />
-                <DropdownMenuLabel>Minor</DropdownMenuLabel>
-                <DropdownMenuRadioGroup value={score.key} onValueChange={applyKey}>
-                  {COMMON_MINOR_KEYS.map((key) => (
-                    <DropdownMenuRadioItem key={key} value={key}>
-                      {key.slice(0, -1)} minor
-                    </DropdownMenuRadioItem>
-                  ))}
-                </DropdownMenuRadioGroup>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </Control>
+          {!spellingOn ? (
+            <Control eyebrow="Key">
+              <DropdownMenu>
+                <DropdownMenuTrigger className="tools-button">
+                  {keyDisplayName(score.key)}
+                </DropdownMenuTrigger>
+                <DropdownMenuContent side="bottom" align="start" className="notation-menu">
+                  <DropdownMenuLabel>Major</DropdownMenuLabel>
+                  <DropdownMenuRadioGroup value={score.key} onValueChange={applyKey}>
+                    {COMMON_MAJOR_KEYS.map((key) => (
+                      <DropdownMenuRadioItem key={key} value={key}>
+                        {key} major
+                      </DropdownMenuRadioItem>
+                    ))}
+                  </DropdownMenuRadioGroup>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuLabel>Minor</DropdownMenuLabel>
+                  <DropdownMenuRadioGroup value={score.key} onValueChange={applyKey}>
+                    {COMMON_MINOR_KEYS.map((key) => (
+                      <DropdownMenuRadioItem key={key} value={key}>
+                        {key.slice(0, -1)} minor
+                      </DropdownMenuRadioItem>
+                    ))}
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </Control>
+          ) : null}
 
           <Control eyebrow="Mode">
             <DropdownMenu>
@@ -335,48 +361,92 @@ export function NotationSandbox({ initial }: { initial?: ScoreExcerpt }) {
             </DropdownMenu>
           </Control>
 
-          <Control eyebrow="Accidentals">
-            <DropdownMenu>
-              <DropdownMenuTrigger className="tools-button" disabled={spellingOn}>
-                {family === "sharp" ? "Sharps" : "Flats"}
-              </DropdownMenuTrigger>
-              <DropdownMenuContent side="bottom" align="start" className="notation-menu">
-                <DropdownMenuRadioGroup
-                  value={family}
-                  onValueChange={(value) => {
-                    if (spellingOn) return;
-                    setFamily(value as AccidentalFamily);
-                  }}
-                >
-                  <DropdownMenuRadioItem value="sharp">Sharps</DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value="flat">Flats</DropdownMenuRadioItem>
-                </DropdownMenuRadioGroup>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </Control>
+          {spellingOn ? (
+            <Control eyebrow="Colorize">
+              <DropdownMenu>
+                <DropdownMenuTrigger className="tools-button">
+                  {colorizeOn ? "On" : "Off"}
+                </DropdownMenuTrigger>
+                <DropdownMenuContent side="bottom" align="start" className="notation-menu">
+                  <DropdownMenuCheckboxItem
+                    checked={colorizeOn}
+                    onCheckedChange={(checked) => setColorizeOn(checked === true)}
+                    onSelect={(event) => event.preventDefault()}
+                  >
+                    Colorize
+                  </DropdownMenuCheckboxItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuLabel>Palette</DropdownMenuLabel>
+                  <DropdownMenuRadioGroup
+                    value={paletteId}
+                    onValueChange={(value) => setPaletteId(value as PaletteId)}
+                  >
+                    {PALETTES.map((palette) => (
+                      <DropdownMenuRadioItem
+                        key={palette.id}
+                        value={palette.id}
+                        className="notation-palette-item"
+                        onSelect={(event) => event.preventDefault()}
+                      >
+                        <span className="notation-palette-label">{palette.label}</span>
+                        <span className="notation-palette-swatches" aria-hidden="true">
+                          {swatchesFor(palette.id).map((hex, index) => (
+                            <span
+                              key={`${palette.id}-${NOTE_LETTERS[index]}`}
+                              className="notation-palette-swatch"
+                              style={{ background: hex }}
+                              title={NOTE_LETTERS[index]}
+                            />
+                          ))}
+                        </span>
+                      </DropdownMenuRadioItem>
+                    ))}
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </Control>
+          ) : null}
 
-          <Control eyebrow="Time">
-            <DropdownMenu>
-              <DropdownMenuTrigger className="tools-button" disabled={spellingOn}>
-                {score.time}
-              </DropdownMenuTrigger>
-              <DropdownMenuContent side="bottom" align="start" className="notation-menu">
-                <DropdownMenuRadioGroup
-                  value={score.time}
-                  onValueChange={(value) => {
-                    if (spellingOn) return;
-                    setScore((current) => setTime(current, value as TimeSignature));
-                  }}
-                >
-                  {TIMES.map((time) => (
-                    <DropdownMenuRadioItem key={time} value={time}>
-                      {time}
-                    </DropdownMenuRadioItem>
-                  ))}
-                </DropdownMenuRadioGroup>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </Control>
+          {!spellingOn ? (
+            <Control eyebrow="Accidentals">
+              <DropdownMenu>
+                <DropdownMenuTrigger className="tools-button">
+                  {family === "sharp" ? "Sharps" : "Flats"}
+                </DropdownMenuTrigger>
+                <DropdownMenuContent side="bottom" align="start" className="notation-menu">
+                  <DropdownMenuRadioGroup
+                    value={family}
+                    onValueChange={(value) => setFamily(value as AccidentalFamily)}
+                  >
+                    <DropdownMenuRadioItem value="sharp">Sharps</DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="flat">Flats</DropdownMenuRadioItem>
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </Control>
+          ) : null}
+
+          {!spellingOn ? (
+            <Control eyebrow="Time">
+              <DropdownMenu>
+                <DropdownMenuTrigger className="tools-button">{score.time}</DropdownMenuTrigger>
+                <DropdownMenuContent side="bottom" align="start" className="notation-menu">
+                  <DropdownMenuRadioGroup
+                    value={score.time}
+                    onValueChange={(value) =>
+                      setScore((current) => setTime(current, value as TimeSignature))
+                    }
+                  >
+                    {TIMES.map((time) => (
+                      <DropdownMenuRadioItem key={time} value={time}>
+                        {time}
+                      </DropdownMenuRadioItem>
+                    ))}
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </Control>
+          ) : null}
 
           <Control eyebrow="Cursor">
             <DropdownMenu>
@@ -530,6 +600,9 @@ export function NotationSandbox({ initial }: { initial?: ScoreExcerpt }) {
             wrapSystems={spellingOn}
             scale={spellingOn ? 1.85 : 1.3}
             compact={spellingOn}
+            highlight={playHighlight}
+            colorize={spellingOn && colorizeOn}
+            paletteId={paletteId}
             label="Editable staff"
             onStaffClick={(click) => handleStaffClick(click.pitch)}
             onEventClick={(hit, pitch) =>

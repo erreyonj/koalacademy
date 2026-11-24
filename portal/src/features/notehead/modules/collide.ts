@@ -17,6 +17,7 @@ import {
   ledgesFor,
   step,
   type Aim,
+  type AimMode,
   type Body,
   type Ledge,
   type RegionId,
@@ -187,13 +188,14 @@ export function chartShotSolid(
   body: Body,
   aim: Aim,
   inset = 0,
+  mode: AimMode = regionId === "launch" ? "vertical" : "free",
 ): {
   points: { x: number; y: number }[];
   apex: { x: number; y: number } | null;
   landedOn: string | null;
 } {
   const home = body.restingOn ?? "";
-  const velocity = launchVelocity(regionId, home, aim, inset);
+  const velocity = launchVelocity(regionId, home, aim, inset, mode);
   let current: Body = { ...body, ...velocity, restingOn: null };
   const ledges = ledgesFor(regionId);
   const points = [{ x: body.x, y: body.y }];

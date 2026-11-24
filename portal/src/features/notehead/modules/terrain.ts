@@ -406,8 +406,10 @@ function zigMasses(): Mass[] {
         at(left.x1 + 4, leftLip),
         rough(left.x1 - 4, leftLip + 28),
         rough(36, leftLip + 56),
-        rough(12, 168),
-        at(edgeL, edgeB),
+        rough(20, 160),
+        // Leave a lower-left exit corridor along the frame (Stairs return).
+        at(52, 172),
+        at(52, edgeB),
       ],
       rand,
       frame,
@@ -428,9 +430,10 @@ function zigMasses(): Mass[] {
         at(rightOpen.x + 22, rightOpen.y + 28),
         rough(rightOpen.x + 40, rightOpen.y + 46),
         rough(310, rightOpen.y + 64),
-        // Green: keep the lower right body into the wall.
-        rough(340, 150),
-        at(edgeR, edgeB),
+        // Keep the lower right body but leave a lower-right warp corridor.
+        rough(320, 150),
+        at(frame.w - 52, 172),
+        at(frame.w - 52, edgeB),
       ],
       rand,
       frame,

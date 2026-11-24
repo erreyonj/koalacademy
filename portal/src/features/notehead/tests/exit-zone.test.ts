@@ -1,11 +1,15 @@
 import { describe, expect, it } from "vitest";
 import {
   containAgainstExitFrame,
+  containAgainstOpenings,
   exitZoneFor,
   exitZoneReady,
+  leftBottomOpening,
   leftFrameThroughExit,
+  leftOpening,
+  openingFromExitZone,
+  rightBottomOpening,
 } from "../modules/exit-zone";
-import { spawnBorealis } from "../modules/borealis";
 import { MASS_HIT_SPEED, SHIP_R, WORLD_H, WORLD_W } from "../modules/sim";
 
 describe("exit zones", () => {
@@ -17,12 +21,12 @@ describe("exit zones", () => {
     expect(exitZoneFor("launch-teach")).toBeNull();
   });
 
-  it("lights launch-bridge always and Borealis beats only when gathered", () => {
-    expect(exitZoneReady("launch-bridge", [])).toBe(true);
-    const gems = spawnBorealis("notch-calibrate");
-    expect(exitZoneReady("notch-calibrate", gems)).toBe(false);
-    const done = gems.map((gem) => ({ ...gem, collected: true }));
-    expect(exitZoneReady("notch-calibrate", done)).toBe(true);
+  it("lights every beat that has an exit zone", () => {
+    expect(exitZoneReady("launch-bridge")).toBe(true);
+    expect(exitZoneReady("notch-calibrate")).toBe(true);
+    expect(exitZoneReady("stairs-anach")).toBe(true);
+    expect(exitZoneReady("zig-1")).toBe(true);
+    expect(exitZoneReady("launch-teach")).toBe(false);
   });
 
   it("clears only when leaving the frame through an upward exit", () => {
@@ -103,5 +107,68 @@ describe("exit zones", () => {
     );
     expect(rightGap.hit).toBe(false);
     expect(rightGap.body.x).toBe(WORLD_W + 20);
+  });
+
+  it("keeps multiple openings open (Bridge top + lower-left)", () => {
+    const bridge = exitZoneFor("launch-bridge");
+    if (!bridge) throw new Error("expected bridge exit");
+    const openings = [
+      openingFromExitZone(bridge),
+      leftBottomOpening(0.08),
+    ];
+    const slam = MASS_HIT_SPEED + 50;
+
+    // Through top gap — unsealed.
+    const top = containAgainstOpenings(
+      { x: 450, y: WORLD_H + 20, vx: 0, vy: slam, restingOn: null },
+      openings,
+    );
+    expect(top.hit).toBe(false);
+    expect(top.body.y).toBe(WORLD_H + 20);
+
+    // Lower-left gap — left wall open near the floor.
+    const corner = containAgainstOpenings(
+      { x: -10, y: WORLD_H * 0.04, vx: -slam, vy: 0, restingOn: null },
+      openings,
+    );
+    expect(corner.hit).toBe(false);
+    expect(corner.body.x).toBe(-10);
+
+    // High on the left wall still seals.
+    const highLeft = containAgainstOpenings(
+      { x: -10, y: WORLD_H * 0.5, vx: -slam, vy: 0, restingOn: null },
+      openings,
+    );
+    expect(highLeft.hit).toBe(true);
+    expect(highLeft.body.x).toBeGreaterThanOrEqual(SHIP_R - 0.01);
+  });
+
+  it("opens a left reverse gap without sealing the floor under it", () => {
+    const openings = [leftOpening(0, WORLD_H * 0.4)];
+    const soft = MASS_HIT_SPEED * 0.25;
+    const left = containAgainstOpenings(
+      { x: -10, y: WORLD_H * 0.2, vx: -soft, vy: 0, restingOn: null },
+      openings,
+    );
+    expect(left.hit).toBe(false);
+    expect(left.body.x).toBe(-10);
+  });
+
+  it("keeps a lower-right corner gap open", () => {
+    const openings = [rightBottomOpening(0.14)];
+    const slam = MASS_HIT_SPEED + 50;
+    const corner = containAgainstOpenings(
+      { x: WORLD_W + 10, y: WORLD_H * 0.05, vx: slam, vy: 0, restingOn: null },
+      openings,
+    );
+    expect(corner.hit).toBe(false);
+    expect(corner.body.x).toBe(WORLD_W + 10);
+
+    const highRight = containAgainstOpenings(
+      { x: WORLD_W + 10, y: WORLD_H * 0.5, vx: slam, vy: 0, restingOn: null },
+      openings,
+    );
+    expect(highRight.hit).toBe(true);
+    expect(highRight.body.x).toBeLessThanOrEqual(WORLD_W - SHIP_R + 0.01);
   });
 });

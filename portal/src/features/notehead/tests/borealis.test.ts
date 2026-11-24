@@ -4,11 +4,9 @@ import {
   EXIT_BAND_ID,
   MAGNET_RANGE,
   exitBandFor,
-  nextBorealisIndex,
   seedVisited,
   spawnBorealis,
   stepBorealis,
-  tonationPitches,
 } from "../modules/borealis";
 import {
   NOTCH_BLOCK,
@@ -27,17 +25,9 @@ describe("Borealis", () => {
       NOTCH_POCKET.id,
       NOTCH_BLOCK.id,
     ]);
-    expect(list.map((entry) => entry.pitch)).toEqual(["E4", "A4"]);
+    // Lower shelf A4, higher block E4 (Ascending 4th still gathers E → A).
+    expect(list.map((entry) => entry.pitch)).toEqual(["A4", "E4"]);
     expect(list.every((entry) => !entry.collected)).toBe(true);
-  });
-
-  it("lists tonation pitches from Borealis (or the region fallback)", () => {
-    expect(tonationPitches("notch-calibrate", "A4")).toEqual(["E4", "A4"]);
-    expect(tonationPitches("stairs-anach", "G4")).toEqual(["C4", "E4", "G4"]);
-    expect(tonationPitches("zig-1", "A4")).toEqual(["C4", "E4", "A4"]);
-    expect(tonationPitches("launch-teach", "G4")).toEqual(["G4"]);
-    expect(tonationPitches("launch-bridge", "G4")).toEqual(["G4"]);
-    expect(tonationPitches("notch-crash", "A4")).toEqual(["A4"]);
   });
 
   it("spawns one gem over each tread's open face with tread goal tones", () => {
@@ -74,45 +64,55 @@ describe("Borealis", () => {
     const floating = list[0]!;
     const left = list[1]!;
     const right = list[2]!;
-    // Floating gem sits in the open shaft (not on the start seat).
     expect(floating.y).toBeGreaterThan(ZIG_PEAK.y + SHIP_R * 2);
     expect(left.y).toBeGreaterThan(ZIG_LEFT.y);
     expect(right.y).toBeGreaterThan(ZIG_RIGHT.y);
   });
 
-  it("nextBorealisIndex tracks goal order", () => {
-    const list = spawnBorealis("stairs-anach");
-    expect(nextBorealisIndex(list)).toBe(0);
-    list[0] = { ...list[0]!, collected: true };
-    expect(nextBorealisIndex(list)).toBe(1);
+  it("magnetizes any uncollected gem toward the ship then collects", () => {
+    const list = spawnBorealis("notch-calibrate");
+    const second = list[1];
+    if (!second) throw new Error("expected second gem");
+    // Second gem first — any-order collect is allowed.
+    const body = {
+      x: second.x + MAGNET_RANGE * 0.5,
+      y: second.y,
+      vx: 0,
+      vy: 0,
+      restingOn: null as string | null,
+    };
+    const pulled = stepBorealis(list, body, 1 / 60);
+    const next = pulled.list[1];
+    if (!next) throw new Error("expected next");
+    expect(next.collected).toBe(false);
+    expect(Math.hypot(next.x - body.x, next.y - body.y)).toBeLessThan(
+      Math.hypot(second.x - body.x, second.y - body.y),
+    );
+
+    const close = {
+      ...body,
+      x: second.x + COLLECT_RADIUS * 0.4,
+      y: second.y,
+    };
+    const grab = stepBorealis(list, close, 1 / 60);
+    expect(grab.collected.map((entry) => entry.id)).toEqual([second.id]);
+    expect(grab.list[1]?.collected).toBe(true);
   });
 
-  it("magnetizes the active gem toward the ship then collects", () => {
-    const [gem] = spawnBorealis("notch-calibrate");
+  it("locks magnetize / collect when the interval attempt failed", () => {
+    const list = spawnBorealis("notch-calibrate");
+    const [gem] = list;
     if (!gem) throw new Error("expected gem");
     const body = {
-      x: gem.x + MAGNET_RANGE * 0.5,
+      x: gem.x,
       y: gem.y,
       vx: 0,
       vy: 0,
       restingOn: null as string | null,
     };
-    const pulled = stepBorealis([gem], body, 1 / 60);
-    const next = pulled.list[0];
-    if (!next) throw new Error("expected next");
-    expect(next.collected).toBe(false);
-    expect(Math.hypot(next.x - body.x, next.y - body.y)).toBeLessThan(
-      Math.hypot(gem.x - body.x, gem.y - body.y),
-    );
-
-    const close = {
-      ...body,
-      x: gem.x + COLLECT_RADIUS * 0.4,
-      y: gem.y,
-    };
-    const grab = stepBorealis([gem], close, 1 / 60);
-    expect(grab.collected.map((entry) => entry.id)).toEqual([gem.id]);
-    expect(grab.list[0]?.collected).toBe(true);
+    const locked = stepBorealis(list, body, 1 / 60, true);
+    expect(locked.collected).toHaveLength(0);
+    expect(locked.list[0]?.collected).toBe(false);
   });
 
   it("ignores already-collected gems", () => {
@@ -130,7 +130,7 @@ describe("Borealis", () => {
     expect(result.collected).toHaveLength(0);
   });
 
-  it("plants an exit Frequency Band under the last gem's platform", () => {
+  it("plants an exit Frequency Band under a gem's platform", () => {
     const list = spawnBorealis("notch-calibrate");
     const last = list[list.length - 1];
     if (!last) throw new Error("expected last gem");

@@ -74,20 +74,17 @@ export function StairArt({
         );
       })}
       <Trajectory points={gesture.chart} apex={gesture.chartApex} />
-      {gesture.borealis.map((entry, index) => {
-        const next = gesture.borealis.findIndex((gem) => !gem.collected);
-        return (
-          <BorealisMark
-            key={entry.id}
-            x={entry.x}
-            y={entry.y}
-            pitch={entry.pitch}
-            collected={entry.collected}
-            active={index === next}
-            testId={`borealis-${entry.id}`}
-          />
-        );
-      })}
+      {gesture.borealis.map((entry) => (
+        <BorealisMark
+          key={entry.id}
+          x={entry.x}
+          y={entry.y}
+          pitch={entry.pitch}
+          collected={entry.collected}
+          active={!entry.collected && !gesture.borealisLocked}
+          testId={`borealis-${entry.id}`}
+        />
+      ))}
       {exitBand && (
         <Band
           x0={toSvg(exitBand.x0, exitBand.y).x}

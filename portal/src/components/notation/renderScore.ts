@@ -114,20 +114,9 @@ function toStaveNote(
   } else if (!accidental && !keyImpliesAccidental(key, letter, null)) {
     note.addModifier(new Accidental("n"), 0);
   }
-  const pitchColor = colorForPitch(event.pitch, paletteId);
-  if (colorize) {
-    note.setKeyStyle(0, {
-      fillStyle: pitchColor,
-      strokeStyle: pitchColor,
-      ...(highlighted
-        ? { shadowColor: pitchColor, shadowBlur: 14 }
-        : {}),
-    });
-    if (highlighted) {
-      note.setStemStyle({ strokeStyle: pitchColor });
-      note.setFlagStyle({ fillStyle: pitchColor, strokeStyle: pitchColor });
-    }
-  } else if (highlighted) {
+  // Colorize only tints the sounding note during playback — idle noteheads stay black.
+  if (colorize && highlighted) {
+    const pitchColor = colorForPitch(event.pitch, paletteId);
     note.setKeyStyle(0, {
       fillStyle: pitchColor,
       strokeStyle: pitchColor,
@@ -189,7 +178,7 @@ export type RenderOptions = {
   systemHeight?: number;
   /** Flash this event’s notehead during playback. */
   highlight?: PlayHighlight | null;
-  /** Persistent absolute-pitch notehead colors. */
+  /** When true, playback highlight uses the palette color. */
   colorize?: boolean;
   /** Active absolute-pitch palette. */
   paletteId?: PaletteId;
@@ -279,8 +268,8 @@ export async function renderScore(
         } catch {
           // Incomplete or mixed rhythms can refuse a beam; notes still draw.
         }
-        // Tint the beam that contains the highlighted note, if any.
-        if (highlight != null && highlight.measureIndex === measureIndex) {
+        // Tint the beam on the sounding note when Colorize is on.
+        if (colorize && highlight != null && highlight.measureIndex === measureIndex) {
           const activeEvent = measureEvents[highlight.eventIndex];
           const active = tickables[highlight.eventIndex];
           if (active && activeEvent?.kind === "note") {

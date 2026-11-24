@@ -207,39 +207,35 @@ Recommend prototyping (1) or (3) first; (2) and (4) need clearer UI affordances.
 
 ---
 
-## 6. Recommended resource split
+## 6. Implemented resource split (banked Tonation)
 
-Concrete target for a future `GAME_SPEC` pass (not coded in this report):
+Live in code / `GAME_SPEC.md` (supersedes earlier “any-order-for-exit-only” draft):
 
 ### Roles
 
-| Role | Borealis | Tonation | Note-Tail regions | Mastery (optional) |
-| --- | --- | --- | --- | --- |
-| Visit / exit gate | Collect set (prefer **any order**) to light exit | — | Tail-specific clear (lane hits, cling goals, maze exit) | — |
-| Melodic / literacy phrase | Plays pitch on collect | Required *hearing* (HUD / named contour) | Staff lanes, interval labels, sentry meter clicks | Perfect order / clean run badge |
-| HP / energy | Heal on **completeness** or banked spend | Never | Miss stakes are Tail-local (lane wipe, sentry hit) | Never gates story exit |
-| Difficulty | Easy may highlight suggested next gem | No timed “Tonation chains” | Aim inset, patrol density, lane speed, cling forgiveness | Celeste strawberry |
+| Role | Borealis | Tonation | Note-Tail |
+| --- | --- | --- | --- |
+| Visit / exit gate | Any-order collect; **does not** gate exit | — | Eighth Tail needs Tonation + hull gates |
+| Melodic phrase | Plays pitch on collect / tap-preview | Banked only on **correct interval order** (once per beat) | — |
+| HP | — | Hard breach wipes bank | — |
+| Energy meter | — | Solid HUD bar 0–24 | — |
 
-### Practical rules
+### Practical rules (shipped)
 
-1. **Borealis** = spatial energy + visits where the region still uses gems. Magnetism may *suggest* the next gem on Easy; Medium/Hard can allow free order for exit.
-2. **Tonation** = the phrase students must *hear*. Not synonymous with physical collect order forever; not a timed chain mode.
-3. **Note-Tails** gate **level families** (Whole slingshot, Quarter staff-lanes, Half cling caves, Eighth/Sixteenth mazes). Synergies with musical concepts are per family (see §5).
-4. **Mastery layer** = optional clean / perfect-order / no-hit runs. Never soft-locks the story exit.
-5. After first clear of a phrase beat, allow **free replay** so contour can be explored.
-6. At least once on the Whole route, **transpose** the same contour to a new starting height.
-7. **HP heal** ties to visit completeness or banked spend — **not** perfect sequence or deprecated chain timers.
-8. Rewrite StartScreen difficulty copy; drop “Tonation chains” language.
+1. **Exit always available** on interval beats — skip freely; retry Borealis after regen on re-enter.
+2. **Tonation payouts:** Notch +5, Stairs +9, Zig +10 (cap 24). Wrong order fails the attempt.
+3. **Heal** on first region clear: Easy/Med +3, Hard +1.
+4. **Eighth Tail:** Easy/Med ≥19 Tonation; Hard ≥24. Med hull ≥2; Hard ≥3.
+5. StartScreen copy drops “Tonation chains”; uses Tail thresholds + breach wipe.
 
 ### Pedagogy checklist
 
 **Whole / Borealis beats**
 
-- [ ] Label interval or chord once per new contour class.
+- [x] Interval HUD names the challenge pair (Ascending 4th / progressive arpeggio pairs).
+- [x] Exit free of Borealis order; Tonation requires correct pitch sequence.
+- [x] HP heal not tied to perfect sequence (tied to region clear).
 - [ ] Same contour, new starting height (transposition) at least once.
-- [ ] One beat where order is free but exit requires visiting all pitches.
-- [ ] One optional perfect-order challenge (mastery, not gate).
-- [ ] HP heal not tied to perfect sequence.
 - [ ] Pair “Tonation” slang with plain classroom language in GI / teacher notes.
 
 **Per-Tail families (when prototyped)**
@@ -255,14 +251,14 @@ Concrete target for a future `GAME_SPEC` pass (not coded in this report):
 
 | Topic | Spec / story / UI | Runtime | Action |
 | --- | --- | --- | --- |
-| **Tonation chains** | StartScreen: Easy/Med “No…”, Hard “can chain” (old timed-gather idea) | Order-only always; no difficulty branch | **Deprecate** — rewrite StartScreen copy; do not ship timed chains |
+| **Tonation chains** | Was StartScreen Easy/Med “No…”, Hard “can chain” | Replaced with Tail thresholds + breach wipe copy | Done |
 | **HP dials** | GAME_SPEC Difficulty table Easy 8 / Med 5 / Hard 3; Hull section + code **10 / 8 / 5**; StartScreen Hard “Only 5 HP!” | `PROFILES.maxHp` 10/8/5 | Align Difficulty table to Hull/code |
 | **Borealis → abilities** | Exit GI: orbs repair calibration so you can repair Note-Tails / gain abilities | Borealis heals +1 and unlocks exit; tails unlock separately | Soften lore or wire a real spend sink |
 | **Anachrometer unlock timing** | CM on `notch-calibrate` enter dramatizes divert-power repair | Flag already `true` from `notch-crash` evaluate | Accept as narrative reboot, or move flag flip |
 | **MVP tails** | GAME_SPEC lore: “MVP only implements the Anachrometer”; type omits `launch-tail` | Tail beat + inventory write exist; no ability | Update spec types + lore |
 | **Stairs story** | `story-content.md` draft (“tonal order”, Anachrometer tips) | Not in `story.ts` | Wire or mark deferred |
 | **Eighth collect pitch** | No tonation entry on `launch-tail` (HUD G4) | Collect SFX hard-coded `A4` | Align SFX to goal or give the Tail its own tone |
-| **Visited vs Borealis** | Clear checks `visited` ledge ids; landings can visit early | Exit still needs `allBorealisCollected` | Document intentionally; avoid double-counting confusion |
+| **Visited vs Borealis** | Clear was `visited` + Borealis | Exit is `crossedExit` only; Tonation is separate | Done |
 
 `GAME_SPEC.md` says: if spec and code disagree, follow the spec. Several places **Hull section + tests + code** already agree against the Difficulty table — update the table rather than reverting HP.
 

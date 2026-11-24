@@ -19,19 +19,27 @@ const DIFFICULTY_OPTIONS = [
     title: "Easy",
     lines: [
       "Most health",
-      "Least sensitive to Damage",
-      "No Tonation chains",
+      "19 Tonation for the 8th Tail",
+      "Keep Tonation on breach",
     ],
   },
   {
     id: "medium" as const,
     title: "Medium",
-    lines: ["Normal Health", "Regular Damage", "No Tonation Chains"],
+    lines: [
+      "Normal health",
+      "19 Tonation + hull ≥2 for Tail",
+      "Keep Tonation on breach",
+    ],
   },
   {
     id: "hard" as const,
     title: "Hard",
-    lines: ["Only 5 HP!", "Regular Damage", "Tonation can chain"],
+    lines: [
+      "Only 5 HP!",
+      "24 Tonation + hull ≥3 for Tail",
+      "Breach wipes Tonation",
+    ],
   },
 ] as const;
 

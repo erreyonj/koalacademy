@@ -1,8 +1,19 @@
 /**
- * Beat-driven route: Launch → Notch → Launch → Stairs → Zig → Tail.
+ * Region travel: Launch / Notch / Launch Bridge / Stairs / Zig / Tail.
+ * Notch crash is a one-shot fall intro, not a free-standing level.
  */
 import { engageWarp, WARP_BAND_ID } from "./anachrometer";
 import {
+  type FrameOpening,
+  exitZoneFor,
+  leftBottomOpening,
+  leftFrameThroughOpening,
+  leftOpening,
+  openingFromExitZone,
+  rightBottomOpening,
+} from "./exit-zone";
+import {
+  type AimMode,
   type Body,
   type Ledge,
   type PitchName,
@@ -15,15 +26,11 @@ import {
   LAUNCH_SPACING,
   NOTCH_BLOCK,
   NOTCH_FLOOR,
-  NOTCH_POCKET,
   SHIP_R,
   STAIR_BAND,
-  STAIR_TREADS,
   WORLD_H,
   WORLD_W,
-  ZIG_LEFT,
   ZIG_PEAK,
-  ZIG_RIGHT,
   isSlopedStep,
   ledgeById,
   ledgesFor,
@@ -81,6 +88,7 @@ export interface BeatDef {
   evaluate: (flight: BeatFlight, repair: ShipRepair) => BeatClear;
 }
 
+/** Debug / sandbox order — includes the one-shot crash intro. */
 export const BEAT_ORDER: readonly BeatId[] = [
   "launch-teach",
   "notch-crash",
@@ -91,7 +99,342 @@ export const BEAT_ORDER: readonly BeatId[] = [
   "launch-tail",
 ];
 
-const ZIG_BANDS = [ZIG_PEAK.id, ZIG_LEFT.id, ZIG_RIGHT.id] as const;
+/**
+ * Player-facing regions (crash is folded into the first Launch → Notch trip).
+ * Names stay even when terrain is shared (Launch / Tail).
+ */
+export const PLAYABLE_BEATS: readonly BeatId[] = [
+  "launch-teach",
+  "notch-calibrate",
+  "launch-bridge",
+  "stairs-anach",
+  "zig-1",
+  "launch-tail",
+];
+
+/** Persistent visit / intro flags for freer travel. */
+export interface RouteMemory {
+  /** Notch crash fall has played once. */
+  crashSeen: boolean;
+  /** Beats whose enter CM/GI already ran. */
+  storySeen: readonly BeatId[];
+}
+
+export function emptyRouteMemory(): RouteMemory {
+  return { crashSeen: false, storySeen: [] };
+}
+
+export function markStorySeen(memory: RouteMemory, id: BeatId): RouteMemory {
+  if (memory.storySeen.includes(id)) return memory;
+  return { ...memory, storySeen: [...memory.storySeen, id] };
+}
+
+export function markCrashSeen(memory: RouteMemory): RouteMemory {
+  return { ...memory, crashSeen: true };
+}
+
+/**
+ * Launch teach = vertical; Bridge / Tail / Borealis beats = free aim.
+ * Tail shares launch terrain but aims freely so the lower return is reachable.
+ */
+export function aimModeForBeat(beatId: BeatId): AimMode {
+  if (beatId === "launch-teach") return "vertical";
+  return "free";
+}
+
+/**
+ * Launch Bridge / Tail lower-left return exit (logical bottom-left origin, +y up).
+ * Leave the frame through the left edge while still in the bottom 8% of the
+ * world — effectively the lower-left corner gap from (0,0) → (0, 0.08·H).
+ * Does not use “below the band” (that conflicts with the rise-from-below enter).
+ */
+export const BRIDGE_RETURN_Y_FRAC = 0.08;
+
+export function bridgeReturnYMax(): number {
+  return WORLD_H * BRIDGE_RETURN_Y_FRAC;
+}
+
+/** True when the ship has left the frame through the Bridge → Notch gap. */
+export function leftThroughBridgeReturnExit(body: {
+  x: number;
+  y: number;
+}): boolean {
+  return leftFrameThroughOpening(leftBottomOpening(BRIDGE_RETURN_Y_FRAC), body);
+}
+
+/**
+ * Entry poses:
+ * - Rise = forward arrival continuing an upward exit shot.
+ * - Fall = reverse arrival from a later region (drop in from above).
+ * - Side = reverse through a lateral exit (Zig right → Stairs left-band).
+ */
+
+/** Falling re-entry into Notch (skip crash dialogue — already visited). */
+export function notchReturnEnter(): Body {
+  return {
+    x: NOTCH_BLOCK.x0 - 20,
+    y: WORLD_H - 80,
+    vx: 80,
+    vy: -320,
+    restingOn: null,
+  };
+}
+
+/** Rise onto the launch band (Notch → Bridge forward). */
+export function bridgeRiseEnter(): Body {
+  return {
+    x: (LAUNCH_BAND.x0 + LAUNCH_BAND.x1) / 2,
+    y: 48,
+    vx: 0,
+    vy: 1320,
+    restingOn: null,
+  };
+}
+
+/**
+ * Stairs → Bridge reverse: fall from above onto the launch band.
+ * Soft |vy| so Anachrometer can still seat (under BREAK_SPEED).
+ */
+export function bridgeFallEnter(): Body {
+  return {
+    x: (LAUNCH_BAND.x0 + LAUNCH_BAND.x1) / 2,
+    y: WORLD_H - 60,
+    vx: 0,
+    vy: -360,
+    restingOn: null,
+  };
+}
+
+/** Rise onto the stairs approach band (Bridge → Stairs forward). */
+export function stairsRiseEnter(): Body {
+  const mid = (STAIR_BAND.x0 + STAIR_BAND.x1) / 2;
+  return {
+    x: mid - 30,
+    y: 24,
+    vx: 90,
+    vy: 920,
+    restingOn: null,
+  };
+}
+
+/**
+ * Zig lower-left → Stairs: fall from above onto the **right edge** of the
+ * approach Frequency Band. Soft |vy| so Anachrometer can still seat.
+ */
+export function stairsFallEnter(): Body {
+  return {
+    x: STAIR_BAND.x1 - SHIP_R * 1.2,
+    y: WORLD_H - 60,
+    vx: -30,
+    vy: -340,
+    restingOn: null,
+  };
+}
+
+/**
+ * Zig lower-right warp → re-enter Zig: jump in from the left lower barrier
+ * toward the peak Frequency Band (same-beat soft reentry).
+ */
+export function zigJumpFromLeftEnter(): Body {
+  return {
+    x: SHIP_R * 1.5,
+    y: Math.max(SHIP_R * 2, WORLD_H * 0.06),
+    vx: 320,
+    vy: 980,
+    restingOn: null,
+  };
+}
+
+/** Rise onto the Zig peak (Stairs → Zig forward). */
+export function zigRiseEnter(): Body {
+  return {
+    x: (ZIG_PEAK.x0 + ZIG_PEAK.x1) / 2,
+    y: 60,
+    vx: 40,
+    vy: 1180,
+    restingOn: null,
+  };
+}
+
+/** Tail → Zig reverse: fall from above onto the peak band. */
+export function zigFallEnter(): Body {
+  return {
+    x: (ZIG_PEAK.x0 + ZIG_PEAK.x1) / 2,
+    y: WORLD_H - 50,
+    vx: 0,
+    vy: -360,
+    restingOn: null,
+  };
+}
+
+/** Stairs lower-right / warp path → Zig: same jump-in from the left lower barrier. */
+export function zigWarpEnter(): Body {
+  return zigJumpFromLeftEnter();
+}
+
+export type TravelMode = "forward" | "return" | "warp";
+
+/** Bidirectional region travel: forward still goes through beat.evaluate. */
+export interface TravelRoute {
+  id: string;
+  to: BeatId;
+  mode: TravelMode;
+  opening: FrameOpening;
+  /** Bridge / Tail: arm only after seating on the launch band. */
+  requireSeated?: boolean;
+  /** Return / warp routes supply the destination enter body. */
+  enterBody?: () => Body;
+  /**
+   * Same-beat reposition only (keep Borealis / tonation attempt).
+   * Used by Zig’s lower-right warp loop.
+   */
+  softReentry?: boolean;
+}
+
+/** Stairs reverse: leave left near the approach band (lower ~40% of world). */
+const STAIRS_RETURN_Y1 = WORLD_H * 0.4;
+/**
+ * Zig / Stairs corner gaps. Peak sits near y≈176 (~11% H); use 14% so the
+ * lower-left / lower-right exits are reachable from the peak shelf.
+ */
+export const ZIG_CORNER_Y_FRAC = 0.14;
+
+/**
+ * Open travel routes for a beat (forward exits + reverse returns).
+ * Frame seal uses every route's opening.
+ */
+export function travelRoutesFor(beatId: BeatId): TravelRoute[] {
+  const forward = exitZoneFor(beatId);
+  const routes: TravelRoute[] = [];
+
+  if (beatId === "notch-calibrate" && forward) {
+    routes.push({
+      id: "notch-up",
+      to: "launch-bridge",
+      mode: "forward",
+      opening: openingFromExitZone(forward),
+    });
+  }
+
+  if (beatId === "launch-bridge" && forward) {
+    routes.push({
+      id: "bridge-up",
+      to: "stairs-anach",
+      mode: "forward",
+      opening: openingFromExitZone(forward),
+    });
+    routes.push({
+      id: "bridge-return-notch",
+      to: "notch-calibrate",
+      mode: "return",
+      opening: leftBottomOpening(BRIDGE_RETURN_Y_FRAC),
+      requireSeated: true,
+      enterBody: notchReturnEnter,
+    });
+  }
+
+  if (beatId === "stairs-anach" && forward) {
+    routes.push({
+      id: "stairs-right",
+      to: "zig-1",
+      mode: "forward",
+      opening: openingFromExitZone(forward),
+    });
+    routes.push({
+      id: "stairs-warp-zig",
+      to: "zig-1",
+      mode: "forward",
+      opening: rightBottomOpening(ZIG_CORNER_Y_FRAC),
+      enterBody: zigJumpFromLeftEnter,
+    });
+    routes.push({
+      id: "stairs-return-bridge",
+      to: "launch-bridge",
+      mode: "return",
+      opening: leftOpening(0, STAIRS_RETURN_Y1),
+      enterBody: bridgeFallEnter,
+    });
+  }
+
+  if (beatId === "zig-1" && forward) {
+    routes.push({
+      id: "zig-up",
+      to: "launch-tail",
+      mode: "forward",
+      opening: openingFromExitZone(forward),
+    });
+    routes.push({
+      id: "zig-return-stairs-left",
+      to: "stairs-anach",
+      mode: "return",
+      opening: leftBottomOpening(ZIG_CORNER_Y_FRAC),
+      enterBody: stairsFallEnter,
+    });
+    routes.push({
+      id: "zig-warp-loop",
+      to: "zig-1",
+      mode: "warp",
+      opening: rightBottomOpening(ZIG_CORNER_Y_FRAC),
+      enterBody: zigJumpFromLeftEnter,
+      softReentry: true,
+    });
+  }
+
+  if (beatId === "launch-tail") {
+    routes.push({
+      id: "tail-return-zig",
+      to: "zig-1",
+      mode: "return",
+      opening: leftBottomOpening(BRIDGE_RETURN_Y_FRAC),
+      requireSeated: true,
+      enterBody: zigFallEnter,
+    });
+  }
+
+  return routes;
+}
+
+/** Frame openings that stay unsealed for the current beat. */
+export function openingsForBeat(beatId: BeatId): FrameOpening[] {
+  return travelRoutesFor(beatId).map((route) => route.opening);
+}
+
+/** Match an OOB body against a travel route opening (and seating gate). */
+export function matchTravelRoute(
+  beatId: BeatId,
+  body: { x: number; y: number },
+  seated: boolean,
+): TravelRoute | null {
+  for (const route of travelRoutesFor(beatId)) {
+    if (route.requireSeated && !seated) continue;
+    if (leftFrameThroughOpening(route.opening, body)) return route;
+  }
+  return null;
+}
+
+/**
+ * Zig cliff feet can block true OOB. When the ship is pressed into a lower
+ * corner opening (inside the frame), treat it as taking that exit.
+ */
+export function matchZigCornerIntent(body: {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+}): TravelRoute | null {
+  const yMax = WORLD_H * ZIG_CORNER_Y_FRAC;
+  if (body.y < 0 || body.y > yMax) return null;
+  const routes = travelRoutesFor("zig-1");
+  // Pressed into / past the left seal in the lower-left pocket.
+  if (body.x <= SHIP_R * 1.35 && body.vx <= 40) {
+    return routes.find((r) => r.id === "zig-return-stairs-left") ?? null;
+  }
+  // Pressed into / past the right seal in the lower-right pocket.
+  if (body.x >= WORLD_W - SHIP_R * 1.35 && body.vx >= -40) {
+    return routes.find((r) => r.id === "zig-warp-loop") ?? null;
+  }
+  return null;
+}
 
 function goalHeight(regionId: RegionId): number {
   const region = regionById(regionId);
@@ -108,8 +451,6 @@ export function launchGoalY(): number {
 
 /** Full-power bridge shot: at least this fraction of pull. */
 export const BRIDGE_POWER = 0.92;
-
-const NOTCH_BANDS = [NOTCH_FLOOR.id, NOTCH_POCKET.id, NOTCH_BLOCK.id] as const;
 
 export const PROGRESSION: Record<BeatId, BeatDef> = {
   "launch-teach": {
@@ -176,21 +517,18 @@ export const PROGRESSION: Record<BeatId, BeatDef> = {
     label: "Notch",
     regionId: "notch",
     next: "launch-bridge",
-    hint: "Warp, then gather Borealis at the pocket and block.",
+    hint: "Exit anytime — Ascending 4th is E4 (block) then A4 (pocket).",
     clearHint: "Through the exit",
     enter: () => restOn(NOTCH_FLOOR),
     catchBands: (repair) => repair.anachrometer,
     evaluate: (flight, repair) => {
-      const gathered = NOTCH_BANDS.every((id) => flight.visited.includes(id));
-      const cleared = gathered && flight.crossedExit;
+      const cleared = flight.crossedExit;
       return {
         cleared,
         repair,
         hint: cleared
           ? "Through the exit"
-          : gathered
-            ? "Fly out through the exit"
-            : "Collect Borealis at pocket and block",
+          : "Exit anytime — Ascending 4th is E4 then A4",
       };
     },
   },
@@ -199,16 +537,10 @@ export const PROGRESSION: Record<BeatId, BeatDef> = {
     label: "Launch bridge",
     regionId: "launch",
     next: "stairs-anach",
-    hint: "Full-power shot from the launch band through the exit.",
+    hint: "Free-aim through the top exit — or leave the lower-left corner back to Notch.",
     clearHint: "Into the stairs",
     // Continue the Notch exit jump: rise from below and seat on the band.
-    enter: () => ({
-      x: (LAUNCH_BAND.x0 + LAUNCH_BAND.x1) / 2,
-      y: 48,
-      vx: 0,
-      vy: 1320,
-      restingOn: null,
-    }),
+    enter: () => bridgeRiseEnter(),
     catchBands: (repair) => repair.anachrometer,
     evaluate: (flight, repair) => {
       const powered = (flight.power ?? 0) >= BRIDGE_POWER;
@@ -220,7 +552,7 @@ export const PROGRESSION: Record<BeatId, BeatDef> = {
           ? "Into the stairs"
           : powered
             ? "Fly out through the exit"
-            : "Full power from the launch band",
+            : "Free-aim a strong shot through the exit",
       };
     },
   },
@@ -229,32 +561,19 @@ export const PROGRESSION: Record<BeatId, BeatDef> = {
     label: "Stairs",
     regionId: "stairs",
     next: "zig-1",
-    hint: "Warp and gather Borealis above every tread.",
+    hint: "Exit right or lower-right warp to Zig — leave left back to the Bridge.",
     clearHint: "Through the exit",
     // Arrive like the Launch Bridge exit shot: rise onto the approach band.
-    enter: () => {
-      const mid = (STAIR_BAND.x0 + STAIR_BAND.x1) / 2;
-      return {
-        x: mid - 30,
-        y: 24,
-        vx: 90,
-        vy: 920,
-        restingOn: null,
-      };
-    },
+    enter: () => stairsRiseEnter(),
     catchBands: (repair) => repair.anachrometer,
     evaluate: (flight, repair) => {
-      const required = STAIR_TREADS.map((ledge) => ledge.id);
-      const gathered = required.every((id) => flight.visited.includes(id));
-      const cleared = gathered && flight.crossedExit;
+      const cleared = flight.crossedExit;
       return {
         cleared,
         repair,
         hint: cleared
           ? "Through the exit"
-          : gathered
-            ? "Fly out through the exit"
-            : "Collect Borealis on every tread",
+          : "Exit right anytime — complete the arpeggio for Tonation",
       };
     },
   },
@@ -263,28 +582,19 @@ export const PROGRESSION: Record<BeatId, BeatDef> = {
     label: "Zig",
     regionId: "zig",
     next: "launch-tail",
-    hint: "Warp and zig-zag: gather Borealis floating, left shelf, then right shelf.",
+    hint: "Exit up to Tail — lower-left falls to Stairs, lower-right warps in from the left barrier.",
     clearHint: "Through the exit",
     // Rise onto the peak Frequency Band (the starting sling).
-    enter: () => ({
-      x: (ZIG_PEAK.x0 + ZIG_PEAK.x1) / 2,
-      y: 60,
-      vx: 40,
-      vy: 1180,
-      restingOn: null,
-    }),
+    enter: () => zigRiseEnter(),
     catchBands: (repair) => repair.anachrometer,
     evaluate: (flight, repair) => {
-      const gathered = ZIG_BANDS.every((id) => flight.visited.includes(id));
-      const cleared = gathered && flight.crossedExit;
+      const cleared = flight.crossedExit;
       return {
         cleared,
         repair,
         hint: cleared
           ? "Through the exit"
-          : gathered
-            ? "Fly out through the exit"
-            : "Collect Borealis float → left → right",
+          : "Exit up anytime — complete the contour for Tonation",
       };
     },
   },
@@ -293,7 +603,7 @@ export const PROGRESSION: Record<BeatId, BeatDef> = {
     label: "Tail",
     regionId: "launch",
     next: null,
-    hint: "The first Note-Tail is floating above the Frequency Band — grab it!",
+    hint: "Free-aim for the Note-Tail — or leave the lower-left corner back to Zig.",
     clearHint: "Note-Tail recovered",
     enter: () => restOn(LAUNCH_BAND),
     catchBands: (repair) => repair.anachrometer,

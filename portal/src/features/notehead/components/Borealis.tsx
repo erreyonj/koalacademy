@@ -15,7 +15,7 @@ export function BorealisMark({
   y: number;
   pitch: PitchName;
   collected: boolean;
-  /** False while waiting for an earlier gem in goal order. */
+  /** False when the interval attempt failed (locked until regen). */
   active?: boolean;
   regionId?: RegionId;
   testId?: string;

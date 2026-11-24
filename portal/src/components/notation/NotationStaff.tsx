@@ -30,7 +30,7 @@ interface NotationStaffProps {
   compact?: boolean;
   /** Now-playing note flash (pattern 2). */
   highlight?: PlayHighlight | null;
-  /** Persistent absolute-pitch notehead colors. */
+  /** When true, playback highlight uses the palette color. */
   colorize?: boolean;
   /** Active absolute-pitch palette. */
   paletteId?: PaletteId;

@@ -1,10 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { spawnBorealis, stepBorealis, COLLECT_RADIUS } from "../modules/borealis";
 import {
-  allBorealisCollected,
-  applyBorealisHeal,
   applyExitBarrierHit,
   applyLandingHit,
+  applyRegionClearHeal,
+  breachWipesTonation,
   clampHp,
   isHardLanding,
   isHardMassHit,
@@ -31,10 +30,16 @@ describe("hull HP", () => {
     expect(applyLandingHit(5, "easy")).toBe(4);
   });
 
-  it("clearing Borealis restores 1 up to max when hull is on", () => {
-    expect(applyBorealisHeal(3, "medium")).toBe(4);
-    expect(applyBorealisHeal(8, "medium")).toBe(8);
-    expect(applyBorealisHeal(3, "easy")).toBe(4);
+  it("region clear heals Easy/Med +3 and Hard +1", () => {
+    expect(applyRegionClearHeal(3, "easy")).toBe(6);
+    expect(applyRegionClearHeal(7, "medium")).toBe(8);
+    expect(applyRegionClearHeal(3, "hard")).toBe(4);
+  });
+
+  it("only Hard breach wipes Tonation", () => {
+    expect(breachWipesTonation("easy")).toBe(false);
+    expect(breachWipesTonation("medium")).toBe(false);
+    expect(breachWipesTonation("hard")).toBe(true);
   });
 
   it("clampHp respects the difficulty max", () => {
@@ -63,43 +68,5 @@ describe("hull HP", () => {
     expect(isSoftMassBump(MASS_BUMP_SPEED)).toBe(true);
     expect(isSoftMassBump(MASS_HIT_SPEED)).toBe(false);
     expect(isSoftMassBump(MASS_BUMP_SPEED - 1)).toBe(false);
-  });
-});
-
-describe("Borealis goal order", () => {
-  it("only the next gem magnetizes and collects", () => {
-    const list = spawnBorealis("notch-calibrate");
-    const second = list[1];
-    if (!second) throw new Error("expected second gem");
-    const body = {
-      x: second.x,
-      y: second.y,
-      vx: 0,
-      vy: 0,
-      restingOn: null as string | null,
-    };
-    const blocked = stepBorealis(list, body, 1 / 60);
-    expect(blocked.collected).toHaveLength(0);
-    expect(blocked.list[1]?.collected).toBe(false);
-
-    const first = list[0];
-    if (!first) throw new Error("expected first gem");
-    const nearFirst = {
-      ...body,
-      x: first.x + COLLECT_RADIUS * 0.3,
-      y: first.y,
-    };
-    const grabbed = stepBorealis(list, nearFirst, 1 / 60);
-    expect(grabbed.collected.map((gem) => gem.id)).toEqual([first.id]);
-    expect(allBorealisCollected(grabbed.list)).toBe(false);
-
-    const nearSecond = {
-      ...body,
-      x: second.x + COLLECT_RADIUS * 0.3,
-      y: second.y,
-    };
-    const finish = stepBorealis(grabbed.list, nearSecond, 1 / 60);
-    expect(finish.collected.map((gem) => gem.id)).toEqual([second.id]);
-    expect(allBorealisCollected(finish.list)).toBe(true);
   });
 });

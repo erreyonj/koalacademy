@@ -1856,6 +1856,13 @@ button.lesson-toolbar-item {
 .notation-staff.is-interactive {
   cursor: crosshair;
   border-radius: 8px;
+  /* Presses place notes — never pan the page, select text, or show a callout. */
+  touch-action: none;
+  overflow-x: hidden;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .notation-sandbox.cursor-erase .notation-staff.is-interactive {

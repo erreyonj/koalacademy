@@ -57,6 +57,7 @@ import type {
   ScoreExcerpt,
   TimeSignature,
 } from "@/lib/notation/types";
+import { scrollSandbox } from "@/lib/notation/sandboxScroll";
 import { downloadPng, downloadSvg } from "./download";
 import { NotationStaff } from "./NotationStaff";
 import { NoteSpelling, spellLetters } from "./NoteSpelling";
@@ -133,6 +134,33 @@ export function NotationSandbox({ initial }: { initial?: ScoreExcerpt }) {
   const [solveTarget, setSolveTarget] = useState<string | null>(null);
   const lastGeneratedWordRef = useRef<string | null>(null);
   const solveCelebratedRef = useRef(false);
+  const lastSystemsRef = useRef<{ wrap: boolean; count: number } | null>(null);
+
+  /**
+   * Page scroll only follows the staff when a second bar is stacked underneath
+   * (scroll down to it) or removed again (scroll back to the controls + bar 1).
+   */
+  function handleStaffRender({
+    systemCount,
+    wrapSystems,
+  }: {
+    systemCount: number;
+    wrapSystems: boolean;
+  }) {
+    const prev = lastSystemsRef.current;
+    lastSystemsRef.current = { wrap: wrapSystems, count: systemCount };
+    // First draw, or an activity switch changed the layout mode: re-baseline only.
+    if (!prev || prev.wrap !== wrapSystems) return;
+    const grew = prev.count < 2 && systemCount >= 2;
+    const shrank = prev.count >= 2 && systemCount < 2;
+    if (!grew && !shrank) return;
+    const kind = grew ? "bottom" : "top";
+    requestAnimationFrame(() => {
+      const sandbox = hostRef.current;
+      const main = document.getElementById("main");
+      if (sandbox && main) scrollSandbox(kind, main, sandbox);
+    });
+  }
 
   const parsed = useMemo(() => parseKeyName(score.key), [score.key]);
   const durationLabel =
@@ -316,7 +344,11 @@ export function NotationSandbox({ initial }: { initial?: ScoreExcerpt }) {
   }, [solveOn, solveSolved, score]);
 
   return (
-    <div className={`notation-sandbox cursor-${cursor}`} ref={hostRef}>
+    <div
+      className={`notation-sandbox cursor-${cursor}`}
+      data-testid="notation-sandbox"
+      ref={hostRef}
+    >
       <div className="deck-screen">
         <span className="lcd">
           {score.clef} · {score.key} · {score.time} · {cursor}
@@ -657,6 +689,7 @@ export function NotationSandbox({ initial }: { initial?: ScoreExcerpt }) {
             colorize={wordActivity && colorizeOn}
             paletteId={paletteId}
             label="Editable staff"
+            onRender={handleStaffRender}
             onStaffClick={(click) => handleStaffClick(click.pitch)}
             onEventClick={(hit, pitch) =>
               handleEventClick(hit.measureIndex, hit.eventIndex, pitch)

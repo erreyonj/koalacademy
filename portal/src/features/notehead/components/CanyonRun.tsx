@@ -1,7 +1,9 @@
 import { Band } from "./Band";
 import { BorealisMark } from "./Borealis";
+import { ExitMark } from "./ExitZone";
 import { SceneFrame } from "./SceneFrame";
 import { Ship, type ShipLook } from "./Ship";
+import { ShipBreach } from "./ShipBreach";
 import { Sparkles } from "./Sparkles";
 import { Trajectory } from "./Trajectory";
 import {
@@ -10,8 +12,8 @@ import {
   toSvg,
   type Body,
   type Ledge,
-} from "../sim";
-import { pullOffsetSvg, type FrameGesture } from "../view";
+} from "../modules/sim";
+import { pullOffsetSvg, type FrameGesture } from "../modules/view";
 
 /** How far a band dips under a ship that is resting on it. */
 const CRADLE = 1.5;
@@ -83,20 +85,17 @@ export function NotchArt({
           />
         );
       })}
-      {gesture.borealis.map((entry, index) => {
-        const next = gesture.borealis.findIndex((gem) => !gem.collected);
-        return (
-          <BorealisMark
-            key={entry.id}
-            x={entry.x}
-            y={entry.y}
-            pitch={entry.pitch}
-            collected={entry.collected}
-            active={index === next}
-            testId={`borealis-${entry.id}`}
-          />
-        );
-      })}
+      {gesture.borealis.map((entry) => (
+        <BorealisMark
+          key={entry.id}
+          x={entry.x}
+          y={entry.y}
+          pitch={entry.pitch}
+          collected={entry.collected}
+          active={!entry.collected && !gesture.borealisLocked}
+          testId={`borealis-${entry.id}`}
+        />
+      ))}
       {exitBand && (
         <Band
           x0={toSvg(exitBand.x0, exitBand.y).x}
@@ -117,17 +116,30 @@ export function NotchArt({
           testId="warp-band"
         />
       )}
+      {gesture.exitZone && (
+        <ExitMark zone={gesture.exitZone} lit={gesture.exitLit} />
+      )}
       {gesture.phase === "sparkle" && (
         <Sparkles cx={ship.x} cy={ship.y} testId="notch-sparkles" />
       )}
-      <Ship
-        cx={ship.x}
-        cy={ship.y}
-        rx={8}
-        ry={6}
-        look={look}
-        testId="notch-ship"
-      />
+      {gesture.phase === "breach" ? (
+        <ShipBreach
+          cx={ship.x}
+          cy={ship.y}
+          rx={8}
+          ry={6}
+          testId="notch-ship-breach"
+        />
+      ) : (
+        <Ship
+          cx={ship.x}
+          cy={ship.y}
+          rx={8}
+          ry={6}
+          look={look}
+          testId="notch-ship"
+        />
+      )}
     </SceneFrame>
   );
 }

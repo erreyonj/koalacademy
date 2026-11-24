@@ -1,7 +1,9 @@
 import { Band } from "./Band";
 import { BorealisMark } from "./Borealis";
+import { ExitMark } from "./ExitZone";
 import { SceneFrame } from "./SceneFrame";
 import { Ship, type ShipLook } from "./Ship";
+import { ShipBreach } from "./ShipBreach";
 import { Sparkles } from "./Sparkles";
 import { Trajectory } from "./Trajectory";
 import {
@@ -11,8 +13,8 @@ import {
   toSvg,
   type Body,
   type Ledge,
-} from "../sim";
-import { pullOffsetSvg, type FrameGesture } from "../view";
+} from "../modules/sim";
+import { pullOffsetSvg, type FrameGesture } from "../modules/view";
 
 const REGION = "zig" as const;
 const CRADLE = 1.5;
@@ -52,9 +54,6 @@ export function ZigArt({
     return pulling ? drag : { x: 0, y: CRADLE };
   };
 
-  const nextId =
-    gesture.borealis.find((entry) => !entry.collected)?.id ?? null;
-
   return (
     <SceneFrame
       regionId={REGION}
@@ -66,6 +65,13 @@ export function ZigArt({
         points={gesture.chart}
         apex={gesture.chartApex}
         regionId={REGION}
+      />
+      <Band
+        x0={toSvg(ZIG_PEAK.x0, ZIG_PEAK.y, REGION).x}
+        x1={toSvg(ZIG_PEAK.x1, ZIG_PEAK.y, REGION).x}
+        y={toSvg(ZIG_PEAK.x0, ZIG_PEAK.y, REGION).y}
+        sag={sagFor(ZIG_PEAK)}
+        testId="zig-peak-band"
       />
       {exitBand && (
         <Band
@@ -94,11 +100,14 @@ export function ZigArt({
           y={gem.y}
           pitch={gem.pitch}
           collected={gem.collected}
-          active={gem.id === nextId}
+          active={!gem.collected && !gesture.borealisLocked}
           regionId={REGION}
           testId={`borealis-${gem.id}`}
         />
       ))}
+      {gesture.exitZone && (
+        <ExitMark zone={gesture.exitZone} lit={gesture.exitLit} />
+      )}
       {(gesture.phase === "flight" || gesture.phase === "sparkle") && (
         <>
           <circle className="notehead-ring" cx={ship.x} cy={ship.y} r={12} />
@@ -108,7 +117,26 @@ export function ZigArt({
       {gesture.phase === "sparkle" && (
         <Sparkles cx={ship.x} cy={ship.y} testId="zig-sparkles" />
       )}
-      <Ship cx={ship.x} cy={ship.y} rx={10} ry={7} look={look} testId="zig-ship" regionId={REGION} />
+      {gesture.phase === "breach" ? (
+        <ShipBreach
+          cx={ship.x}
+          cy={ship.y}
+          rx={10}
+          ry={7}
+          regionId={REGION}
+          testId="zig-ship-breach"
+        />
+      ) : (
+        <Ship
+          cx={ship.x}
+          cy={ship.y}
+          rx={10}
+          ry={7}
+          look={look}
+          testId="zig-ship"
+          regionId={REGION}
+        />
+      )}
     </SceneFrame>
   );
 }

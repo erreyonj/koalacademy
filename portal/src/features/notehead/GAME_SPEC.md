@@ -28,52 +28,60 @@ One route, one world, four places. Default play advances a beat table. A debug H
 | Beat | Place | Gate |
 | --- | --- | --- |
 | `launch-teach` | Launch | Reach goal height on the way up; fall hard enough to break through the launch band |
-| `notch-crash` | Notch | Enter from above; touch the high block; land on the floor. Unlock `repair.anachrometer` |
-| `notch-calibrate` | Notch | With Anachrometer, collect Borealis at pocket and block (floor starts visited) |
-| `launch-bridge` | Launch | Rest on the launch band; a full-power shot clears into Stairs |
-| `stairs-anach` | Stairs | Collect Borealis above every tread using Anachrometer hops; treads slope so the ship slides off without a warp |
-| `zig-1` | Zig | Landscape; collect Borealis peak → left → right, then exit-band slingshot |
+| `notch-crash` | Notch | One-shot intro only: fall from above, hit block, land floor → unlock Anachrometer → Notch |
+| `notch-calibrate` | Notch | Optional Ascending 4th (E4→A4) for Tonation; exit anytime through the top |
+| `launch-bridge` | Launch | Free-aim on the band; full-power top exit → Stairs. Lower-left gap (left edge, bottom 8% of world Y) → return to Notch after seating (skip dialogue if visited) |
+| `stairs-anach` | Stairs | Enter rising onto the approach band; optional arpeggio (C4→E4→G4) for Tonation; exit right → Zig (rise); lower-right warp → Zig (soft drop onto peak); leave left (lower ~40%) → Launch Bridge (fall from above) |
+| `zig-1` | Zig | Enter rising onto the peak Frequency Band; optional contour (C4→E4→A4) for Tonation; exit up → Tail; lower-left → Stairs (fall onto approach band right edge); lower-right warp → soft reentry jump-in from Zig’s left lower barrier |
+| `launch-tail` | Tail | Free-aim on launch terrain; collect the eighth Note-Tail when Tonation/hull gates pass; lower-left gap → return to Zig after seating (fall from above) |
 
-Soft transitions: clearing a beat sparkles, then spawns the next beat's entry body in that beat's region.
+Soft transitions: most clears sparkle, then spawn the next beat's entry body (often already in flight). `launch-teach` skips the star burst and holds a slo-mo fall through the broken band until OOB, then cuts to Notch crash. `notch-crash` also skips the star burst.
 
 ## Frequency Band and aim
 
 - Height is a diatonic ruler. Default ladder is one octave of C major, `C4`–`C5`. The scale table is the only place those names live.
-- On ready, and whenever the player taps the goal, the target pitch plays once.
+- On ready, and whenever the player taps the interval HUD, the required pair plays.
 - The band is flat at rest and sags only while the player pulls.
 - While resting on a Frequency Band, a slight magnetic dock eases the ship to the band center. This does not apply to Anachrometer warp re-pulls (the warp band tracks the ship).
-- Launch pulls are straight down. Sideways drag does not aim.
-- Stairs and the notch take a drag vector. Length is power (0..1). Direction is aim in radians from straight up. Positive aim points to +x. The ship flies opposite the drag.
+- **Launch teach** pulls are vertical only (`AimMode: "vertical"`). Sideways drag does not aim.
+- **Launch Bridge / Tail** use free aim on the launch band (`AimMode: "free"`) so lower-left returns are reachable.
+- Stairs, Notch, and Zig take a drag vector. Length is power (0..1). Direction is aim in radians from straight up. Positive aim points to +x. The ship flies opposite the drag.
 - Each rest spot (except launch) has an aim cone. Hard difficulty shaves both sides (`aimInset`).
 - While pulling with power, a dashed chart traces the flight `launchVelocity` and `step` would produce. The chart disappears on release.
 
 ## Break-through
 
-While falling faster than `BREAK_SPEED`, the ship does not land on `kind: "band"` ledges. Blocks and steps can still catch. Break-through is how `launch-teach` leaves the Launch site. Once the Anachrometer is on, a mid-flight warp lets the Captain pull again while still moving so soft landings are reachable.
+While falling faster than `BREAK_SPEED`, the ship does not land on `kind: "band"` ledges. Blocks and steps can still catch. On `launch-teach`, the launch band stays soft until the guide is crossed on the way up — only then can a hard fall break through. The break plays a snap animation (band splits, peels, shards) while the ship falls in slow motion until it leaves the frame, then Notch crash begins. Once the Anachrometer is on, a mid-flight warp lets the Captain pull again while still moving so soft landings are reachable.
 
-## Borealis
+## Borealis and Tonation
 
-Borealis is the ship's energy resource — glowing mid-air collectibles that mark the spaces a beat needs the Captain to reach. They replace waiting Frequency Bands in the middle of a place: the Captain flies near them, they magnetize toward the ship, and collecting them counts as a visit. The ship does not need to land on terrain to progress; it can keep falling, gather Borealis, then press-to-warp the next pull.
+**Borealis** are glowing mid-air orbs. They replace waiting Frequency Bands: the Captain flies near them, they magnetize, and collecting counts as a visit. Physical collect is **any order**. Tap an orb to preview its pitch without collecting.
 
-- Placed for visit chains: `notch-calibrate` (pocket, block), `stairs-anach` (one above each tread), and `zig-1` (peak, left, right).
-- Collectible only in goal order: the next uncollected gem magnetizes; later gems wait.
-- Within `MAGNET_RANGE`, the active gem drifts toward the ship.
-- Magnetism and collect run in **real time** — Anachrometer `timeScale` slows the ship, not Borealis.
-- Within `COLLECT_RADIUS`, it is gathered, plays its goal pitch, and adds its id to `visited`. After `launch-teach`, pitched notes come from Borealis gathers only (not landings).
-- Goal tones: `notch-calibrate` plays **E4** then **A4**; `stairs-anach` plays **C4**, **E4**, **G4** (one per tread); `zig-1` plays **C4**, **E4**, **A4**.
-- Gathering every Borealis on a beat restores 1 HP (capped at max).
-- The **last** Borealis plants an `exit-band` Frequency Band on the platform under that gem. The ship keeps its trajectory and lands on the new band, then can slingshot onward. Auto-advance on Borealis clear is off for now — the exit band is the handoff.
-- Terrain masses stay; mid waiting bands at those spots are not drawn.
+**Tonation** is a separate banked energy resource (HUD solid meter, cap **24**). Completing a beat’s **interval challenge** in the required pitch order banks that region’s payout **once**:
+
+| Beat | Interval | Pitches (order) | Payout |
+| --- | --- | --- | --- |
+| `notch-calibrate` | Ascending 4th | E4 → A4 | +5 |
+| `stairs-anach` | Arpeggio | C4 → E4 → G4 | +9 |
+| `zig-1` | Contour | C4 → E4 → A4 | +10 |
+
+- Wrong-order collect **consumes** the gem, **fails** the attempt (0 Tonation), and locks remaining gems until beat regen. Exit stays usable — the Captain may skip or leave and retry later.
+- Successful full sequence plants an `exit-band` under the last gem (soft pad) and banks the payout (idempotent per beat).
+- Magnetism / collect run in **real time** — Anachrometer slows the ship, not Borealis.
+- **Exit** on Borealis beats is always available (skip freely). Frame edges seal except forward + reverse travel openings. `launch-bridge` still needs a full-power shot out the top; Bridge/Tail lower-left returns arm only after seating on the launch band.
+- HUD `interval:` shows the current required pair (progressive on multi-note beats). Tap it to hear the pair.
+- Eighth Note-Tail on `launch-tail` requires Tonation ≥ **19** (Easy/Med) or **24** (Hard), plus hull ≥ **2** (Med) / ≥ **3** (Hard). Easy has no hull gate beyond staying alive.
 
 ## Hull (HP)
 
-A simple hull bar in the HUD. Easy starts at **5** HP (`profile.maxHp`).
+A simple hull bar in the HUD. Easy **10** / Medium **8** / Hard **5** (`profile.maxHp`).
 
 - Landings on `kind: "band"` Frequency Bands never cost HP.
-- Landings on steps / blocks (and hard rock impacts) cost 1 HP.
-- Hard rock impacts (`resolveMasses` with speed into the wall) also cost 1 HP.
-- Gathering all Borealis on the current beat restores 1 HP.
-- At 0 HP the beat restarts with a full hull.
+- Landings on steps / blocks cost 1 HP only when fall speed ≥ `LANDING_HIT_SPEED` (~6 ship-radii freefall). Short hops onto adjacent terrain stay free.
+- Hard rock impacts (`resolveMasses` into a wall at ≥ `MASS_HIT_SPEED`) also cost 1 HP — pocket grazes on a short hop do not.
+- Sealed exit-frame barriers bounce on every dial; they cost 1 HP **only on Hard**.
+- First clear of an interval region (Notch / Stairs / Zig exit advance) heals Easy/Med **+3**, Hard **+1**.
+- At 0 HP the ship plays a short shatter burst (`phase: "breach"`), then any hull teach GI, then the beat restarts with a full hull. **Hard** also wipes the Tonation bank; Easy/Med keep Tonation.
 
 ## Solid terrain
 
@@ -96,23 +104,26 @@ If the ship touches a real surface (tread, band, block) while still holding an a
 ## Launch
 
 - Goal height is the guide line for the active goal pitch. Crossing it on the way up counts for `launch-teach`; apex match is not the clear rule on the route.
-- `launch-teach` clears when goal height was crossed rising and the ship breaks through the launch band on the way down.
-- `launch-bridge` starts resting on the launch band. A full-power shot clears into `stairs-anach`.
+- `launch-teach` clears when goal height was crossed rising and the ship then breaks through the launch band on the way down. Short shots that never reach the guide always soft-land.
+- `launch-bridge` forward enter rises onto the launch band (from Notch). Stairs → Bridge reverse falls from above onto the band. A full-power shot through the top exit clears into `stairs-anach`. After seating, the lower-left gap returns to Notch (also a fall).
 
 ## Notch
 
 - Classic portrait notch: left wall with a first peak above the pocket shelf, high right block, floor band on the lower slope.
 - Open from above so `notch-crash` can fall in and clip the block.
-- Pocket (`E4`). Block (`A4`, goal tonation). Floor band (`C4`).
-- `notch-crash` clears when the ship has visited the block and then rests on the floor; then Anachrometer unlocks.
-- `notch-calibrate` starts on the floor (floor already visited). Clear by collecting Borealis at pocket and block — no need to land on those ledges.
+- Pocket / lower shelf (`A4`). Block / higher shelf (`E4`). Floor band (`C4`). Interval: Ascending 4th **E4 → A4** (+5 Tonation) — collect the block tone first, then the pocket.
+- `notch-crash` is a **one-shot fall intro** after the first Launch break-through (not a free-standing level). It unlocks Anachrometer, then Notch play begins. Tracked via `RouteMemory.crashSeen`.
+- `notch-calibrate` starts on the floor (or falling re-entry from Launch Bridge). Clear by flying through the exit anytime; bank Tonation with E4 then A4. Revisits skip enter dialogue.
 
 ## Zig
 
 - Landscape region (`360×200` art in the same logical world). Force landscape device orientation with an on-screen prompt when portrait. Stage is ~2× the portrait playfield footprint.
-- Twin hanging cliffs + bottom peak (`notehead-mock-zig-1.png`). Left shelf is a deep horizontal platform; right side is a sloping wedge. Goal tonation **A4**.
+- Twin hanging cliffs + bottom peak (`notehead-mock-zig-1.png`). Left shelf is a deep horizontal platform; right side is a sloping wedge. Interval contour **C4 → E4 → A4** (+10 Tonation).
 - Ledges: `zig-peak` (`C4` band), `zig-left` (`E4` band), `zig-right` (`A4` sloping step). Shelves are spread far apart for a clear zig-zag.
-- `zig-1` starts on the peak (peak already visited). Collect Borealis in order peak → left → right; last gem plants the exit band.
+- `zig-1` starts on the peak (peak already visited). Exit up anytime → Tail; bank Tonation with C4 → E4 → A4 (any physical path, correct pitch order).
+- Reverse: lower-left corner → Stairs (fall onto the **right edge** of the approach Frequency Band); lower-right warp → same-beat soft reentry that jumps in from the left lower barrier (`zigJumpFromLeftEnter`, Borealis kept). Tail → Zig reverse falls from above onto the peak.
+- Stairs lower-right warp uses the same left-barrier jump-in into Zig.
+- Rule: forward arrivals that continue an upward exit **rise** from below; reverse arrivals from a later region **fall** from above (except Zig’s lower-right warp loop).
 
 ## Stairs
 
@@ -121,8 +132,8 @@ If the ship touches a real surface (tread, band, block) while still holding an a
 - Tread hits always seat (no trampoline bounce). The ship slides toward open sky and drips off the lip; +x into the rock is killed.
 - There is no auto drop-down from tread to tread.
 - Borealis sits over each tread's open face (not buried under higher steps).
-- Default tread pitches, bottom to top: `C4 E4 G4`.
-- `stairs-anach` clears when every tread id has been visited via Borealis collect (tread contact still counts).
+- Interval arpeggio, bottom to top: `C4 E4 G4` (+9 Tonation).
+- `stairs-anach` clears on the right-side exit anytime → Zig (rise), or the lower-right warp → Zig (jump-in from left lower barrier); leave left (lower corridor) → Launch Bridge (fall from above onto band); bank Tonation with C4 → E4 → G4.
 
 ## Difficulty
 
@@ -131,8 +142,11 @@ One profile shared by every region. Route Easy uses the beat table and ignores a
 | Dial | Easy | Medium | Hard |
 | --- | --- | --- | --- |
 | Aim inset | 0 | 0.08 | 0.22 |
-| Max HP | off (0) | 5 | 4 |
-| Miss copy | retry | retry, name the miss | split pitch / landing when useful |
+| Max HP | 10 | 8 | 5 |
+| Region clear heal | +3 | +3 | +1 |
+| Eighth Tail Tonation | ≥19 | ≥19 | ≥24 |
+| Eighth Tail hull | — | ≥2 | ≥3 |
+| Breach Tonation | keep | keep | wipe |
 
 K–2 play uses Easy. Do not fork components per difficulty.
 
@@ -195,11 +209,11 @@ Fixed timestep 1/60. Pause the sim on `visibilitychange`.
 
 Use Web Audio (same idea as `portal/src/components/keys-lite/piano.ts`). Do not add Tone.js.
 
-1. **Discrete notes.** Goal taps anytime. After `launch-teach`, gather tones play only on Borealis collect (Notch: E4 then A4; Stairs: C4, E4, G4). Landings stay silent.
+1. **Discrete notes.** Interval HUD taps play the current required pair. After `launch-teach`, gather tones play on Borealis collect (and tap-preview). Landings stay silent.
 2. **Climb.** `launch-teach` only: while rising, one oscillator glides with height across the scale.
-3. **Aim clicks.** `launch-teach` only: short descending plucks while the trajectory is casting further (rate + level scale with extension). Holding still, retracting, or releasing is silent.
+3. **Aim clicks.** Short descending plucks while the trajectory is casting further (rate + level scale with extension). Holding still, retracting, or releasing is silent.
 
-`resume` on the pull gesture. Theme: `public/assets/notehead/Swung Gospel Glide.mp3` via shared `MusicTransport` / `useThemeMusic` (`start` on first pull or goal tap).
+Theme: `public/assets/notehead/notehead-etheral-vibe.wav` via shared `MusicTransport` / `useThemeMusic` — starts when Launch mounts (with pull / goal tap as fallback if the browser blocks autoplay). Display title stays **Cosmic Aether Soul**.
 
 ## Renderer
 

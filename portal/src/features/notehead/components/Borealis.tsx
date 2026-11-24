@@ -1,5 +1,5 @@
 import borealisArt from "../assets/notehead-borealis-collectible-main.png";
-import { toSvg, type PitchName, type RegionId } from "../sim";
+import { toSvg, type PitchName, type RegionId } from "../modules/sim";
 
 /** Soft PNG orb at a logical-world Borealis point. */
 export function BorealisMark({
@@ -15,7 +15,7 @@ export function BorealisMark({
   y: number;
   pitch: PitchName;
   collected: boolean;
-  /** False while waiting for an earlier gem in goal order. */
+  /** False when the interval attempt failed (locked until regen). */
   active?: boolean;
   regionId?: RegionId;
   testId?: string;

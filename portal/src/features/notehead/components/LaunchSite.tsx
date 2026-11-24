@@ -1,6 +1,10 @@
 import { Band } from "./Band";
+import { BandBreak } from "./BandBreak";
+import { ExitMark } from "./ExitZone";
+import { NoteTailMark } from "./NoteTailMark";
 import { SceneFrame } from "./SceneFrame";
 import { Ship, type ShipLook } from "./Ship";
+import { ShipBreach } from "./ShipBreach";
 import { Sparkles } from "./Sparkles";
 import { Trajectory } from "./Trajectory";
 import {
@@ -10,8 +14,8 @@ import {
   toSvg,
   type Body,
   type Ledge,
-} from "../sim";
-import { pullOffsetSvg, type FrameGesture } from "../view";
+} from "../modules/sim";
+import { pullOffsetSvg, type FrameGesture } from "../modules/view";
 
 export function LaunchArt({
   body,
@@ -26,6 +30,7 @@ export function LaunchArt({
   look: ShipLook;
   warp: Ledge | null;
 }) {
+  const showGuide = !gesture.exitZone && !gesture.noteTail;
   const goalIndex = Math.max(0, pitchIndex(goalPitch as "G4"));
   const guide = toSvg(0, LAUNCH_BAND.y + (goalIndex + 1) * LAUNCH_SPACING);
   const band = toSvg(LAUNCH_BAND.x0, LAUNCH_BAND.y);
@@ -48,21 +53,33 @@ export function LaunchArt({
       testId="launch-canvas"
       phase={gesture.phase}
     >
-      <line
-        className="notehead-guide"
-        x1={band.x}
-        x2={bandEnd.x}
-        y1={guide.y}
-        y2={guide.y}
-        data-testid="launch-guide"
-      />
-      <Band
-        x0={band.x}
-        x1={bandEnd.x}
-        y={band.y}
-        sag={onLaunch ? sag : { x: 0, y: 0 }}
-        testId="launch-band"
-      />
+      {showGuide && (
+        <line
+          className="notehead-guide"
+          x1={band.x}
+          x2={bandEnd.x}
+          y1={guide.y}
+          y2={guide.y}
+          data-testid="launch-guide"
+        />
+      )}
+      {gesture.bandBreak ? (
+        <BandBreak
+          x0={band.x}
+          x1={bandEnd.x}
+          y={band.y}
+          breakX={toSvg(gesture.bandBreak.x, gesture.bandBreak.y).x}
+          testId="launch-band-break"
+        />
+      ) : (
+        <Band
+          x0={band.x}
+          x1={bandEnd.x}
+          y={band.y}
+          sag={onLaunch ? sag : { x: 0, y: 0 }}
+          testId="launch-band"
+        />
+      )}
       {warp && (
         <Band
           x0={toSvg(warp.x0, warp.y).x}
@@ -74,15 +91,38 @@ export function LaunchArt({
         />
       )}
       <Trajectory points={gesture.chart} apex={gesture.chartApex} />
-      {gesture.phase === "sparkle" && <Sparkles cx={ship.x} cy={guide.y} />}
-      <Ship
-        cx={ship.x}
-        cy={ship.y}
-        rx={14}
-        ry={10}
-        look={look}
-        testId="launch-ship"
-      />
+      {gesture.noteTail && (
+        <NoteTailMark
+          x={gesture.noteTail.x}
+          y={gesture.noteTail.y}
+          collected={gesture.noteTail.collected}
+          testId="note-tail-eighth"
+        />
+      )}
+      {gesture.exitZone && (
+        <ExitMark zone={gesture.exitZone} lit={gesture.exitLit} />
+      )}
+      {gesture.phase === "sparkle" && (
+        <Sparkles cx={ship.x} cy={showGuide ? guide.y : ship.y} />
+      )}
+      {gesture.phase === "breach" ? (
+        <ShipBreach
+          cx={ship.x}
+          cy={ship.y}
+          rx={14}
+          ry={10}
+          testId="launch-ship-breach"
+        />
+      ) : (
+        <Ship
+          cx={ship.x}
+          cy={ship.y}
+          rx={14}
+          ry={10}
+          look={look}
+          testId="launch-ship"
+        />
+      )}
     </SceneFrame>
   );
 }

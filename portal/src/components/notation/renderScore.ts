@@ -13,6 +13,7 @@ import {
 } from "vexflow/bravura";
 import VexFlow from "vexflow/bravura";
 import { keyImpliesAccidental, parseKeyName, splitPitch } from "@/lib/notation/key";
+import { colorForPitch, type PaletteId } from "@/lib/notation/noteColors";
 import { voiceTime } from "@/lib/notation/parse";
 import type { Clef, ScoreExcerpt, ScoreEvent } from "@/lib/notation/types";
 
@@ -23,6 +24,12 @@ export type HitEvent = {
   y: number;
   w: number;
   h: number;
+};
+
+/** Which score event is “now playing” (notehead flash). */
+export type PlayHighlight = {
+  measureIndex: number;
+  eventIndex: number;
 };
 
 export type RenderedStave = {
@@ -38,6 +45,8 @@ export type RenderedStave = {
 export type RenderResult = {
   staves: RenderedStave[];
   events: HitEvent[];
+  /** Stacked staff rows drawn (1 unless wrapSystems pushed a bar underneath). */
+  systemCount: number;
 };
 
 let fontsReady: Promise<void> | null = null;
@@ -71,7 +80,17 @@ function toVexKey(pitch: string): string {
   return `${letter.toLowerCase()}${accidental ?? ""}/${octave}`;
 }
 
-function toStaveNote(event: ScoreEvent, clef: Clef, key: string): StaveNote {
+function toStaveNote(
+  event: ScoreEvent,
+  clef: Clef,
+  key: string,
+  options: {
+    highlighted?: boolean;
+    colorize?: boolean;
+    paletteId?: PaletteId;
+  } = {},
+): StaveNote {
+  const { highlighted = false, colorize = false, paletteId = "roygbiv" } = options;
   const dots = event.dots === 1 ? 1 : 0;
   if (event.kind === "rest") {
     const rest = new StaveNote({
@@ -96,6 +115,18 @@ function toStaveNote(event: ScoreEvent, clef: Clef, key: string): StaveNote {
     note.addModifier(new Accidental(accidental), 0);
   } else if (!accidental && !keyImpliesAccidental(key, letter, null)) {
     note.addModifier(new Accidental("n"), 0);
+  }
+  // Colorize only tints the sounding note during playback — idle noteheads stay black.
+  if (colorize && highlighted) {
+    const pitchColor = colorForPitch(event.pitch, paletteId);
+    note.setKeyStyle(0, {
+      fillStyle: pitchColor,
+      strokeStyle: pitchColor,
+      shadowColor: pitchColor,
+      shadowBlur: 10,
+    });
+    note.setStemStyle({ strokeStyle: pitchColor });
+    note.setFlagStyle({ fillStyle: pitchColor, strokeStyle: pitchColor });
   }
   return note;
 }
@@ -143,6 +174,16 @@ function systemGroups(measureCount: number, wrapSystems: boolean): number[][] {
 export type RenderOptions = {
   /** First bar on its own row; remaining bars wrap two per row. */
   wrapSystems?: boolean;
+  /** Top padding before the first system (default 28). */
+  systemTop?: number;
+  /** Vertical room per system (default 150). */
+  systemHeight?: number;
+  /** Flash this event’s notehead during playback. */
+  highlight?: PlayHighlight | null;
+  /** When true, playback highlight uses the palette color. */
+  colorize?: boolean;
+  /** Active absolute-pitch palette. */
+  paletteId?: PaletteId;
 };
 
 const SYSTEM_TOP = 28;
@@ -158,9 +199,14 @@ export async function renderScore(
   container.innerHTML = "";
 
   const wrapSystems = options.wrapSystems ?? false;
+  const systemTop = options.systemTop ?? SYSTEM_TOP;
+  const systemHeight = options.systemHeight ?? SYSTEM_HEIGHT;
+  const highlight = options.highlight ?? null;
+  const colorize = options.colorize ?? false;
+  const paletteId = options.paletteId ?? "roygbiv";
   const measures = score.measures.length > 0 ? score.measures : [{ events: [] }];
   const groups = systemGroups(measures.length, wrapSystems);
-  const height = SYSTEM_TOP + SYSTEM_HEIGHT * groups.length;
+  const height = systemTop + systemHeight * groups.length;
   const renderer = new Renderer(container, Renderer.Backends.SVG);
   renderer.resize(Math.max(width, 240), height);
   const ctx = renderer.getContext();
@@ -171,19 +217,20 @@ export async function renderScore(
   const events: HitEvent[] = [];
 
   groups.forEach((group, systemIndex) => {
-    const y = SYSTEM_TOP + systemIndex * SYSTEM_HEIGHT;
-    const clefPad = 52;
-    const even = Math.max(Math.floor((inner - clefPad) / group.length), 120);
+    const y = systemTop + systemIndex * systemHeight;
+    // Clef / key / time only on the first system of a piece.
+    const leadPad = systemIndex === 0 ? 52 : 8;
+    const even = Math.max(Math.floor((inner - leadPad) / group.length), 120);
     let x = padding;
 
     group.forEach((measureIndex, slot) => {
-      const measureWidth = slot === 0 ? even + clefPad : even;
+      const measureWidth = slot === 0 ? even + leadPad : even;
       const stave = new Stave(x, y, measureWidth);
-      if (slot === 0) {
-        stave.addClef(score.clef);
-        if (systemIndex === 0) {
-          stave.addKeySignature(vexKeySpec(score.key)).addTimeSignature(score.time);
-        }
+      if (slot === 0 && systemIndex === 0) {
+        stave
+          .addClef(score.clef)
+          .addKeySignature(vexKeySpec(score.key))
+          .addTimeSignature(score.time);
       }
       if (measureIndex === measures.length - 1) {
         stave.setEndBarType(BarlineType.END);
@@ -202,7 +249,17 @@ export async function renderScore(
 
       const measureEvents = measures[measureIndex].events;
       if (measureEvents.length > 0) {
-        const tickables = measureEvents.map((event) => toStaveNote(event, score.clef, score.key));
+        const tickables = measureEvents.map((event, eventIndex) =>
+          toStaveNote(event, score.clef, score.key, {
+            highlighted:
+              highlight != null &&
+              highlight.measureIndex === measureIndex &&
+              highlight.eventIndex === eventIndex &&
+              event.kind === "note",
+            colorize,
+            paletteId,
+          }),
+        );
         const tuplets = tupletBrackets(measureEvents, tickables);
         const voice = new Voice(voiceTime(score.time)).setMode(VoiceMode.SOFT);
         voice.addTickables(tickables);
@@ -212,6 +269,19 @@ export async function renderScore(
           beams = Beam.generateBeams(tickables);
         } catch {
           // Incomplete or mixed rhythms can refuse a beam; notes still draw.
+        }
+        // Tint the beam on the sounding note when Colorize is on.
+        if (colorize && highlight != null && highlight.measureIndex === measureIndex) {
+          const activeEvent = measureEvents[highlight.eventIndex];
+          const active = tickables[highlight.eventIndex];
+          if (active && activeEvent?.kind === "note") {
+            const color = colorForPitch(activeEvent.pitch, paletteId);
+            for (const beam of beams) {
+              if (beam.getNotes().includes(active)) {
+                beam.setStyle({ fillStyle: color, strokeStyle: color });
+              }
+            }
+          }
         }
         voice.draw(ctx, stave);
         for (const beam of beams) beam.setContext(ctx).draw();
@@ -238,6 +308,10 @@ export async function renderScore(
   if (svg) {
     svg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
     svg.setAttribute("role", "img");
+    // Let CSS size the SVG (width: 100%; height: auto) so callers can zoom
+    // by rendering at a smaller logical width.
+    svg.style.width = "100%";
+    svg.style.height = "auto";
     if (!svg.querySelector("[data-bg]")) {
       const bg = document.createElementNS("http://www.w3.org/2000/svg", "rect");
       bg.setAttribute("data-bg", "true");
@@ -248,7 +322,7 @@ export async function renderScore(
     }
   }
 
-  return { staves, events };
+  return { staves, events, systemCount: groups.length };
 }
 
 export function clientToSvg(svg: SVGSVGElement, clientX: number, clientY: number): { x: number; y: number } {

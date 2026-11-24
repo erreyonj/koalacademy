@@ -5,9 +5,7 @@ import {
   LAUNCH_BAND,
   NOTCH_BLOCK,
   NOTCH_FLOOR,
-  NOTCH_POCKET,
   PROFILES,
-  STAIR_TREADS,
   flyShot,
   launchVelocity,
   pullForLaunchDegree,
@@ -165,20 +163,20 @@ describe("route table", () => {
     expect(repairForBeat("stairs-anach").anachrometer).toBe(true);
   });
 
-  it("notch-calibrate clears only after Borealis and the exit gate", () => {
+  it("notch-calibrate clears on exit without requiring Borealis", () => {
     const beat = PROGRESSION["notch-calibrate"];
     const repair = { anachrometer: true, tails: [] };
     const base = {
       apexY: 0,
       crossedGoal: false,
       brokeBand: false,
-      visited: [NOTCH_FLOOR.id, NOTCH_POCKET.id, NOTCH_BLOCK.id],
+      visited: [NOTCH_FLOOR.id],
       landedOn: null as string | null,
       restingOn: null as string | null,
     };
     const waiting = beat.evaluate({ ...base, crossedExit: false }, repair);
     expect(waiting.cleared).toBe(false);
-    expect(waiting.hint).toMatch(/exit/i);
+    expect(waiting.hint).toMatch(/Tonation|exit/i);
     const cleared = beat.evaluate({ ...base, crossedExit: true }, repair);
     expect(cleared.cleared).toBe(true);
     expect(beat.next).toBe("launch-bridge");
@@ -218,30 +216,29 @@ describe("route table", () => {
     expect(beat.next).toBe("stairs-anach");
   });
 
-  it("stairs-anach clears after Borealis and the right-side exit", () => {
+  it("stairs-anach clears on the right-side exit without Borealis", () => {
     const beat = PROGRESSION["stairs-anach"];
-    const ids = STAIR_TREADS.map((tread) => tread.id);
     const waiting = beat.evaluate(
       {
         apexY: 0,
         crossedGoal: false,
         brokeBand: false,
         crossedExit: false,
-        visited: ids,
+        visited: [],
         landedOn: "s1",
         restingOn: null,
       },
       { anachrometer: true, tails: [] },
     );
     expect(waiting.cleared).toBe(false);
-    expect(waiting.hint).toMatch(/exit/i);
+    expect(waiting.hint).toMatch(/Tonation|exit/i);
     const cleared = beat.evaluate(
       {
         apexY: 0,
         crossedGoal: false,
         brokeBand: false,
         crossedExit: true,
-        visited: ids,
+        visited: [],
         landedOn: "s1",
         restingOn: null,
       },
@@ -251,7 +248,7 @@ describe("route table", () => {
     expect(beat.next).toBe("zig-1");
   });
 
-  it("zig-1 clears after Borealis and the top exit", () => {
+  it("zig-1 clears on the top exit without Borealis", () => {
     const beat = PROGRESSION["zig-1"];
     expect(PROGRESSION["stairs-anach"].next).toBe("zig-1");
     const waiting = beat.evaluate(
@@ -260,22 +257,22 @@ describe("route table", () => {
         crossedGoal: false,
         brokeBand: false,
         crossedExit: false,
-        visited: ["zig-peak", "zig-left", "zig-right"],
-        landedOn: "zig-right",
+        visited: ["zig-peak"],
+        landedOn: null,
         restingOn: null,
       },
       { anachrometer: true, tails: [] },
     );
     expect(waiting.cleared).toBe(false);
-    expect(waiting.hint).toMatch(/exit/i);
+    expect(waiting.hint).toMatch(/Tonation|exit/i);
     const cleared = beat.evaluate(
       {
         apexY: 0,
         crossedGoal: false,
         brokeBand: false,
         crossedExit: true,
-        visited: ["zig-peak", "zig-left", "zig-right"],
-        landedOn: "zig-right",
+        visited: ["zig-peak"],
+        landedOn: null,
         restingOn: null,
       },
       { anachrometer: true, tails: [] },

@@ -349,10 +349,11 @@ export const STAIR_BAND: Ledge = fromSvg({
 export const NOTCH_POCKET: Ledge = fromSvg({
   id: "pocket",
   // Seat sits further into the shaft so straight-up / up-right charts clear the wall.
+  // Lower shelf carries the higher pitch (A4); Ascending 4th is E4 (block) → A4.
   x0: 78,
   x1: 118,
   y: 156,
-  pitch: "E4",
+  pitch: "A4",
   kind: "band",
 });
 
@@ -361,7 +362,7 @@ export const NOTCH_BLOCK: Ledge = fromSvg({
   x0: 164,
   x1: 190,
   y: 78,
-  pitch: "A4",
+  pitch: "E4",
   kind: "block",
 });
 
@@ -503,9 +504,23 @@ export function dropOnto(from: Ledge, target: Ledge, currentX: number): Body {
   };
 }
 
-/** Legal aim. Launch is straight up, so it has no cone. */
-export function aimCone(regionId: RegionId, restingId: string): AimCone | null {
-  if (regionId === "launch") return null;
+/**
+ * How pulls resolve on a beat.
+ * `vertical` — Launch teach / Tail: straight up only.
+ * `free` — cones (or Launch Bridge free aim on the launch band).
+ */
+export type AimMode = "vertical" | "free";
+
+/** Legal aim. Vertical launch has no cone; free launch uses a wide fan. */
+export function aimCone(
+  regionId: RegionId,
+  restingId: string,
+  mode: AimMode = regionId === "launch" ? "vertical" : "free",
+): AimCone | null {
+  if (regionId === "launch") {
+    if (mode === "vertical") return null;
+    return { min: -0.95, max: 0.95 };
+  }
   if (regionId === "stairs") return { min: -0.35, max: 1.05 };
   if (regionId === "zig") {
     if (restingId === ZIG_PEAK.id) return { min: -1.15, max: 0.25 };
@@ -525,9 +540,10 @@ export function clampAim(
   regionId: RegionId,
   restingId: string,
   inset = 0,
+  mode: AimMode = regionId === "launch" ? "vertical" : "free",
 ): Aim {
   const power = Math.max(0, Math.min(1, aim.power));
-  const cone = aimCone(regionId, restingId);
+  const cone = aimCone(regionId, restingId, mode);
   if (!cone) return { power, angle: 0 };
   const min = cone.min + inset;
   const max = cone.max - inset;
@@ -541,7 +557,7 @@ export function clampAim(
 
 /**
  * `pullX`/`pullY` are the drag in logical space (+y up).
- * The shot flies opposite that drag. Launch ignores sideways drag.
+ * The shot flies opposite that drag. Vertical launch ignores sideways drag.
  */
 export function aimFromPull(
   regionId: RegionId,
@@ -549,14 +565,15 @@ export function aimFromPull(
   pullX: number,
   pullY: number,
   inset = 0,
+  mode: AimMode = regionId === "launch" ? "vertical" : "free",
 ): Aim {
-  if (regionId === "launch") {
+  if (regionId === "launch" && mode === "vertical") {
     const down = Math.max(0, -pullY);
     return { power: Math.min(1, down / PULL_REACH), angle: 0 };
   }
   const power = Math.min(1, Math.hypot(pullX, pullY) / PULL_REACH);
   const angle = Math.atan2(-pullX, -pullY);
-  return clampAim({ power, angle }, regionId, restingId, inset);
+  return clampAim({ power, angle }, regionId, restingId, inset, mode);
 }
 
 export function launchVelocity(
@@ -564,9 +581,10 @@ export function launchVelocity(
   restingId: string,
   aim: Aim,
   inset = 0,
+  mode: AimMode = regionId === "launch" ? "vertical" : "free",
 ): { vx: number; vy: number } {
-  const clamped = clampAim(aim, regionId, restingId, inset);
-  if (regionId === "launch") {
+  const clamped = clampAim(aim, regionId, restingId, inset, mode);
+  if (regionId === "launch" && mode === "vertical") {
     return {
       vx: 0,
       vy: Math.sqrt(2 * GRAVITY * LAUNCH_RISE_MAX) * clamped.power,
@@ -950,9 +968,10 @@ export function chartShot(
   body: Body,
   aim: Aim,
   inset = 0,
+  mode: AimMode = regionId === "launch" ? "vertical" : "free",
 ): ShotChart {
   const home = body.restingOn ?? "";
-  const velocity = launchVelocity(regionId, home, aim, inset);
+  const velocity = launchVelocity(regionId, home, aim, inset, mode);
   let current: Body = { ...body, ...velocity, restingOn: null };
   const ledges = ledgesFor(regionId);
   const points = [{ x: body.x, y: body.y }];

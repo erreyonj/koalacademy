@@ -1,9 +1,15 @@
 "use client";
 
 import { useEffect, useRef, useState, type PointerEvent } from "react";
+import type { PaletteId } from "@/lib/notation/noteColors";
 import { pitchFromStaffLine } from "@/lib/notation/pitch";
 import type { ScoreExcerpt } from "@/lib/notation/types";
-import { clientToSvg, type HitEvent, type RenderResult } from "./renderScore";
+import {
+  clientToSvg,
+  type HitEvent,
+  type PlayHighlight,
+  type RenderResult,
+} from "./renderScore";
 
 export type StaffClick = {
   pitch: string;
@@ -22,6 +28,12 @@ interface NotationStaffProps {
   scale?: number;
   /** Tighter vertical canvas so the staff fills more of the box. */
   compact?: boolean;
+  /** Now-playing note flash (pattern 2). */
+  highlight?: PlayHighlight | null;
+  /** When true, playback highlight uses the palette color. */
+  colorize?: boolean;
+  /** Active absolute-pitch palette. */
+  paletteId?: PaletteId;
   label?: string;
   onStaffClick?: (click: StaffClick) => void;
   onEventClick?: (hit: HitEvent, pitch: string) => void;
@@ -37,6 +49,9 @@ export function NotationStaff({
   wrapSystems = false,
   scale = 1,
   compact = false,
+  highlight = null,
+  colorize = false,
+  paletteId = "roygbiv",
   label = "Musical staff",
   onStaffClick,
   onEventClick,
@@ -71,6 +86,9 @@ export function NotationStaff({
         const width = Math.max(240, Math.floor(cssWidth / zoom));
         resultRef.current = await renderScore(hostRef.current, score, width, {
           wrapSystems,
+          highlight,
+          colorize,
+          paletteId,
           ...(compact
             ? {
                 systemTop: 20,
@@ -103,7 +121,7 @@ export function NotationStaff({
       observer.disconnect();
       clearPendingEventClick();
     };
-  }, [score, wrapSystems, scale, compact]);
+  }, [score, wrapSystems, scale, compact, highlight, colorize, paletteId]);
 
   function handlePointerDown(event: PointerEvent<HTMLDivElement>) {
     if (!interactive || error) return;

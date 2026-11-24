@@ -57,6 +57,8 @@ const WHOLE_RELEASE_RATE = 14;
 export class SvgNoteheadView implements NoteheadView {
   private root: Root | null = null;
   private host: HTMLElement | null = null;
+  /** Set when unmount is requested so late rAF paints skip render. */
+  private dead = false;
   /** Eased between frames here, so the rim glides when React re-renders the scene. */
   private glow: ShipGlow = REST_GLOW;
   /** 0..1 whole-note bleach / hole amount. */
@@ -68,6 +70,7 @@ export class SvgNoteheadView implements NoteheadView {
   private still = false;
 
   mount(host: HTMLElement): void {
+    this.dead = false;
     this.host = host;
     this.root = createRoot(host);
     this.still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -82,6 +85,7 @@ export class SvgNoteheadView implements NoteheadView {
   }
 
   frame(sample: ShotSample, region: Region, gesture: FrameGesture): void {
+    if (this.dead || !this.root) return;
     const now = performance.now() / 1000;
     const dt = this.lastFrame ? Math.min(0.05, now - this.lastFrame) : 0;
     this.lastFrame = now;
@@ -125,8 +129,15 @@ export class SvgNoteheadView implements NoteheadView {
   }
 
   unmount(): void {
-    this.root?.unmount();
+    // Defer so we never sync-unmount a createRoot while React is still
+    // rendering the parent (Strict Mode remount / beat-jump setState).
+    this.dead = true;
+    const root = this.root;
     this.root = null;
     this.host = null;
+    if (!root) return;
+    queueMicrotask(() => {
+      root.unmount();
+    });
   }
 }

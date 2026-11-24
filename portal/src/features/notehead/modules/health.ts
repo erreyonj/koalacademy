@@ -1,8 +1,7 @@
 /**
- * Hull HP: hard impacts cost 1; clearing a beat's Borealis restores 1.
+ * Hull HP: hard impacts cost 1; clearing an interval region restores HP.
  * Exit-frame barrier impacts cost HP on Hard only.
  */
-import type { Borealis } from "./borealis";
 import {
   LANDING_HIT_SPEED,
   MASS_BUMP_SPEED,
@@ -49,7 +48,7 @@ export function applyLandingHit(hp: number, difficulty?: DifficultyId): number {
 
 /**
  * Sealed exit-frame barriers only tax hull on Hard — Easy/Medium bounce without
- * damage so gathering Borealis does not soft-lock into a hull death.
+ * damage.
  */
 export function applyExitBarrierHit(
   hp: number,
@@ -59,12 +58,17 @@ export function applyExitBarrierHit(
   return applyLandingHit(hp, difficulty);
 }
 
-/** Gathering every Borealis on the beat restores one hull point. */
-export function applyBorealisHeal(hp: number, difficulty: DifficultyId): number {
+/** First clear of an interval region: Easy/Med +3, Hard +1. */
+export function applyRegionClearHeal(
+  hp: number,
+  difficulty: DifficultyId,
+): number {
   if (!hullEnabled(difficulty)) return hp;
-  return clampHp(hp + 1, difficulty);
+  const amount = difficulty === "hard" ? 1 : 3;
+  return clampHp(hp + amount, difficulty);
 }
 
-export function allBorealisCollected(list: readonly Borealis[]): boolean {
-  return list.length > 0 && list.every((entry) => entry.collected);
+/** Hard breach wipes Tonation; Easy/Medium keep the bank. */
+export function breachWipesTonation(difficulty: DifficultyId): boolean {
+  return difficulty === "hard";
 }

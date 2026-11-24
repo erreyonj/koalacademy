@@ -31,6 +31,24 @@ export function pickRandomLetters(max = SPELLING_LETTER_CAP): string {
   return out;
 }
 
+export function normalizeSpellingLetters(letters: string): string {
+  return letters
+    .toUpperCase()
+    .replace(/[^A-G]/g, "")
+    .slice(0, SPELLING_LETTER_CAP);
+}
+
+/** Empty staff keyed to the first letter’s tonic (Solve prompts). */
+export function emptyScoreForSpellingLetters(
+  score: ScoreExcerpt,
+  letters: string,
+  mode: KeyMode,
+): ScoreExcerpt {
+  const chars = normalizeSpellingLetters(letters);
+  const key = keyFromTonicLetter(chars[0] ?? "C", mode);
+  return emptyScore({ ...score, key });
+}
+
 /** Replace the score notes with letter pitches (quarters by default). */
 export function scoreFromSpellingLetters(
   score: ScoreExcerpt,
@@ -38,16 +56,11 @@ export function scoreFromSpellingLetters(
   mode: KeyMode,
   duration: Duration = "q",
 ): ScoreExcerpt {
-  const chars = letters
-    .toUpperCase()
-    .replace(/[^A-G]/g, "")
-    .slice(0, SPELLING_LETTER_CAP)
-    .split("");
+  const chars = normalizeSpellingLetters(letters).split("").filter(Boolean);
   if (chars.length === 0) {
     return emptyScore({ ...score, key: keyFromTonicLetter("C", mode) });
   }
-  const key = keyFromTonicLetter(chars[0], mode);
-  let next = emptyScore({ ...score, key });
+  let next = emptyScoreForSpellingLetters(score, chars.join(""), mode);
   for (const letter of chars) {
     next = placeNote(next, `${letter}${DEFAULT_OCTAVE}`, duration);
   }

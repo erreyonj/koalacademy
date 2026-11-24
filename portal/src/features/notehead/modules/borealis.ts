@@ -1,7 +1,7 @@
 /**
- * Borealis: magnetic mid-air energy that marks visit targets.
- * Collectable only in spawn order; collecting counts as a visit.
- * The last gem plants an exit Frequency Band on its home platform.
+ * Borealis: magnetic mid-air energy orbs.
+ * Physical collect is any-order; Tonation awards come from interval order
+ * (see modules/tonation.ts). Failed attempts lock remaining gems until regen.
  */
 import type { BeatId } from "./progress";
 import {
@@ -23,7 +23,7 @@ import {
 } from "./sim";
 
 export const EXIT_BAND_ID = "exit-band";
-/** Half-width of the exit Frequency Band planted after the last Borealis. */
+/** Half-width of the exit Frequency Band planted after a successful interval. */
 export const EXIT_BAND_HALF = 72;
 
 export interface Borealis {
@@ -37,7 +37,7 @@ export interface Borealis {
   homeX: number;
 }
 
-/** Logical range where the active Borealis drifts toward the ship. */
+/** Logical range where an active Borealis drifts toward the ship. */
 export const MAGNET_RANGE = SHIP_R * 6;
 /** Gather distance. */
 export const COLLECT_RADIUS = SHIP_R * 2.4;
@@ -71,9 +71,7 @@ function homeLedgeFor(gem: Borealis): Ledge | null {
 }
 
 /**
- * Frequency Band on the platform under the last Borealis — the slingshot out.
- * Sits slightly above the home ledge so the soft band catches instead of the
- * hard block/tread underneath (which would cost hull).
+ * Soft Frequency Band under a gem's home platform (successful interval only).
  */
 export function exitBandFor(gem: Borealis): Ledge | null {
   const home = homeLedgeFor(gem);
@@ -89,36 +87,19 @@ export function exitBandFor(gem: Borealis): Ledge | null {
   };
 }
 
-/**
- * Tonation pitches for the HUD / goal button.
- * Beats with Borealis list every gem tone in gather order; otherwise `fallback`
- * (the region's guide pitch).
- */
-export function tonationPitches(
-  beatId: BeatId,
-  fallback: PitchName,
-): readonly PitchName[] {
-  const gems = spawnBorealis(beatId);
-  if (gems.length > 0) return gems.map((gem) => gem.pitch);
-  return [fallback];
-}
-
-/** Spawn Borealis for a beat's visit chain. Empty when the beat has none. */
+/** Spawn Borealis for a beat. Empty when the beat has none. */
 export function spawnBorealis(beatId: BeatId): Borealis[] {
   if (beatId === "notch-calibrate") {
-    // Two goal tones: pocket E4, then block A4 (region goal).
+    // Lower shelf A4, higher block E4 — Ascending 4th still E4 → A4.
     return [
-      { ...hoverAbove(NOTCH_POCKET, SHIP_R * 2.2), pitch: "E4" },
-      { ...hoverAbove(NOTCH_BLOCK, SHIP_R * 2.8), pitch: "A4" },
+      { ...hoverAbove(NOTCH_POCKET, SHIP_R * 2.2) },
+      { ...hoverAbove(NOTCH_BLOCK, SHIP_R * 2.8) },
     ];
   }
   if (beatId === "stairs-anach") {
-    // One goal tone per tread: C4, E4, G4.
     return STAIR_TREADS.map((tread) => hoverAboveOpenTread(tread));
   }
   if (beatId === "zig-1") {
-    // Three gems: (1) float in the open shaft, (2) left shelf, (3) right shelf.
-    // Floating spot stays outside start magnet range so it isn't auto-gathered.
     const float = fromSvgPoint(214, 88, "zig");
     const rightX =
       ZIG_RIGHT.x0 + (ZIG_RIGHT.x1 - ZIG_RIGHT.x0) * 0.28;
@@ -149,33 +130,33 @@ export function activeBorealis(list: readonly Borealis[]): Borealis[] {
   return list.filter((entry) => !entry.collected);
 }
 
-/** Index of the next gem that may magnetize / collect, or -1 if done. */
-export function nextBorealisIndex(list: readonly Borealis[]): number {
-  return list.findIndex((entry) => !entry.collected);
+export function allBorealisCollected(list: readonly Borealis[]): boolean {
+  return list.length > 0 && list.every((entry) => entry.collected);
 }
 
 /**
- * Only the next uncollected Borealis (goal order) drifts and gathers.
- * Pure: returns next list and ids collected this step.
+ * Any uncollected Borealis may magnetize / gather unless the interval attempt
+ * has failed (remaining gems lock until beat regen).
  */
 export function stepBorealis(
   list: readonly Borealis[],
   body: Body,
   dt: number,
+  locked = false,
 ): { list: Borealis[]; collected: readonly Borealis[] } {
-  if (dt <= 0 || list.length === 0) {
+  if (dt <= 0 || list.length === 0 || locked) {
     return { list: [...list], collected: [] };
   }
-  const active = nextBorealisIndex(list);
-  if (active < 0) return { list: [...list], collected: [] };
 
   const collected: Borealis[] = [];
-  const next = list.map((entry, index) => {
-    if (entry.collected || index !== active) return entry;
+  const next = list.map((entry) => {
+    if (entry.collected) return entry;
     const dx = body.x - entry.x;
     const dy = body.y - entry.y;
     const dist = Math.hypot(dx, dy);
     if (dist <= COLLECT_RADIUS) {
+      // Only one gem per step — first in list order that reaches radius.
+      if (collected.length > 0) return entry;
       const taken = { ...entry, collected: true, x: body.x, y: body.y };
       collected.push(taken);
       return taken;

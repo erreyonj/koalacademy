@@ -54,9 +54,6 @@ export function ZigArt({
     return pulling ? drag : { x: 0, y: CRADLE };
   };
 
-  const nextId =
-    gesture.borealis.find((entry) => !entry.collected)?.id ?? null;
-
   return (
     <SceneFrame
       regionId={REGION}
@@ -103,7 +100,7 @@ export function ZigArt({
           y={gem.y}
           pitch={gem.pitch}
           collected={gem.collected}
-          active={gem.id === nextId}
+          active={!gem.collected && !gesture.borealisLocked}
           regionId={REGION}
           testId={`borealis-${gem.id}`}
         />

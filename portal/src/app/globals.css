@@ -2237,6 +2237,32 @@ button.lesson-toolbar-item {
   color: var(--ka-ink);
 }
 
+.notation-palette-item {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding-right: 2rem;
+}
+
+.notation-palette-label {
+  flex: 0 0 auto;
+  min-width: 4.25rem;
+}
+
+.notation-palette-swatches {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.notation-palette-swatch {
+  display: block;
+  width: 0.7rem;
+  height: 0.7rem;
+  border: 1px solid color-mix(in srgb, var(--ka-edge) 70%, transparent);
+  border-radius: 2px;
+}
+
 .notation-sidebar {
   padding: 1rem 1.05rem 1.15rem;
   background: var(--ka-snow);
@@ -2367,6 +2393,14 @@ button.lesson-toolbar-item {
   word-break: break-word;
 }
 
+.notation-spelling-letter {
+  color: inherit;
+}
+
+.notation-spelling-letter.is-correct {
+  color: #1b7a3d;
+}
+
 .notation-spelling-or {
   margin: 0;
   font-size: 0.72rem;
@@ -2388,6 +2422,15 @@ button.lesson-toolbar-item {
   color: #000;
   overflow-wrap: anywhere;
   word-break: break-word;
+}
+
+.notation-spelling-status {
+  margin: 0.15rem 0 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #1b7a3d;
 }
 
 @media (max-width: 47.99rem) {

@@ -22,3 +22,6 @@ supabase/.env
 # Student rosters are PII and never enter git. Drop the school CSV here and
 # load it with `npm run roster:import -- --file ../rosters/<file>.csv`.
 rosters/
+
+# Local scratch images and frame extracts used while debugging (not part of the app).
+tmp/

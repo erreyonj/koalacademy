@@ -45,6 +45,8 @@ export type RenderedStave = {
 export type RenderResult = {
   staves: RenderedStave[];
   events: HitEvent[];
+  /** Stacked staff rows drawn (1 unless wrapSystems pushed a bar underneath). */
+  systemCount: number;
 };
 
 let fontsReady: Promise<void> | null = null;
@@ -320,7 +322,7 @@ export async function renderScore(
     }
   }
 
-  return { staves, events };
+  return { staves, events, systemCount: groups.length };
 }
 
 export function clientToSvg(svg: SVGSVGElement, clientX: number, clientY: number): { x: number; y: number } {

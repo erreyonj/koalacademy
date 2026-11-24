@@ -39,6 +39,8 @@ interface NotationStaffProps {
   onEventClick?: (hit: HitEvent, pitch: string) => void;
   onEventDoubleClick?: (hit: HitEvent) => void;
   onKeyAreaClick?: (click: KeyAreaClick) => void;
+  /** Fired after each successful draw, once the DOM height is final. */
+  onRender?: (info: { systemCount: number; wrapSystems: boolean }) => void;
 }
 
 const DOUBLE_CLICK_MS = 350;
@@ -57,9 +59,13 @@ export function NotationStaff({
   onEventClick,
   onEventDoubleClick,
   onKeyAreaClick,
+  onRender,
 }: NotationStaffProps) {
   const hostRef = useRef<HTMLDivElement>(null);
   const resultRef = useRef<RenderResult | null>(null);
+  const onRenderRef = useRef(onRender);
+  onRenderRef.current = onRender;
+  const [systemCount, setSystemCount] = useState(1);
   const pendingEventClickRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // pointerdown.detail is always 0 in Chrome — track double-clicks ourselves.
   const lastEventTapRef = useRef<{ key: string; at: number } | null>(null);
@@ -84,20 +90,33 @@ export function NotationStaff({
         const zoom = scale > 0 ? scale : 1;
         const cssWidth = hostRef.current.clientWidth || 480;
         const width = Math.max(240, Math.floor(cssWidth / zoom));
-        resultRef.current = await renderScore(hostRef.current, score, width, {
-          wrapSystems,
-          highlight,
-          colorize,
-          paletteId,
-          ...(compact
-            ? {
-                systemTop: 20,
-                // Wrapped systems need room for stems/beams so rows don't overlap.
-                systemHeight: wrapSystems ? 155 : 112,
-              }
-            : {}),
-        });
-        if (!cancelled) setError(null);
+        // Hold the current height while redrawing so the host can't collapse
+        // and clamp the scroller's scrollTop mid-render.
+        const host = hostRef.current;
+        host.style.minHeight = `${host.offsetHeight}px`;
+        let result: RenderResult;
+        try {
+          result = await renderScore(host, score, width, {
+            wrapSystems,
+            highlight,
+            colorize,
+            paletteId,
+            ...(compact
+              ? {
+                  systemTop: 20,
+                  // Wrapped systems need room for stems/beams so rows don't overlap.
+                  systemHeight: wrapSystems ? 155 : 112,
+                }
+              : {}),
+          });
+        } finally {
+          host.style.minHeight = "";
+        }
+        if (cancelled) return;
+        resultRef.current = result;
+        setError(null);
+        setSystemCount(result.systemCount);
+        onRenderRef.current?.({ systemCount: result.systemCount, wrapSystems });
       } catch (err) {
         if (cancelled) return;
         resultRef.current = null;
@@ -187,6 +206,8 @@ export function NotationStaff({
   return (
     <div
       className={`notation-staff${interactive ? " is-interactive" : ""}${error ? " has-error" : ""}`}
+      data-testid="notation-staff"
+      data-system-count={systemCount}
       role="img"
       aria-label={error ? `Notation error: ${error}` : label}
       onPointerDown={handlePointerDown}

@@ -15,7 +15,13 @@ import {
   Undo2,
 } from "lucide-react";
 import { clsx } from "clsx";
-import { HULL_MAX, TONATION_CAP, type EditorState, type EditorStore, type ToolId } from "../store";
+import {
+  HULL_MAX,
+  TONATION_CAP,
+  type EditorState,
+  type EditorStore,
+  type ToolId,
+} from "../store";
 import { clampTonation } from "../../notehead/modules/tonation";
 import { TOOLS, TOOL_ORDER, handleKey, switchTool } from "../tools";
 import { playBlocker } from "../playtest/runtime";

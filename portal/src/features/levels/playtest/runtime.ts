@@ -11,6 +11,11 @@
  * - Leaving through an exit clears the level only when every Borealis is
  *   collected; leaving early, flying out of bounds or sitting stuck on rock
  *   resets the run.
+ * - An exit with a `to` target is a door to another level of the route. Doors
+ *   are never locked by Borealis (a player may skip them at any time). The
+ *   ship does not clear: it `departed`, and the caller (see `route.ts`)
+ *   carries it into the target level. Only an exit with no target still needs
+ *   every Borealis.
  * - No hull HP. Hard hits are counted so a level can be judged on them.
  */
 import {
@@ -38,6 +43,7 @@ import {
   leftFrameThroughOpening,
   touchedOpening,
   type FrameOpening,
+  type OpeningFacing,
 } from "../../notehead/modules/exit-zone";
 import {
   BREAK_SPEED,
@@ -75,6 +81,19 @@ const STALL_STEP = 0.15;
 /** Frames the aim chart simulates at most. */
 const CHART_FRAMES = 900;
 
+/** Where an exit leads, when the level is part of a route. */
+export interface SceneDoor {
+  to: string;
+  facing: OpeningFacing;
+}
+
+/** The exit a ship left through, and the level it was headed for. */
+export interface Departure {
+  /** Index into the level's exits (and the scene's openings). */
+  exit: number;
+  to: string;
+}
+
 export interface PlaytestScene {
   view: LevelView;
   regionId: RegionId;
@@ -82,6 +101,8 @@ export interface PlaytestScene {
   ledges: Ledge[];
   borealis: Borealis[];
   openings: FrameOpening[];
+  /** One entry per opening: its route target, or null for a plain exit. */
+  doors: (SceneDoor | null)[];
   start: Body;
 }
 
@@ -97,6 +118,8 @@ export interface PlaytestState {
   /** Consecutive frames spent unmoving off a ledge. */
   still: number;
   cleared: boolean;
+  /** Set when the ship leaves through an exit that leads to another level. */
+  departed: Departure | null;
   /**
    * Anachrometer band under the ship while a warp is held. It follows the
    * ship and is not a surface: the ship flies on until the player releases.
@@ -132,7 +155,7 @@ export function exitsUnattended(level: LevelFile): boolean {
   let state = createState(scene);
   for (let i = 0; i < UNATTENDED_FRAMES; i++) {
     const next = advance(scene, state);
-    if (next.cleared || next.notice === LEFT_EARLY) return true;
+    if (next.cleared || next.departed || next.notice === LEFT_EARLY) return true;
     if (next.body.restingOn) return false;
     state = next;
   }
@@ -163,6 +186,9 @@ export function buildScene(level: LevelFile): PlaytestScene | null {
     ledges: preview.ledges,
     borealis: level.borealis.map(borealisFromSpot),
     openings: preview.openings,
+    doors: level.exits.map((exit) =>
+      exit.to !== undefined ? { to: exit.to, facing: exit.facing } : null,
+    ),
     start: {
       x: level.enter.x,
       y: level.enter.y,
@@ -190,9 +216,15 @@ export function createState(
     clock: 0,
     still: 0,
     cleared: false,
+    departed: null,
     warp: null,
     notice,
   };
+}
+
+/** True once a run has nothing left to simulate: cleared, or off to another level. */
+export function runOver(state: Pick<PlaytestState, "cleared" | "departed">): boolean {
+  return state.cleared || state.departed !== null;
 }
 
 /** Back to the enter point, keeping the run's counters. */
@@ -242,7 +274,7 @@ export function advance(
   state: PlaytestState,
   opts: { gems?: boolean } = {},
 ): PlaytestState {
-  if (state.cleared) return state;
+  if (runOver(state)) return state;
 
   const moved = stepBody(scene, state.body);
   const body = moved.body;
@@ -255,10 +287,11 @@ export function advance(
   const collected = state.collected + gems.collected.length;
   const allCollected = state.total === 0 || collected >= state.total;
 
-  const left = scene.openings.some(
+  const leftBy = scene.openings.findIndex(
     (opening) =>
       leftFrameThroughOpening(opening, body) || touchedOpening(opening, body),
   );
+  const left = leftBy >= 0;
   const next: PlaytestState = {
     ...state,
     body,
@@ -271,6 +304,11 @@ export function advance(
     notice: state.notice,
   };
 
+  const door = left ? scene.doors[leftBy] : null;
+  if (left && door) {
+    // A door to another level is open whatever has been collected.
+    return { ...next, departed: { exit: leftBy, to: door.to }, notice: null };
+  }
   if (left) {
     if (allCollected) return { ...next, cleared: true, notice: null };
     return resetState(scene, next, LEFT_EARLY);
@@ -313,7 +351,7 @@ export function fire(
 ): PlaytestState {
   const { body } = state;
   const home = homeOf(state);
-  if (state.cleared || !home) return state;
+  if (runOver(state) || !home) return state;
   const aim = aimFor(scene, home, pull);
   if (state.warp && !body.restingOn && aim.power < WARP_MIN_POWER) {
     return cancelWarp(state);
@@ -332,7 +370,7 @@ export function fire(
 /** True when a press mid-flight may open an Anachrometer warp. */
 export function canEngageWarp(state: PlaytestState, enabled: boolean): boolean {
   return (
-    !state.cleared && canWarp(enabled, state.body.restingOn, state.warp !== null)
+    !runOver(state) && canWarp(enabled, state.body.restingOn, state.warp !== null)
   );
 }
 
@@ -356,7 +394,7 @@ export function tickBorealis(
   state: PlaytestState,
   dt: number,
 ): PlaytestState {
-  if (state.cleared || state.total === 0) return state;
+  if (runOver(state) || state.total === 0) return state;
   const gems = stepBorealis(state.borealis, state.body, dt);
   if (gems.collected.length === 0 && gems.list === state.borealis) return state;
   return {
@@ -387,7 +425,7 @@ export function syncExtras(
   state: PlaytestState,
   extras: readonly BorealisSpot[],
 ): PlaytestState {
-  if (state.cleared) return state;
+  if (runOver(state)) return state;
   const wanted = new Map(extras.map((spot) => [spot.id, spot]));
   const isExtra = (id: string) => id.startsWith(`${PLAY_GEM_ID}-`);
   const list: Borealis[] = [];

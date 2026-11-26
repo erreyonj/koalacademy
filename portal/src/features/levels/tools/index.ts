@@ -166,6 +166,12 @@ export function handleKey(store: EditorStore, env: HostEnv, e: KeyInput): boolea
     }
   }
 
+  // Shift+P plays the route from its origin instead of the open level.
+  if (!e.altKey && e.shiftKey && lower === "p") {
+    store.dispatch({ type: "play", on: true, from: "origin" });
+    return true;
+  }
+
   if (!e.altKey && lower === "p") {
     store.dispatch({ type: "play", on: true });
     return true;

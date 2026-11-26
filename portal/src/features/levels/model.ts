@@ -393,6 +393,9 @@ export function validateLevel(input: unknown): string[] {
     } else if ((e.x0 as number) > (e.x1 as number) || (e.y0 as number) > (e.y1 as number)) {
       errors.push(`exits[${i}]: x0/y0 must not exceed x1/y1`);
     }
+    if (e.to !== undefined && (typeof e.to !== "string" || e.to.trim() === "")) {
+      errors.push(`exits[${i}]: to must be a non-empty level id`);
+    }
   });
 
   if (lv.enter !== null) {
@@ -441,6 +444,7 @@ function clean(lv: LevelFile): LevelFile {
       x1: e.x1,
       y0: e.y0,
       y1: e.y1,
+      ...(e.to !== undefined ? { to: e.to } : {}),
     })),
   };
 }
@@ -461,17 +465,83 @@ export function parseLevel(text: string): ParseResult {
   return { ok: true, level: clean(raw as LevelFile) };
 }
 
+export type ParseSetResult =
+  | { ok: true; levels: LevelFile[] }
+  | { ok: false; errors: string[] };
+
+/** One level file, or an array of them. Every level must be valid. */
+export function parseLevelSet(text: string): ParseSetResult {
+  let raw: unknown;
+  try {
+    raw = JSON.parse(text);
+  } catch {
+    return { ok: false, errors: ["file is not valid JSON"] };
+  }
+  if (!Array.isArray(raw)) {
+    const errors = validateLevel(raw);
+    return errors.length > 0
+      ? { ok: false, errors }
+      : { ok: true, levels: [clean(raw as LevelFile)] };
+  }
+  if (raw.length === 0) return { ok: false, errors: ["the array has no levels"] };
+  const errors = raw.flatMap((item, i) =>
+    validateLevel(item).map((message) => `levels[${i}]: ${message}`),
+  );
+  if (errors.length > 0) return { ok: false, errors };
+  return { ok: true, levels: (raw as LevelFile[]).map(clean) };
+}
+
+export interface RouteCheck {
+  /** Problems that make a route unusable (duplicate ids). */
+  errors: string[];
+  /** Exits whose target level is not in the route. */
+  warnings: string[];
+}
+
+export function validateRoute(levels: readonly LevelFile[]): RouteCheck {
+  const errors: string[] = [];
+  const warnings: string[] = [];
+  const seen = new Set<string>();
+  for (const level of levels) {
+    if (seen.has(level.id)) errors.push(`duplicate level id "${level.id}"`);
+    seen.add(level.id);
+  }
+  for (const level of levels) {
+    for (const exit of level.exits) {
+      if (exit.to === undefined) continue;
+      if (!seen.has(exit.to)) {
+        warnings.push(`${level.id} ${exit.id}: goes to "${exit.to}", which is not in the route`);
+      }
+    }
+  }
+  return { errors, warnings };
+}
+
 export function serializeLevel(level: LevelFile): string {
   return `${JSON.stringify(clean(level), null, 2)}\n`;
 }
 
-/** File name convention for `portal/src/features/notehead/levels/`. */
-export function levelFileName(level: LevelFile): string {
-  const slug =
-    level.id
+function slugOf(id: string): string {
+  return (
+    id
       .trim()
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "") || "level";
-  return `${slug}.level.json`;
+      .replace(/^-+|-+$/g, "") || "level"
+  );
+}
+
+/** File name convention for `portal/src/features/notehead/levels/`. */
+export function levelFileName(level: LevelFile): string {
+  return `${slugOf(level.id)}.level.json`;
+}
+
+/** A route exports as one array file, named after its first level. */
+export function routeFileName(levels: readonly LevelFile[]): string {
+  return `${slugOf(levels[0]?.id ?? "route")}.route.json`;
+}
+
+/** The text of a route file: an array of levels in route order. */
+export function serializeRoute(levels: readonly LevelFile[]): string {
+  return `${JSON.stringify(levels.map(clean), null, 2)}\n`;
 }

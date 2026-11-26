@@ -27,9 +27,9 @@ import type { Action, PlaySession } from "../store";
 import type { LevelFile, Pt } from "../types";
 import { cursorAction } from "./cursor";
 import { PlayHud } from "./PlayHud";
+import { arrive, buildRouteScenes, enterLevel } from "./route";
 import {
   advance,
-  buildScene,
   canEngageWarp,
   chartShot,
   createState,
@@ -39,6 +39,7 @@ import {
   syncExtras,
   tickBorealis,
   withExtras,
+  type PlaytestScene,
   type PlaytestState,
 } from "./runtime";
 
@@ -88,20 +89,30 @@ function lookFor(state: PlaytestState, whole: number): ShipLook {
  * from the ledge the ship rests on; with the Anachrometer on, press mid-flight
  * to slow the world and aim from the air. With the Borealis cursor, click adds
  * a gem, a click on one selects it and a double-click removes it. `R`
- * restarts. Leaving is the host's job.
+ * restarts the level, Shift+R restarts the route from its first level.
+ * Leaving is the host's job.
+ *
+ * With a route (`levels`), an exit with a `to` target is a door: the ship
+ * flies on into that level with its counters, and Borealis added during play
+ * stay behind with the level they were added in.
  */
 export function PlaytestView({
-  level,
+  levels,
+  startIndex,
   session,
   dispatch,
   onExit,
 }: {
-  level: LevelFile;
+  levels: readonly LevelFile[];
+  startIndex: number;
   session: PlaySession;
   dispatch: (action: Action) => void;
   onExit: () => void;
 }) {
-  const base = useMemo(() => buildScene(level), [level]);
+  const routeScenes = useMemo(() => buildRouteScenes(levels), [levels]);
+  const [index, setIndex] = useState(startIndex);
+  const level = levels[index] ?? levels[startIndex]!;
+  const base = routeScenes.get(level.id) ?? null;
   const scene = useMemo(
     () => (base ? withExtras(base, session.extraBorealis) : null),
     [base, session.extraBorealis],
@@ -115,6 +126,9 @@ export function PlaytestView({
   const stateRef = useRef<PlaytestState | null>(null);
   const pullRef = useRef<Pull | null>(null);
   const warpStartRef = useRef(0);
+  const indexRef = useRef(index);
+  // A state built by travel, waiting for the level swap to render.
+  const pendingRef = useRef<{ id: string } | null>(null);
   // The loop and handlers read the latest scene and session without re-subscribing.
   const sceneRef = useRef(scene);
   const sessionRef = useRef(session);
@@ -126,13 +140,41 @@ export function PlaytestView({
     sessionRef.current = session;
   }, [scene, session]);
 
-  // A fresh run only when the level itself changes.
+  // A fresh run only when the level itself changes (travel brings its own).
   useEffect(() => {
-    stateRef.current = base ? createState(sceneRef.current ?? base) : null;
+    indexRef.current = index;
+    if (pendingRef.current?.id === level.id) pendingRef.current = null;
+    else stateRef.current = base ? createState(sceneRef.current ?? base) : null;
     pullRef.current = null;
     setPull(null);
     setFrame(stateRef.current ? { state: stateRef.current, whole: 0 } : null);
-  }, [base]);
+  }, [base, index, level.id]);
+
+  /**
+   * Put the ship in `target` (a level index) with a ready state. The
+   * session's added Borealis belong to the level they were added in, so a
+   * change of level drops them.
+   */
+  function switchLevel(
+    target: number,
+    make: (scene: PlaytestScene) => PlaytestState,
+  ): boolean {
+    const next = levels[target];
+    const scene = next ? routeScenes.get(next.id) : null;
+    if (!next || !scene) return false;
+    const changed = target !== indexRef.current;
+    if (changed) {
+      dispatch({ type: "gem", op: "clear" });
+      sceneRef.current = scene;
+      pendingRef.current = { id: next.id };
+      indexRef.current = target;
+      setIndex(target);
+    }
+    stateRef.current = make(changed ? scene : (sceneRef.current ?? scene));
+    pullRef.current = null;
+    setPull(null);
+    return true;
+  }
 
   // Added Borealis join, move or leave the running flight without a reset.
   useEffect(() => {
@@ -158,6 +200,22 @@ export function PlaytestView({
         while (acc >= FIXED_DT) {
           acc -= FIXED_DT;
           current = advance(live, current, { gems: current.warp === null });
+          if (current.departed) break;
+        }
+        if (current.departed) {
+          const here = levels[indexRef.current]!;
+          const arrival = arrive(levels, routeScenes, here, current.departed, current.body);
+          const before = current;
+          if ("error" in arrival) {
+            current = resetState(live, { ...before, departed: null }, arrival.error);
+          } else {
+            const prev = before;
+            const ok = switchLevel(arrival.index, (scene) =>
+              enterLevel(scene, prev, arrival.body, `Entered ${levels[arrival.index]!.id}`),
+            );
+            current = ok ? stateRef.current! : resetState(live, { ...before, departed: null });
+          }
+          acc = 0;
         }
         if (current.warp) {
           current = tickBorealis(current, real);
@@ -173,21 +231,33 @@ export function PlaytestView({
     };
     raf = window.requestAnimationFrame(loop);
     return () => window.cancelAnimationFrame(raf);
-  }, [base]);
+    // `switchLevel` only reads refs and stable props; the loop restarts per level.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [base, levels, routeScenes]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.ctrlKey || e.metaKey || e.altKey) return;
       const live = sceneRef.current;
-      if (e.key.toLowerCase() !== "r" || !live || !stateRef.current) return;
-      stateRef.current = resetState(live, stateRef.current);
+      const run = stateRef.current;
+      if (e.key.toLowerCase() !== "r" || !live || !run) return;
+      e.preventDefault();
+      if (e.shiftKey && indexRef.current !== startIndex) {
+        const prev = run;
+        switchLevel(startIndex, (scene) => ({
+          ...enterLevel(scene, prev, scene.start),
+          resets: prev.resets + 1,
+        }));
+        return;
+      }
+      stateRef.current = resetState(live, run);
       pullRef.current = null;
       setPull(null);
-      e.preventDefault();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [levels, routeScenes, startIndex]);
 
   function viewPoint(e: { clientX: number; clientY: number }): Pt {
     const ctm = svgRef.current?.getScreenCTM();
@@ -207,7 +277,7 @@ export function PlaytestView({
   function onPointerDown(e: ReactPointerEvent<SVGSVGElement>) {
     if (e.button !== 0 || !scene || session.borealisTool) return;
     let current = stateRef.current;
-    if (!current || current.cleared) return;
+    if (!current || current.cleared || current.departed) return;
     if (!current.body.restingOn) {
       // Mid-flight: only an Anachrometer warp opens an aim.
       if (!canEngageWarp(current, session.anachrometer)) return;
@@ -281,6 +351,7 @@ export function PlaytestView({
       style={{ minHeight: 0, height: "100%", display: "block" }}
       data-testid="playtest"
       data-cleared={state.cleared}
+      data-level-id={level.id}
     >
       <svg
         ref={svgRef}
@@ -356,6 +427,8 @@ export function PlaytestView({
           {level.exits.map((exit) => {
             const [a, b] = exitSegmentView(view, exit);
             const zone = preview.exitZones.find((z) => z.id === exit.id)?.zone ?? null;
+            // A door to another level is never locked by Borealis.
+            const lit = exitLit || exit.to !== undefined;
             return (
               <g key={exit.id}>
                 <line
@@ -366,9 +439,9 @@ export function PlaytestView({
                   stroke="#c4a0f5"
                   strokeWidth={2}
                   strokeLinecap="round"
-                  opacity={exitLit ? 0.8 : 0.2}
+                  opacity={lit ? 0.8 : 0.2}
                 />
-                {zone && <ExitMark zone={zone} lit={exitLit} />}
+                {zone && <ExitMark zone={zone} lit={lit} />}
               </g>
             );
           })}
@@ -423,7 +496,13 @@ export function PlaytestView({
         </g>
       </svg>
 
-      <PlayHud state={state} session={session} />
+      <PlayHud
+        state={state}
+        session={session}
+        levelId={level.id}
+        levelIndex={index}
+        levelCount={levels.length}
+      />
 
       {state.cleared && (
         <div className="absolute inset-0 flex items-center justify-center bg-zinc-950/70">
@@ -437,6 +516,10 @@ export function PlaytestView({
                 type="button"
                 className="rounded border border-zinc-600 bg-zinc-800 px-3 py-1 text-sm hover:bg-zinc-700"
                 onClick={() => {
+                  if (index !== startIndex) {
+                    switchLevel(startIndex, (scene) => createState(scene));
+                    return;
+                  }
                   const live = sceneRef.current;
                   if (live) stateRef.current = createState(live);
                 }}

@@ -4,7 +4,7 @@
  * Tools never mutate the level. They dispatch actions. A drag streams `live`
  * edits and ends with `endEdit`, so each finished gesture is one undo step.
  */
-import { DEFAULT_BOREALIS_PITCH, createLevel, nextId, round2 } from "./model";
+import { DEFAULT_BOREALIS_PITCH, createLevel, nextId, round2, validateRoute } from "./model";
 import { defaultLayers } from "./geometry";
 import { WORLD_H, WORLD_W } from "../notehead/modules/sim";
 import { maxHp } from "../notehead/modules/health";
@@ -107,7 +107,16 @@ export type GemAction =
   | { op: "clear" };
 
 export interface EditorState {
+  /** The level on the canvas. Always the same object as `library[activeIndex]`. */
   level: LevelFile;
+  /** Every level in the route, in order. */
+  library: LevelFile[];
+  activeIndex: number;
+  /**
+   * Id of the level the route begins on, even when it is not first in the
+   * list. Shift+P plays from it. Null means the first level in the list.
+   */
+  originId: string | null;
   past: LevelFile[];
   future: LevelFile[];
   /** Level before the current live gesture began. Null when idle. */
@@ -122,6 +131,8 @@ export interface EditorState {
   options: EditorOptions;
   /** Playtest is running. The level is read-only until it stops. */
   playing: boolean;
+  /** Library index of the level the running playtest began on. */
+  playFrom: number;
   play: PlaySession;
 }
 
@@ -132,6 +143,12 @@ export type Action =
   | { type: "undo" }
   | { type: "redo" }
   | { type: "load"; level: LevelFile }
+  | { type: "loadRoute"; levels: LevelFile[] }
+  | { type: "selectLevel"; index: number }
+  | { type: "moveLevel"; from: number; to: number }
+  | { type: "addLevel" }
+  | { type: "removeLevel"; index: number }
+  | { type: "setOrigin"; id: string | null }
   | { type: "setTool"; tool: ToolId }
   | { type: "select"; selection: Selection | null }
   | { type: "draft"; draft: TerrainDraft | null }
@@ -139,15 +156,50 @@ export type Action =
   | { type: "hover"; p: Pt | null }
   | { type: "layer"; layer: LayerId; patch: Partial<LayerState> }
   | { type: "options"; options: EditorOptions }
-  | { type: "play"; on: boolean }
+  | { type: "play"; on: boolean; from?: "origin" }
   | { type: "session"; patch: Partial<Omit<PlaySession, "extraBorealis">> }
   | ({ type: "gem" } & GemAction);
 
 export const HISTORY_LIMIT = 200;
 
+/** Index in the library of the origin level: the one set, else the first. */
+export function originIndexOf(state: Pick<EditorState, "library" | "originId">): number {
+  const origin = state.originId === null ? -1 : state.library.findIndex((l) => l.id === state.originId);
+  return Math.max(0, origin);
+}
+
+export type ExitDirection = "up" | "right" | "down" | "left";
+
+/**
+ * Where an exit of the open level leads, for jumping there from the keyboard.
+ * The direction must match an exit's facing; an exit with no usable target
+ * says why. When several exits face the same way, the first usable one wins.
+ */
+export function exitDestination(
+  state: Pick<EditorState, "level" | "library">,
+  direction: ExitDirection,
+): { index: number } | { error: string } {
+  const facing = state.level.exits.filter((exit) => exit.facing === direction);
+  if (facing.length === 0) return { error: `No ${direction} exit` };
+  for (const exit of facing) {
+    const index = state.library.findIndex((l) => l.id === exit.to);
+    if (exit.to !== undefined && index >= 0) return { index };
+  }
+  const first = facing[0]!;
+  return {
+    error:
+      first.to === undefined
+        ? `The ${direction} exit has no target level`
+        : `The ${direction} exit leads to "${first.to}", which is not in the route`,
+  };
+}
+
 export function createState(level: LevelFile = createLevel()): EditorState {
   return {
     level,
+    library: [level],
+    activeIndex: 0,
+    originId: null,
     past: [],
     future: [],
     base: null,
@@ -159,6 +211,7 @@ export function createState(level: LevelFile = createLevel()): EditorState {
     layers: defaultLayers(),
     options: defaultOptions(),
     playing: false,
+    playFrom: 0,
     play: defaultSession(),
   };
 }
@@ -234,13 +287,75 @@ function reduceGems(play: PlaySession, action: { type: "gem" } & GemAction): Pla
   }
 }
 
+/** The editing context a different level starts from: no history, no selection. */
+function openLevel(
+  state: EditorState,
+  library: LevelFile[],
+  activeIndex: number,
+): EditorState {
+  return {
+    ...state,
+    level: library[activeIndex]!,
+    library,
+    activeIndex,
+    past: [],
+    future: [],
+    base: null,
+    selection: null,
+    draft: null,
+    gesture: null,
+    hover: null,
+    playing: false,
+    play: defaultSession(),
+  };
+}
+
+/** Point every exit that led to `from` at `to` instead. */
+export function retarget(level: LevelFile, from: string, to: string): LevelFile {
+  if (!level.exits.some((exit) => exit.to === from)) return level;
+  return {
+    ...level,
+    exits: level.exits.map((exit) => (exit.to === from ? { ...exit, to } : exit)),
+  };
+}
+
+/**
+ * Keep the library in step with the level on the canvas. Runs after every
+ * action, so edit, undo and redo all land in the route. A renamed level drags
+ * the exits that pointed at it along (and undo drags them back).
+ */
+function syncLibrary(prev: EditorState, next: EditorState): EditorState {
+  if (
+    next.level === prev.level ||
+    next.library !== prev.library ||
+    next.activeIndex !== prev.activeIndex
+  ) {
+    return next;
+  }
+  const renamed = prev.level.id !== next.level.id;
+  const originId =
+    renamed && next.originId === prev.level.id ? next.level.id : next.originId;
+  const level = renamed ? retarget(next.level, prev.level.id, next.level.id) : next.level;
+  const library = next.library.map((entry, i) => {
+    if (i === next.activeIndex) return level;
+    return renamed ? retarget(entry, prev.level.id, next.level.id) : entry;
+  });
+  return { ...next, level, library, originId };
+}
+
 export function reduce(state: EditorState, action: Action): EditorState {
+  const next = reduceEditor(state, action);
+  return next === state ? state : syncLibrary(state, next);
+}
+
+function reduceEditor(state: EditorState, action: Action): EditorState {
   // The level is read-only while a playtest runs. Only stopping, loading and
   // the play-session controls get through.
   if (
     state.playing &&
     action.type !== "play" &&
     action.type !== "load" &&
+    action.type !== "loadRoute" &&
     action.type !== "session" &&
     action.type !== "gem"
   ) {
@@ -320,18 +435,50 @@ export function reduce(state: EditorState, action: Action): EditorState {
       };
     }
     case "load":
-      return {
-        ...state,
-        level: action.level,
-        past: [],
-        future: [],
-        base: null,
-        selection: null,
-        draft: null,
-        gesture: null,
-        hover: null,
-        playing: false,
-      };
+      return { ...openLevel(state, [action.level], 0), originId: null };
+    case "loadRoute": {
+      if (action.levels.length === 0) return state;
+      if (validateRoute(action.levels).errors.length > 0) return state;
+      return { ...openLevel(state, action.levels, 0), originId: null };
+    }
+    case "selectLevel": {
+      if (state.base || state.gesture) return state;
+      if (action.index === state.activeIndex) return state;
+      if (action.index < 0 || action.index >= state.library.length) return state;
+      return openLevel(state, state.library, action.index);
+    }
+    case "moveLevel": {
+      const { from, to } = action;
+      const last = state.library.length - 1;
+      if (from === to || from < 0 || to < 0 || from > last || to > last) return state;
+      const active = state.library[state.activeIndex]!;
+      const library = [...state.library];
+      const [moved] = library.splice(from, 1);
+      library.splice(to, 0, moved!);
+      return { ...state, library, activeIndex: library.indexOf(active) };
+    }
+    case "addLevel": {
+      if (state.base || state.gesture) return state;
+      const fresh = createLevel(nextId("level", state.library), state.level.view);
+      return openLevel(state, [...state.library, fresh], state.library.length);
+    }
+    case "removeLevel": {
+      const { index } = action;
+      if (state.library.length <= 1 || index < 0 || index >= state.library.length) return state;
+      if ((state.base || state.gesture) && index === state.activeIndex) return state;
+      const library = state.library.filter((_, i) => i !== index);
+      const originId = state.originId === state.library[index]!.id ? null : state.originId;
+      if (index === state.activeIndex) {
+        return { ...openLevel(state, library, Math.min(index, library.length - 1)), originId };
+      }
+      const activeIndex = index < state.activeIndex ? state.activeIndex - 1 : state.activeIndex;
+      return { ...state, library, activeIndex, originId };
+    }
+    case "setOrigin": {
+      if (action.id !== null && !state.library.some((l) => l.id === action.id)) return state;
+      if (action.id === state.originId) return state;
+      return { ...state, originId: action.id };
+    }
     case "setTool":
       return { ...state, tool: action.tool };
     case "select":
@@ -356,8 +503,9 @@ export function reduce(state: EditorState, action: Action): EditorState {
       if (action.on === state.playing) return state;
       if (!action.on) return { ...state, playing: false, play: defaultSession() };
       // Only a settled, playable level can run.
-      if (state.base || state.gesture || playBlocker(state.level)) return state;
-      return { ...state, playing: true, hover: null, play: defaultSession() };
+      const from = action.from === "origin" ? originIndexOf(state) : state.activeIndex;
+      if (state.base || state.gesture || playBlocker(state.library[from]!)) return state;
+      return { ...state, playing: true, playFrom: from, hover: null, play: defaultSession() };
     }
     case "session": {
       if (!state.playing) return state;

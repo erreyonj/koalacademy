@@ -25,6 +25,8 @@ import { axisOf, exitRange, openingFor } from "../tools/gestures";
 import type { LevelFile, PitchName } from "../types";
 
 import { PlayGems } from "./PlayGems";
+import { RouteConfig, ExitTargetSelect } from "./RouteConfig";
+import { RouteList } from "./RouteList";
 import { BorealisPitchSelect, NumberField, Row, Section, button, field, select } from "./fields";
 
 const KINDS: LedgeKind[] = ["band", "step", "block"];
@@ -35,17 +37,17 @@ export function Inspector({
   notice,
   onExport,
   onImport,
+  onExportRoute,
   onCopy,
-  onNew,
   onFit,
 }: {
   store: EditorStore;
   state: EditorState;
   notice: string | null;
   onExport: () => void;
-  onImport: (file: File) => void;
+  onImport: (files: File[]) => void;
+  onExportRoute: () => void;
   onCopy: () => void;
-  onNew: () => void;
   onFit: () => void;
 }) {
   const { level, selection, options } = state;
@@ -55,6 +57,8 @@ export function Inspector({
   const setOptions = (next: typeof options) => store.dispatch({ type: "options", options: next });
   const [idText, setIdText] = useState(level.id);
   useEffect(() => setIdText(level.id), [level.id]);
+  const [idError, setIdError] = useState<string | null>(null);
+  useEffect(() => setIdError(null), [level.id]);
 
   const sel = (() => {
     if (!selection) return null;
@@ -206,6 +210,15 @@ export function Inspector({
               value={hi}
               onCommit={(n) => n > lo && edit(patchExit(level, exit.id, openingFor(exit.facing, lo, n)))}
             />
+            <Row label="Goes to">
+              <ExitTargetSelect
+                exit={exit}
+                library={state.library}
+                self={level.id}
+                testId="exit-target"
+                onChange={(to) => edit(patchExit(level, exit.id, { to }))}
+              />
+            </Row>
           </Section>
         );
       }
@@ -237,12 +250,20 @@ export function Inspector({
             onChange={(e) => setIdText(e.target.value)}
             onBlur={() => {
               const next = idText.trim();
-              if (next && next !== level.id) edit({ ...level, id: next });
-              else setIdText(level.id);
+              if (next && next !== level.id) {
+                if (state.library.some((l) => l.id === next)) {
+                  setIdError(`Another level already uses "${next}".`);
+                  setIdText(level.id);
+                } else {
+                  setIdError(null);
+                  edit({ ...level, id: next });
+                }
+              } else setIdText(level.id);
             }}
             onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
           />
         </Row>
+        {idError && <p className="text-[10px] text-amber-300">{idError}</p>}
         <Row label="View">
           <select
             className={select}
@@ -260,6 +281,10 @@ export function Inspector({
           {level.terrain.length} terrain, {level.bands.length} bands, {level.borealis.length} Borealis,{" "}
           {level.exits.length} exits, enter {level.enter ? "set" : "missing"}.
         </p>
+      </Section>
+
+      <Section title="Route">
+        <RouteConfig store={store} state={state} />
       </Section>
 
       {state.tool === "band" && (
@@ -312,18 +337,27 @@ export function Inspector({
       )}
 
       <Section title="File">
+        <RouteList store={store} state={state} />
         <div className="flex flex-wrap gap-1">
-          <button type="button" className={button} onClick={onExport}>
-            Export JSON
+          <button type="button" className={button} onClick={() => store.dispatch({ type: "addLevel" })}>
+            Add level
           </button>
           <button type="button" className={button} onClick={() => fileRef.current?.click()}>
             Import
           </button>
+          <button type="button" className={button} onClick={onExport}>
+            Export JSON
+          </button>
+          <button
+            type="button"
+            className={button}
+            disabled={state.library.length < 2}
+            onClick={onExportRoute}
+          >
+            Export route
+          </button>
           <button type="button" className={button} onClick={onCopy}>
             Copy JSON
-          </button>
-          <button type="button" className={button} onClick={onNew}>
-            New
           </button>
           <button type="button" className={button} onClick={onFit}>
             Fit view
@@ -333,16 +367,17 @@ export function Inspector({
           ref={fileRef}
           type="file"
           accept="application/json,.json"
+          multiple
           className="hidden"
           data-testid="import-input"
           onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) onImport(file);
+            const files = Array.from(e.target.files ?? []);
+            if (files.length > 0) onImport(files);
             e.target.value = "";
           }}
         />
         <p className="text-[10px] leading-snug text-zinc-500">
-          Autosaves in this browser. Commit exported files to portal/src/features/notehead/levels/.
+          Import takes level files or array files and replaces the route. Autosaves in this browser. Commit exported files to portal/src/features/notehead/levels/.
         </p>
         {notice && <p className="text-xs text-amber-300">{notice}</p>}
       </Section>

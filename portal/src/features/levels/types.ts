@@ -60,6 +60,11 @@ export interface ExitOpening {
   x1: number;
   y0: number;
   y1: number;
+  /**
+   * Id of the level this exit leads to when levels are played as a route.
+   * Absent means a dead end: leaving here clears (or resets) the level alone.
+   */
+  to?: string;
 }
 
 export interface LevelFile {

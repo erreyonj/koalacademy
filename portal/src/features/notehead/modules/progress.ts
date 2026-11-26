@@ -5,12 +5,11 @@
 import { engageWarp, WARP_BAND_ID } from "./anachrometer";
 import {
   type FrameOpening,
+  bottomOpening,
   exitZoneFor,
-  leftBottomOpening,
   leftFrameThroughOpening,
-  leftOpening,
   openingFromExitZone,
-  rightBottomOpening,
+  touchedOpening,
 } from "./exit-zone";
 import {
   type AimMode,
@@ -143,30 +142,19 @@ export function aimModeForBeat(beatId: BeatId): AimMode {
 }
 
 /**
- * Launch Bridge / Tail lower-left return exit (logical bottom-left origin, +y up).
- * Leave the frame through the left edge while still in the bottom 8% of the
- * world — effectively the lower-left corner gap from (0,0) → (0, 0.08·H).
- * Does not use “below the band” (that conflicts with the rise-from-below enter).
+ * Open floor spans (world x) where touching the frame bottom takes a lower exit.
+ * Measured from the mass outlines in terrain.ts; terrain.test.ts pins them.
  */
-export const BRIDGE_RETURN_Y_FRAC = 0.08;
-
-export function bridgeReturnYMax(): number {
-  return WORLD_H * BRIDGE_RETURN_Y_FRAC;
-}
-
-/** True when the ship has left the frame through the Bridge → Notch gap. */
-export function leftThroughBridgeReturnExit(body: {
-  x: number;
-  y: number;
-}): boolean {
-  return leftFrameThroughOpening(leftBottomOpening(BRIDGE_RETURN_Y_FRAC), body);
-}
+export const LAUNCH_FLOOR_GAP = { x0: 0, x1: 770 } as const;
+export const STAIRS_FLOOR_GAP = { x0: 0, x1: 405 } as const;
+export const ZIG_FLOOR_GAP_LEFT = { x0: 0, x1: 290 } as const;
+export const ZIG_FLOOR_GAP_RIGHT = { x0: 660, x1: WORLD_W } as const;
 
 /**
  * Entry poses:
  * - Rise = forward arrival continuing an upward exit shot.
  * - Fall = reverse arrival from a later region (drop in from above).
- * - Side = reverse through a lateral exit (Zig right → Stairs left-band).
+ * - Jump = Zig lower-right warp, arcing up out of the left floor gap.
  */
 
 /** Falling re-entry into Notch (skip crash dialogue — already visited). */
@@ -232,26 +220,17 @@ export function stairsFallEnter(): Body {
 }
 
 /**
- * Zig lower-right warp → re-enter Zig: jump in from the left lower barrier
- * toward the peak Frequency Band (same-beat soft reentry).
+ * Zig arrival (Stairs → Zig forward, and the lower-right warp loop): jump up
+ * out of the left floor gap and arc right onto the peak Frequency Band.
+ * Starts just below the frame floor; rising, so the left gap's touch exit
+ * does not fire.
  */
 export function zigJumpFromLeftEnter(): Body {
   return {
-    x: SHIP_R * 1.5,
-    y: Math.max(SHIP_R * 2, WORLD_H * 0.06),
-    vx: 320,
-    vy: 980,
-    restingOn: null,
-  };
-}
-
-/** Rise onto the Zig peak (Stairs → Zig forward). */
-export function zigRiseEnter(): Body {
-  return {
-    x: (ZIG_PEAK.x0 + ZIG_PEAK.x1) / 2,
-    y: 60,
-    vx: 40,
-    vy: 1180,
+    x: 160,
+    y: -20,
+    vx: 400,
+    vy: 1500,
     restingOn: null,
   };
 }
@@ -267,11 +246,6 @@ export function zigFallEnter(): Body {
   };
 }
 
-/** Stairs lower-right / warp path → Zig: same jump-in from the left lower barrier. */
-export function zigWarpEnter(): Body {
-  return zigJumpFromLeftEnter();
-}
-
 export type TravelMode = "forward" | "return" | "warp";
 
 /** Bidirectional region travel: forward still goes through beat.evaluate. */
@@ -280,8 +254,6 @@ export interface TravelRoute {
   to: BeatId;
   mode: TravelMode;
   opening: FrameOpening;
-  /** Bridge / Tail: arm only after seating on the launch band. */
-  requireSeated?: boolean;
   /** Return / warp routes supply the destination enter body. */
   enterBody?: () => Body;
   /**
@@ -289,15 +261,9 @@ export interface TravelRoute {
    * Used by Zig’s lower-right warp loop.
    */
   softReentry?: boolean;
+  /** Arrival falls from above — play a short slo-mo on entry. */
+  fallIn?: boolean;
 }
-
-/** Stairs reverse: leave left near the approach band (lower ~40% of world). */
-const STAIRS_RETURN_Y1 = WORLD_H * 0.4;
-/**
- * Zig / Stairs corner gaps. Peak sits near y≈176 (~11% H); use 14% so the
- * lower-left / lower-right exits are reachable from the peak shelf.
- */
-export const ZIG_CORNER_Y_FRAC = 0.14;
 
 /**
  * Open travel routes for a beat (forward exits + reverse returns).
@@ -327,9 +293,9 @@ export function travelRoutesFor(beatId: BeatId): TravelRoute[] {
       id: "bridge-return-notch",
       to: "notch-calibrate",
       mode: "return",
-      opening: leftBottomOpening(BRIDGE_RETURN_Y_FRAC),
-      requireSeated: true,
+      opening: bottomOpening(LAUNCH_FLOOR_GAP.x0, LAUNCH_FLOOR_GAP.x1),
       enterBody: notchReturnEnter,
+      fallIn: true,
     });
   }
 
@@ -341,18 +307,12 @@ export function travelRoutesFor(beatId: BeatId): TravelRoute[] {
       opening: openingFromExitZone(forward),
     });
     routes.push({
-      id: "stairs-warp-zig",
-      to: "zig-1",
-      mode: "forward",
-      opening: rightBottomOpening(ZIG_CORNER_Y_FRAC),
-      enterBody: zigJumpFromLeftEnter,
-    });
-    routes.push({
       id: "stairs-return-bridge",
       to: "launch-bridge",
       mode: "return",
-      opening: leftOpening(0, STAIRS_RETURN_Y1),
+      opening: bottomOpening(STAIRS_FLOOR_GAP.x0, STAIRS_FLOOR_GAP.x1),
       enterBody: bridgeFallEnter,
+      fallIn: true,
     });
   }
 
@@ -364,17 +324,18 @@ export function travelRoutesFor(beatId: BeatId): TravelRoute[] {
       opening: openingFromExitZone(forward),
     });
     routes.push({
-      id: "zig-return-stairs-left",
+      id: "zig-return-stairs",
       to: "stairs-anach",
       mode: "return",
-      opening: leftBottomOpening(ZIG_CORNER_Y_FRAC),
+      opening: bottomOpening(ZIG_FLOOR_GAP_LEFT.x0, ZIG_FLOOR_GAP_LEFT.x1),
       enterBody: stairsFallEnter,
+      fallIn: true,
     });
     routes.push({
       id: "zig-warp-loop",
       to: "zig-1",
       mode: "warp",
-      opening: rightBottomOpening(ZIG_CORNER_Y_FRAC),
+      opening: bottomOpening(ZIG_FLOOR_GAP_RIGHT.x0, ZIG_FLOOR_GAP_RIGHT.x1),
       enterBody: zigJumpFromLeftEnter,
       softReentry: true,
     });
@@ -385,9 +346,9 @@ export function travelRoutesFor(beatId: BeatId): TravelRoute[] {
       id: "tail-return-zig",
       to: "zig-1",
       mode: "return",
-      opening: leftBottomOpening(BRIDGE_RETURN_Y_FRAC),
-      requireSeated: true,
+      opening: bottomOpening(LAUNCH_FLOOR_GAP.x0, LAUNCH_FLOOR_GAP.x1),
       enterBody: zigFallEnter,
+      fallIn: true,
     });
   }
 
@@ -399,43 +360,28 @@ export function openingsForBeat(beatId: BeatId): FrameOpening[] {
   return travelRoutesFor(beatId).map((route) => route.opening);
 }
 
-/** Match an OOB body against a travel route opening (and seating gate). */
+/** Match an out-of-bounds body against a top / right exit opening. */
 export function matchTravelRoute(
   beatId: BeatId,
   body: { x: number; y: number },
-  seated: boolean,
 ): TravelRoute | null {
   for (const route of travelRoutesFor(beatId)) {
-    if (route.requireSeated && !seated) continue;
+    if (route.opening.facing === "down") continue;
     if (leftFrameThroughOpening(route.opening, body)) return route;
   }
   return null;
 }
 
-/**
- * Zig cliff feet can block true OOB. When the ship is pressed into a lower
- * corner opening (inside the frame), treat it as taking that exit.
- */
-export function matchZigCornerIntent(body: {
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-}): TravelRoute | null {
-  const yMax = WORLD_H * ZIG_CORNER_Y_FRAC;
-  if (body.y < 0 || body.y > yMax) return null;
-  const routes = travelRoutesFor("zig-1");
-  // Pressed into / past the left seal in the lower-left pocket.
-  if (body.x <= SHIP_R * 1.35 && body.vx <= 40) {
-    return routes.find((r) => r.id === "zig-return-stairs-left") ?? null;
-  }
-  // Pressed into / past the right seal in the lower-right pocket.
-  if (body.x >= WORLD_W - SHIP_R * 1.35 && body.vx >= -40) {
-    return routes.find((r) => r.id === "zig-warp-loop") ?? null;
+/** Match a falling ship touching the frame floor inside a bottom-gap exit. */
+export function matchTouchRoute(
+  beatId: BeatId,
+  body: { x: number; y: number; vy: number },
+): TravelRoute | null {
+  for (const route of travelRoutesFor(beatId)) {
+    if (touchedOpening(route.opening, body)) return route;
   }
   return null;
 }
-
 function goalHeight(regionId: RegionId): number {
   const region = regionById(regionId);
   const index = pitchIndex(region.goalPitch);
@@ -561,7 +507,7 @@ export const PROGRESSION: Record<BeatId, BeatDef> = {
     label: "Stairs",
     regionId: "stairs",
     next: "zig-1",
-    hint: "Exit right or lower-right warp to Zig — leave left back to the Bridge.",
+    hint: "Exit right to Zig — drop through the floor under the band to fall back to the Bridge.",
     clearHint: "Through the exit",
     // Arrive like the Launch Bridge exit shot: rise onto the approach band.
     enter: () => stairsRiseEnter(),
@@ -584,8 +530,8 @@ export const PROGRESSION: Record<BeatId, BeatDef> = {
     next: "launch-tail",
     hint: "Exit up to Tail — lower-left falls to Stairs, lower-right warps in from the left barrier.",
     clearHint: "Through the exit",
-    // Rise onto the peak Frequency Band (the starting sling).
-    enter: () => zigRiseEnter(),
+    // Jump in from the left floor gap onto the peak Frequency Band.
+    enter: () => zigJumpFromLeftEnter(),
     catchBands: (repair) => repair.anachrometer,
     evaluate: (flight, repair) => {
       const cleared = flight.crossedExit;

@@ -33,17 +33,11 @@ export interface ExitZone {
  * Soft frame openings the ship may leave through.
  * World space: origin bottom-left, +y up.
  */
-export type OpeningFacing =
-  | "up"
-  | "right"
-  | "left"
-  | "left-bottom"
-  | "right-bottom"
-  | "down";
+export type OpeningFacing = "up" | "right" | "down";
 
 export interface FrameOpening {
   facing: OpeningFacing;
-  /** Inclusive world-space gap. Up/down use x0..x1; left/right/left-bottom use y0..y1. */
+  /** Inclusive world-space gap. Up/down use x0..x1; right uses y0..y1. */
   x0: number;
   x1: number;
   y0: number;
@@ -135,36 +129,26 @@ export function openingFromExitZone(zone: ExitZone): FrameOpening {
   };
 }
 
-/** Lower-left corner gap: left edge while y is in [0, frac·H]. */
-export function leftBottomOpening(yFrac = 0.08): FrameOpening {
-  return {
-    facing: "left-bottom",
-    x0: 0,
-    x1: 0,
-    y0: 0,
-    y1: WORLD_H * yFrac,
-  };
+/** Bottom-edge gap over world x in [x0, x1]. Fires on touch (see touchedOpening). */
+export function bottomOpening(x0: number, x1: number): FrameOpening {
+  return { facing: "down", x0, x1, y0: 0, y1: 0 };
 }
 
-/** Lower-right corner gap: right edge while y is in [0, frac·H]. */
-export function rightBottomOpening(yFrac = 0.08): FrameOpening {
-  return {
-    facing: "right-bottom",
-    x0: WORLD_W,
-    x1: WORLD_W,
-    y0: 0,
-    y1: WORLD_H * yFrac,
-  };
-}
-
-/** Full or partial left-edge opening. */
-export function leftOpening(y0: number, y1: number): FrameOpening {
-  return { facing: "left", x0: 0, x1: 0, y0, y1 };
-}
-
-/** Full or partial right-edge opening. */
-export function rightOpening(y0: number, y1: number): FrameOpening {
-  return { facing: "right", x0: WORLD_W, x1: WORLD_W, y0, y1 };
+/**
+ * True when a falling ship's hull touches the frame floor inside a bottom gap.
+ * Rising enter bodies (vy > 0) never fire, so rise-in arrivals stay safe.
+ */
+export function touchedOpening(
+  opening: FrameOpening,
+  body: { x: number; y: number; vy: number },
+): boolean {
+  if (opening.facing !== "down") return false;
+  return (
+    body.vy <= 0 &&
+    body.y - SHIP_R <= 0 &&
+    body.x >= opening.x0 &&
+    body.x <= opening.x1
+  );
 }
 
 /** True when the ship has left the frame through the exit opening. */
@@ -187,11 +171,7 @@ export function leftFrameThroughOpening(
   if (facing === "down") {
     return body.y < -OOB_Y && body.x >= x0 && body.x <= x1;
   }
-  if (facing === "right" || facing === "right-bottom") {
-    return body.x > WORLD_W + OOB_X && body.y >= y0 && body.y <= y1;
-  }
-  // left / left-bottom
-  return body.x < -OOB_X && body.y >= y0 && body.y <= y1;
+  return body.x > WORLD_W + OOB_X && body.y >= y0 && body.y <= y1;
 }
 
 /**
@@ -205,13 +185,7 @@ export function containAgainstOpenings(
   let { x, y, vx, vy, restingOn } = body;
   let hit = false;
 
-  const inLeftGap = openings.some(
-    (o) =>
-      (o.facing === "left" || o.facing === "left-bottom") &&
-      y >= o.y0 &&
-      y <= o.y1,
-  );
-  if (!inLeftGap && x < SHIP_R) {
+  if (x < SHIP_R) {
     const into = Math.max(0, -vx);
     x = SHIP_R;
     if (vx < 0) vx = 0;
@@ -219,10 +193,7 @@ export function containAgainstOpenings(
   }
 
   const inRightGap = openings.some(
-    (o) =>
-      (o.facing === "right" || o.facing === "right-bottom") &&
-      y >= o.y0 &&
-      y <= o.y1,
+    (o) => o.facing === "right" && y >= o.y0 && y <= o.y1,
   );
   if (!inRightGap && x > WORLD_W - SHIP_R) {
     const into = Math.max(0, vx);

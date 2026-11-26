@@ -27,7 +27,7 @@ import { insideMass, massesFor, type Mass, type Point } from "./terrain";
 
 export { MASS_BUMP_SPEED, MASS_HIT_SPEED } from "./sim";
 
-interface LogicalMass {
+export interface LogicalMass {
   id: string;
   outline: Point[];
 }
@@ -130,6 +130,18 @@ export function resolveMasses(
   body: Body,
   regionId: RegionId,
 ): { body: Body; hit: boolean; massId: string | null; into: number } {
+  return resolveMassesAgainst(body, logicalMasses(regionId));
+}
+
+/**
+ * Same push-out against masses the caller supplies (logical space, +y up).
+ * The level editor's playtest uses this so authored rock never touches the
+ * region registry.
+ */
+export function resolveMassesAgainst(
+  body: Body,
+  masses: readonly LogicalMass[],
+): { body: Body; hit: boolean; massId: string | null; into: number } {
   let current = body;
   let hit = false;
   let massId: string | null = null;
@@ -137,7 +149,7 @@ export function resolveMasses(
   // A few passes so corners of overlapping masses settle.
   for (let pass = 0; pass < 3; pass++) {
     let moved = false;
-    for (const mass of logicalMasses(regionId)) {
+    for (const mass of masses) {
       const result = resolveOne(current, mass);
       if (!result.resolved) continue;
       current = result.body;

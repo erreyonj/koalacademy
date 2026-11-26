@@ -30,10 +30,10 @@ One route, one world, four places. Default play advances a beat table. A debug H
 | `launch-teach` | Launch | Reach goal height on the way up; fall hard enough to break through the launch band |
 | `notch-crash` | Notch | One-shot intro only: fall from above, hit block, land floor → unlock Anachrometer → Notch |
 | `notch-calibrate` | Notch | Optional Ascending 4th (E4→A4) for Tonation; exit anytime through the top |
-| `launch-bridge` | Launch | Free-aim on the band; full-power top exit → Stairs. Lower-left gap (left edge, bottom 8% of world Y) → return to Notch after seating (skip dialogue if visited) |
-| `stairs-anach` | Stairs | Enter rising onto the approach band; optional arpeggio (C4→E4→G4) for Tonation; exit right → Zig (rise); lower-right warp → Zig (soft drop onto peak); leave left (lower ~40%) → Launch Bridge (fall from above) |
-| `zig-1` | Zig | Enter rising onto the peak Frequency Band; optional contour (C4→E4→A4) for Tonation; exit up → Tail; lower-left → Stairs (fall onto approach band right edge); lower-right warp → soft reentry jump-in from Zig’s left lower barrier |
-| `launch-tail` | Tail | Free-aim on launch terrain; collect the eighth Note-Tail when Tonation/hull gates pass; lower-left gap → return to Zig after seating (fall from above) |
+| `launch-bridge` | Launch | Free-aim on the band; full-power top exit → Stairs. Falling onto the floor under the band (`LAUNCH_FLOOR_GAP`) → Notch (fall from above; skip dialogue if visited) |
+| `stairs-anach` | Stairs | Enter rising onto the approach band; optional arpeggio (C4→E4→G4) for Tonation; exit right → Zig (jump-in from the left lower barrier); falling onto the floor under the band (`STAIRS_FLOOR_GAP`) → Launch Bridge (fall from above) |
+| `zig-1` | Zig | Enter jumping in from the left lower barrier onto the peak Frequency Band; optional contour (C4→E4→A4) for Tonation; exit up → Tail; lower-left floor gap → Stairs (fall onto approach band right edge); lower-right floor gap warp → soft reentry jump-in from Zig’s left lower barrier |
+| `launch-tail` | Tail | Free-aim on launch terrain; collect the eighth Note-Tail when Tonation/hull gates pass; falling onto the floor under the band → Zig (fall from above) |
 
 Soft transitions: most clears sparkle, then spawn the next beat's entry body (often already in flight). `launch-teach` skips the star burst and holds a slo-mo fall through the broken band until OOB, then cuts to Notch crash. `notch-crash` also skips the star burst.
 
@@ -44,7 +44,7 @@ Soft transitions: most clears sparkle, then spawn the next beat's entry body (of
 - The band is flat at rest and sags only while the player pulls.
 - While resting on a Frequency Band, a slight magnetic dock eases the ship to the band center. This does not apply to Anachrometer warp re-pulls (the warp band tracks the ship).
 - **Launch teach** pulls are vertical only (`AimMode: "vertical"`). Sideways drag does not aim.
-- **Launch Bridge / Tail** use free aim on the launch band (`AimMode: "free"`) so lower-left returns are reachable.
+- **Launch Bridge / Tail** use free aim on the launch band (`AimMode: "free"`).
 - Stairs, Notch, and Zig take a drag vector. Length is power (0..1). Direction is aim in radians from straight up. Positive aim points to +x. The ship flies opposite the drag.
 - Each rest spot (except launch) has an aim cone. Hard difficulty shaves both sides (`aimInset`).
 - While pulling with power, a dashed chart traces the flight `launchVelocity` and `step` would produce. The chart disappears on release.
@@ -65,10 +65,23 @@ While falling faster than `BREAK_SPEED`, the ship does not land on `kind: "band"
 | `stairs-anach` | Arpeggio | C4 → E4 → G4 | +9 |
 | `zig-1` | Contour | C4 → E4 → A4 | +10 |
 
-- Wrong-order collect **consumes** the gem, **fails** the attempt (0 Tonation), and locks remaining gems until beat regen. Exit stays usable — the Captain may skip or leave and retry later.
+- Wrong-order collect **consumes** the gem and **fails** the attempt (0 Tonation this visit). Remaining gems stay collectable — nothing locks. All orbs regen when the Captain leaves the region and returns, so the interval can be retried then.
+- The first Tonation banked in a run opens the `tonation-first` GI (four cards: energy source / correct interval order calibrates Tonation / this route's interval group / other routes may differ). It replaces the old Notch exit GI; leaving Notch never interrupts.
 - Successful full sequence plants an `exit-band` under the last gem (soft pad) and banks the payout (idempotent per beat).
 - Magnetism / collect run in **real time** — Anachrometer slows the ship, not Borealis.
-- **Exit** on Borealis beats is always available (skip freely). Frame edges seal except forward + reverse travel openings. `launch-bridge` still needs a full-power shot out the top; Bridge/Tail lower-left returns arm only after seating on the launch band.
+- **Exit** on Borealis beats is always available (skip freely). Frame edges seal except forward + reverse travel openings. `launch-bridge` still needs a full-power shot out the top.
+
+## Bottom-edge exits
+
+Reverse travel and the Zig warp use **floor gaps** (`bottomOpening(x0, x1)`), not side corners. The floor inside a gap is unsealed; a route fires the moment a **falling** hull touches the floor there (`vy ≤ 0`, `y − SHIP_R ≤ 0`, x inside the span — `touchedOpening` / `matchTouchRoute`). Rising enter bodies never fire them, so rise-in arrivals pass through safely. The left frame edge is always sealed.
+
+| Beat | Gap (world x) | Route |
+| --- | --- | --- |
+| `launch-bridge` | `LAUNCH_FLOOR_GAP` 0–770 | → `notch-calibrate`, fall in |
+| `stairs-anach` | `STAIRS_FLOOR_GAP` 0–405 | → `launch-bridge`, fall onto the band |
+| `zig-1` | `ZIG_FLOOR_GAP_LEFT` 0–290 | → `stairs-anach`, fall onto the band's right edge |
+| `zig-1` | `ZIG_FLOOR_GAP_RIGHT` 660–900 | warp → `zig-1` soft reentry, jump in from the left gap onto the peak (Borealis kept) |
+| `launch-tail` | `LAUNCH_FLOOR_GAP` 0–770 | → `zig-1`, fall onto the peak |
 - HUD `interval:` shows the current required pair (progressive on multi-note beats). Tap it to hear the pair.
 - Eighth Note-Tail on `launch-tail` requires Tonation ≥ **19** (Easy/Med) or **24** (Hard), plus hull ≥ **2** (Med) / ≥ **3** (Hard). Easy has no hull gate beyond staying alive.
 
@@ -105,7 +118,7 @@ If the ship touches a real surface (tread, band, block) while still holding an a
 
 - Goal height is the guide line for the active goal pitch. Crossing it on the way up counts for `launch-teach`; apex match is not the clear rule on the route.
 - `launch-teach` clears when goal height was crossed rising and the ship then breaks through the launch band on the way down. Short shots that never reach the guide always soft-land.
-- `launch-bridge` forward enter rises onto the launch band (from Notch). Stairs → Bridge reverse falls from above onto the band. A full-power shot through the top exit clears into `stairs-anach`. After seating, the lower-left gap returns to Notch (also a fall).
+- `launch-bridge` forward enter rises onto the launch band (from Notch). Stairs → Bridge reverse falls from above onto the band. A full-power shot through the top exit clears into `stairs-anach`. Falling onto the floor under the band returns to Notch (also a fall).
 
 ## Notch
 
@@ -120,10 +133,10 @@ If the ship touches a real surface (tread, band, block) while still holding an a
 - Landscape region (`360×200` art in the same logical world). Force landscape device orientation with an on-screen prompt when portrait. Stage is ~2× the portrait playfield footprint.
 - Twin hanging cliffs + bottom peak (`notehead-mock-zig-1.png`). Left shelf is a deep horizontal platform; right side is a sloping wedge. Interval contour **C4 → E4 → A4** (+10 Tonation).
 - Ledges: `zig-peak` (`C4` band), `zig-left` (`E4` band), `zig-right` (`A4` sloping step). Shelves are spread far apart for a clear zig-zag.
-- `zig-1` starts on the peak (peak already visited). Exit up anytime → Tail; bank Tonation with C4 → E4 → A4 (any physical path, correct pitch order).
-- Reverse: lower-left corner → Stairs (fall onto the **right edge** of the approach Frequency Band); lower-right warp → same-beat soft reentry that jumps in from the left lower barrier (`zigJumpFromLeftEnter`, Borealis kept). Tail → Zig reverse falls from above onto the peak.
-- Stairs lower-right warp uses the same left-barrier jump-in into Zig.
-- Rule: forward arrivals that continue an upward exit **rise** from below; reverse arrivals from a later region **fall** from above (except Zig’s lower-right warp loop).
+- `zig-1` arrives with the same jump-in as the lower-right warp (`zigJumpFromLeftEnter`): up out of the left floor gap, arcing right onto the peak (peak counts as visited). The arc stays well below every Borealis orb. Exit up anytime → Tail; bank Tonation with C4 → E4 → A4 (any physical path, correct pitch order).
+- Reverse: lower-left floor gap → Stairs (fall onto the **right edge** of the approach Frequency Band); lower-right floor gap warp → same-beat soft reentry that jumps in from the left lower barrier (`zigJumpFromLeftEnter`, Borealis kept). Tail → Zig reverse falls from above onto the peak.
+- Both cliffs keep their full lower bodies down to the frame; the floor gaps sit between each cliff foot and the peak island.
+- Rule: forward arrivals that continue an upward exit **rise** from below; reverse arrivals from a later region **fall** from above (except Zig, where both the Stairs arrival and the lower-right warp loop jump in from the left).
 
 ## Stairs
 
@@ -133,7 +146,7 @@ If the ship touches a real surface (tread, band, block) while still holding an a
 - There is no auto drop-down from tread to tread.
 - Borealis sits over each tread's open face (not buried under higher steps).
 - Interval arpeggio, bottom to top: `C4 E4 G4` (+9 Tonation).
-- `stairs-anach` clears on the right-side exit anytime → Zig (rise), or the lower-right warp → Zig (jump-in from left lower barrier); leave left (lower corridor) → Launch Bridge (fall from above onto band); bank Tonation with C4 → E4 → G4.
+- `stairs-anach` clears on the right-side exit anytime → Zig (jump-in from the left); falling onto the floor under the approach band → Launch Bridge (fall from above onto band); bank Tonation with C4 → E4 → G4. There is no lower-right exit — that edge is stair rock below ~840.
 
 ## Difficulty
 

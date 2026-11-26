@@ -1,14 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
+  bottomOpening,
   containAgainstExitFrame,
   containAgainstOpenings,
   exitZoneFor,
   exitZoneReady,
-  leftBottomOpening,
   leftFrameThroughExit,
-  leftOpening,
   openingFromExitZone,
-  rightBottomOpening,
+  touchedOpening,
 } from "../modules/exit-zone";
 import { MASS_HIT_SPEED, SHIP_R, WORLD_H, WORLD_W } from "../modules/sim";
 
@@ -109,66 +108,49 @@ describe("exit zones", () => {
     expect(rightGap.body.x).toBe(WORLD_W + 20);
   });
 
-  it("keeps multiple openings open (Bridge top + lower-left)", () => {
-    const bridge = exitZoneFor("launch-bridge");
-    if (!bridge) throw new Error("expected bridge exit");
-    const openings = [
-      openingFromExitZone(bridge),
-      leftBottomOpening(0.08),
-    ];
+  it("leaves a bottom gap unsealed and seals the floor outside it", () => {
+    const openings = [bottomOpening(0, 400)];
     const slam = MASS_HIT_SPEED + 50;
 
-    // Through top gap — unsealed.
-    const top = containAgainstOpenings(
-      { x: 450, y: WORLD_H + 20, vx: 0, vy: slam, restingOn: null },
+    const inGap = containAgainstOpenings(
+      { x: 200, y: 4, vx: 0, vy: -slam, restingOn: null },
       openings,
     );
-    expect(top.hit).toBe(false);
-    expect(top.body.y).toBe(WORLD_H + 20);
+    expect(inGap.hit).toBe(false);
+    expect(inGap.body.y).toBe(4);
 
-    // Lower-left gap — left wall open near the floor.
-    const corner = containAgainstOpenings(
+    const outside = containAgainstOpenings(
+      { x: 600, y: 4, vx: 0, vy: -slam, restingOn: null },
+      openings,
+    );
+    expect(outside.hit).toBe(true);
+    expect(outside.body.y).toBeGreaterThanOrEqual(SHIP_R - 0.01);
+
+    // Left wall stays sealed even beside a bottom gap.
+    const left = containAgainstOpenings(
       { x: -10, y: WORLD_H * 0.04, vx: -slam, vy: 0, restingOn: null },
       openings,
     );
-    expect(corner.hit).toBe(false);
-    expect(corner.body.x).toBe(-10);
-
-    // High on the left wall still seals.
-    const highLeft = containAgainstOpenings(
-      { x: -10, y: WORLD_H * 0.5, vx: -slam, vy: 0, restingOn: null },
-      openings,
-    );
-    expect(highLeft.hit).toBe(true);
-    expect(highLeft.body.x).toBeGreaterThanOrEqual(SHIP_R - 0.01);
+    expect(left.hit).toBe(true);
+    expect(left.body.x).toBeGreaterThanOrEqual(SHIP_R - 0.01);
   });
 
-  it("opens a left reverse gap without sealing the floor under it", () => {
-    const openings = [leftOpening(0, WORLD_H * 0.4)];
-    const soft = MASS_HIT_SPEED * 0.25;
-    const left = containAgainstOpenings(
-      { x: -10, y: WORLD_H * 0.2, vx: -soft, vy: 0, restingOn: null },
-      openings,
-    );
-    expect(left.hit).toBe(false);
-    expect(left.body.x).toBe(-10);
-  });
-
-  it("keeps a lower-right corner gap open", () => {
-    const openings = [rightBottomOpening(0.14)];
-    const slam = MASS_HIT_SPEED + 50;
-    const corner = containAgainstOpenings(
-      { x: WORLD_W + 10, y: WORLD_H * 0.05, vx: slam, vy: 0, restingOn: null },
-      openings,
-    );
-    expect(corner.hit).toBe(false);
-    expect(corner.body.x).toBe(WORLD_W + 10);
-
-    const highRight = containAgainstOpenings(
-      { x: WORLD_W + 10, y: WORLD_H * 0.5, vx: slam, vy: 0, restingOn: null },
-      openings,
-    );
-    expect(highRight.hit).toBe(true);
-    expect(highRight.body.x).toBeLessThanOrEqual(WORLD_W - SHIP_R + 0.01);
+  it("fires a bottom gap only when a falling hull touches the floor inside it", () => {
+    const gap = bottomOpening(0, 400);
+    expect(touchedOpening(gap, { x: 200, y: SHIP_R, vy: -100 })).toBe(true);
+    expect(touchedOpening(gap, { x: 200, y: SHIP_R * 0.2, vy: 0 })).toBe(true);
+    // Rising through the floor (rise-in enter) does not fire.
+    expect(touchedOpening(gap, { x: 200, y: 10, vy: 900 })).toBe(false);
+    // Hull still above the floor.
+    expect(touchedOpening(gap, { x: 200, y: SHIP_R + 5, vy: -100 })).toBe(false);
+    // Outside the span.
+    expect(touchedOpening(gap, { x: 450, y: 0, vy: -100 })).toBe(false);
+    // Top / right exits never fire on touch.
+    const notch = exitZoneFor("notch-calibrate");
+    if (!notch) throw new Error("expected notch exit");
+    expect(
+      touchedOpening(openingFromExitZone(notch), { x: 450, y: 0, vy: -100 }),
+    ).toBe(false);
   });
 });
+

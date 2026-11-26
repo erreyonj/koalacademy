@@ -1,7 +1,7 @@
 /**
  * Borealis: magnetic mid-air energy orbs.
- * Physical collect is any-order; Tonation awards come from interval order
- * (see modules/tonation.ts). Failed attempts lock remaining gems until regen.
+ * Physical collect is any-order and never locks; Tonation awards come only
+ * from interval order (see modules/tonation.ts). Orbs regen on region re-entry.
  */
 import type { BeatId } from "./progress";
 import {
@@ -134,17 +134,13 @@ export function allBorealisCollected(list: readonly Borealis[]): boolean {
   return list.length > 0 && list.every((entry) => entry.collected);
 }
 
-/**
- * Any uncollected Borealis may magnetize / gather unless the interval attempt
- * has failed (remaining gems lock until beat regen).
- */
+/** Any uncollected Borealis may magnetize / gather, in any order. */
 export function stepBorealis(
   list: readonly Borealis[],
   body: Body,
   dt: number,
-  locked = false,
 ): { list: Borealis[]; collected: readonly Borealis[] } {
-  if (dt <= 0 || list.length === 0 || locked) {
+  if (dt <= 0 || list.length === 0) {
     return { list: [...list], collected: [] };
   }
 

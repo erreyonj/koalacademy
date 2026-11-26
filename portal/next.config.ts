@@ -27,6 +27,7 @@ const nextConfig: NextConfig = {
     "169.254.238.122",
     "192.168.50.162",
     "192.168.50.38",
+    "192.168.50.162",
     "::ffff:127.0.0.1",
   ],
   images: { unoptimized: true },

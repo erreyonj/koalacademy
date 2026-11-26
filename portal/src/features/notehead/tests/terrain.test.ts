@@ -7,7 +7,9 @@ import {
   NOTCH_FLOOR,
   NOTCH_POCKET,
   PROFILES,
+  SHIP_R,
   STAIR_BAND,
+  WORLD_W,
   STAIR_TREADS,
   ZIG_LEFT,
   ZIG_PEAK,
@@ -19,6 +21,12 @@ import {
   restOn,
   toSvg,
 } from "../modules/sim";
+import {
+  LAUNCH_FLOOR_GAP,
+  STAIRS_FLOOR_GAP,
+  ZIG_FLOOR_GAP_LEFT,
+  ZIG_FLOOR_GAP_RIGHT,
+} from "../modules/progress";
 import { INK, insideMass, massesFor } from "../modules/terrain";
 
 const REGION_IDS: RegionId[] = ["launch", "stairs", "notch", "zig"];
@@ -86,6 +94,32 @@ describe("terrain masses", () => {
     expect(under("zig", ZIG_PEAK)).toBe(true);
     expect(under("zig", ZIG_LEFT)).toBe(true);
     expect(under("zig", ZIG_RIGHT)).toBe(true);
+  });
+
+  it("keeps every bottom-edge exit gap in open sky", () => {
+    const gaps: [RegionId, { x0: number; x1: number }][] = [
+      ["launch", LAUNCH_FLOOR_GAP],
+      ["stairs", STAIRS_FLOOR_GAP],
+      ["zig", ZIG_FLOOR_GAP_LEFT],
+      ["zig", ZIG_FLOOR_GAP_RIGHT],
+    ];
+    for (const [regionId, gap] of gaps) {
+      for (let x = gap.x0 + 5; x < gap.x1; x += 15) {
+        expect(covered(regionId, x, SHIP_R * 0.5)).toBeNull();
+      }
+    }
+    // The Zig peak island fills the floor between the two gaps.
+    const mid = (ZIG_FLOOR_GAP_LEFT.x1 + ZIG_FLOOR_GAP_RIGHT.x0) / 2;
+    expect(covered("zig", mid, SHIP_R * 0.5)).toBe("zig-peak");
+  });
+
+  it("keeps the Zig cliff bodies whole down to the frame", () => {
+    // Deep in each cliff's lower body: guards the outline-closing bug that
+    // sliced a diagonal out of both cliffs.
+    expect(covered("zig", 30, 400)).toBe("zig-cliff-left");
+    expect(covered("zig", 40, 700)).toBe("zig-cliff-left");
+    expect(covered("zig", WORLD_W - 30, 600)).toBe("zig-cliff-right");
+    expect(covered("zig", WORLD_W - 30, 400)).toBe("zig-cliff-right");
   });
 
   it("does not turn rock into ledges", () => {

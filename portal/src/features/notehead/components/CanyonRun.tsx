@@ -92,7 +92,6 @@ export function NotchArt({
           y={entry.y}
           pitch={entry.pitch}
           collected={entry.collected}
-          active={!entry.collected && !gesture.borealisLocked}
           testId={`borealis-${entry.id}`}
         />
       ))}

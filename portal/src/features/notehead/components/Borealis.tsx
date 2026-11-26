@@ -1,13 +1,14 @@
 import borealisArt from "../assets/notehead-borealis-collectible-main.png";
 import { toSvg, type PitchName, type RegionId } from "../modules/sim";
 
+const SIZE = 56;
+
 /** Soft PNG orb at a logical-world Borealis point. */
 export function BorealisMark({
   x,
   y,
   pitch,
   collected,
-  active = true,
   regionId = "launch",
   testId = "borealis",
 }: {
@@ -15,28 +16,22 @@ export function BorealisMark({
   y: number;
   pitch: PitchName;
   collected: boolean;
-  /** False when the interval attempt failed (locked until regen). */
-  active?: boolean;
   regionId?: RegionId;
   testId?: string;
 }) {
   if (collected) return null;
   const center = toSvg(x, y, regionId);
-  const size = active ? 56 : 44;
   return (
     <image
-      className={
-        active ? "notehead-borealis" : "notehead-borealis is-locked"
-      }
+      className="notehead-borealis"
       href={borealisArt.src}
-      x={center.x - size / 2}
-      y={center.y - size / 2}
-      width={size}
-      height={size}
+      x={center.x - SIZE / 2}
+      y={center.y - SIZE / 2}
+      width={SIZE}
+      height={SIZE}
       preserveAspectRatio="xMidYMid meet"
       data-testid={testId}
       data-pitch={pitch}
-      data-active={active ? "true" : "false"}
     />
   );
 }

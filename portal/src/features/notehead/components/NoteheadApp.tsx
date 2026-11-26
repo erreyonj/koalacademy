@@ -68,8 +68,8 @@ import {
   liveLedges,
   markCrashSeen,
   markStorySeen,
+  matchTouchRoute,
   matchTravelRoute,
-  matchZigCornerIntent,
   openingsForBeat,
   PROGRESSION,
   repairForBeat,
@@ -175,6 +175,8 @@ export function NoteheadApp() {
   const interruptQueueRef = useRef<StoryInterruptData[]>([]);
   const pendingAfterDismissRef = useRef<(() => void) | null>(null);
   const anachTeachShownRef = useRef(false);
+  /** First Tonation bank GI — once per run (survives a Hard breach wipe). */
+  const tonationTeachShownRef = useRef(false);
   const hullHitTeachShownRef = useRef(false);
   const hullBreachTeachShownRef = useRef(false);
   const openInterruptRef = useRef<(id: StoryEventId) => void>(() => {});
@@ -202,9 +204,6 @@ export function NoteheadApp() {
   const attemptRef = useRef<IntervalAttempt>(emptyAttempt());
   const healedBeatsRef = useRef<BeatId[]>([]);
   const memoryRef = useRef<RouteMemory>(emptyRouteMemory());
-  /** Launch Bridge: arm Notch-return exit only after seating on the band. */
-  /** Arms Bridge/Tail lower-left return after seating on the launch band. */
-  const returnArmedRef = useRef(false);
   const hpRef = useRef(maxHp("easy"));
   const stingRef = useRef(0);
   const timeScaleRef = useRef(1);
@@ -235,6 +234,7 @@ export function NoteheadApp() {
     healedBeatsRef.current = [];
     memoryRef.current = emptyRouteMemory();
     attemptRef.current = emptyAttempt();
+    tonationTeachShownRef.current = false;
     setTonationValue(0);
     screenPhaseRef.current = "play";
     setScreenPhase("play");
@@ -402,7 +402,6 @@ export function NoteheadApp() {
       bandBreakRef.current = null;
       crossedExitRef.current = false;
       shotPowerRef.current = 0;
-      returnArmedRef.current = false;
       tRef.current = 0;
       setBeatId(id);
       setRepair(repair);
@@ -546,12 +545,6 @@ export function NoteheadApp() {
         return true;
       }
       if (def.id === "notch-calibrate") {
-        // Exit tip only on the first clear — later trips travel freely.
-        if (firstIntervalClear) {
-          pendingAfterDismissRef.current = cut;
-          openInterruptRef.current("notch-calibrate-exit");
-          return true;
-        }
         window.setTimeout(cut, 280);
         return true;
       }
@@ -600,7 +593,6 @@ export function NoteheadApp() {
         warp: warpRef.current,
         exitBand: exitBandRef.current,
         borealis: borealisRef.current,
-        borealisLocked: attemptRef.current.failed,
         noteTail: noteTailRef.current,
         exitZone: exitZoneFor(beatRef.current),
         exitLit: exitZoneReady(beatRef.current),
@@ -657,13 +649,6 @@ export function NoteheadApp() {
         const sealed = containAgainstOpenings(bodyRef.current, openings);
         bodyRef.current = sealed.body;
         exitBarrierHit = sealed.hit;
-      }
-      if (
-        (beatRef.current === "launch-bridge" ||
-          beatRef.current === "launch-tail") &&
-        bodyRef.current.restingOn === LAUNCH_BAND.id
-      ) {
-        returnArmedRef.current = true;
       }
       if (warpRef.current) {
         warpRef.current = followWarpBand(
@@ -749,43 +734,35 @@ export function NoteheadApp() {
         if (route.softReentry && route.enterBody) {
           // Zig lower-right warp: same beat, keep Borealis / tonation.
           bodyRef.current = route.enterBody();
+          warpRef.current = null;
+          stopAnachWarp();
+          timeScaleRef.current = 1;
           phaseRef.current = "flight";
           setPhase("flight");
           setHint("Warping in from the left barrier…");
           return true;
         }
-        if (
-          (route.mode === "return" || route.mode === "warp") &&
-          route.enterBody
-        ) {
+        if (route.enterBody) {
           const hints: Record<string, string> = {
             "bridge-return-notch": "Falling back into the Notch…",
             "stairs-return-bridge": "Falling back onto the Launch Bridge…",
-            "zig-return-stairs-left": "Falling back into the Stairs…",
+            "zig-return-stairs": "Falling back into the Stairs…",
             "tail-return-zig": "Falling back into Zig…",
           };
-          const fallReturns = new Set([
-            "bridge-return-notch",
-            "stairs-return-bridge",
-            "zig-return-stairs-left",
-            "tail-return-zig",
-          ]);
           takeReturnRoute(
             route.to,
             route.enterBody(),
             hints[route.id] ?? "Returning…",
-            fallReturns.has(route.id),
+            Boolean(route.fallIn),
           );
           return true;
         }
         return false;
       };
 
-      // Zig lower corners: cliffs can block true OOB — fire when pressed in.
-      if (beatRef.current === "zig-1") {
-        const corner = matchZigCornerIntent(bodyRef.current);
-        if (corner && takeMatchedRoute(corner)) return;
-      }
+      // Lower exits fire as soon as a falling hull touches the floor gap.
+      const touch = matchTouchRoute(beatRef.current, bodyRef.current);
+      if (touch && takeMatchedRoute(touch)) return;
 
       if (
         bodyRef.current.y < -240 ||
@@ -794,11 +771,7 @@ export function NoteheadApp() {
         bodyRef.current.x > WORLD_W + 120
       ) {
         const openings = openingsForBeat(beatRef.current);
-        const route = matchTravelRoute(
-          beatRef.current,
-          bodyRef.current,
-          returnArmedRef.current,
-        );
+        const route = matchTravelRoute(beatRef.current, bodyRef.current);
         if (route && takeMatchedRoute(route)) return;
         if (openings.length > 0) {
           // Sealed frame: bounce back instead of losing the Borealis run.
@@ -954,7 +927,6 @@ export function NoteheadApp() {
         borealisRef.current,
         bodyRef.current,
         dt,
-        attemptRef.current.failed,
       );
       borealisRef.current = borealisStep.list;
       if (!borealisStep.collected.length) return;
@@ -969,16 +941,26 @@ export function NoteheadApp() {
         attemptRef.current = result.attempt;
         syncTonationHud();
         if (result.kind === "fail") {
-          setHint("Wrong order — exit or retry for Tonation");
+          setHint(
+            "Out of order — no Tonation this visit. Leave and return to regen.",
+          );
           continue;
         }
         if (result.kind === "success") {
+          const before = tonationRef.current.value;
           tonationRef.current = awardIfNew(
             tonationRef.current,
             beatRef.current,
             challenge.payout,
           );
           syncTonationHud();
+          if (
+            !tonationTeachShownRef.current &&
+            tonationRef.current.value > before
+          ) {
+            tonationTeachShownRef.current = true;
+            openInterruptRef.current("tonation-first");
+          }
           const planted = exitBandFor(gem);
           if (planted) exitBandRef.current = planted;
           setHint("Interval locked — fly out through the exit");

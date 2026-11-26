@@ -970,15 +970,8 @@
   mix-blend-mode: screen;
 }
 
-.notehead-borealis.is-locked {
-  opacity: 0.28;
-  mix-blend-mode: normal;
-  animation: none;
-  filter: grayscale(0.35);
-}
-
 @media (prefers-reduced-motion: no-preference) {
-  .notehead-borealis:not(.is-locked) {
+  .notehead-borealis {
     animation: notehead-borealis-pulse 2.4s ease-in-out infinite;
   }
 }

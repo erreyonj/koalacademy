@@ -27,8 +27,6 @@ export interface FrameGesture {
   exitBand: Ledge | null;
   /** Live Borealis pickups for this beat. */
   borealis: readonly Borealis[];
-  /** Interval attempt failed — remaining gems lock until beat regen. */
-  borealisLocked: boolean;
   /** Floating Note-Tail pickup, when this beat has one. */
   noteTail: NoteTail | null;
   /** Level exit barrier + arrow, when this beat has one. */

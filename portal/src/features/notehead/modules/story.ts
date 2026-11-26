@@ -13,7 +13,7 @@ export type StoryEventId =
   | "notch-calibrate-first-warp"
   | "notch-calibrate-hull-hit"
   | "notch-calibrate-hull-breach"
-  | "notch-calibrate-exit"
+  | "tonation-first"
   | "launch-tail-enter";
 
 /** Optional one-shot SFX when a CM/GI line begins. */
@@ -98,12 +98,15 @@ const EVENTS: Record<StoryEventId, readonly StoryInterrupt[]> = {
       ],
     },
   ],
-  "notch-calibrate-exit": [
+  "tonation-first": [
     {
       kind: "gi",
       speaker: SYSTEM,
       lines: [
-        "Collecting Borealis orbs repairs the ship's tonal calibration so you can repair the Note-Tails and gain new abilities!",
+        "Tonation is the ship's internal energy source.",
+        "Collecting Borealis orbs in the correct interval order calibrates Tonation for the ship.",
+        "In this route it's gathered by a specific interval group.",
+        "Other routes may have other requirements.",
       ],
     },
   ],

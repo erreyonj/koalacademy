@@ -16,23 +16,24 @@ import {
   emptyRouteMemory,
   launchGoalY,
   liveLedges,
+  LAUNCH_FLOOR_GAP,
   markCrashSeen,
+  matchTouchRoute,
   matchTravelRoute,
-  matchZigCornerIntent,
   notchReturnEnter,
   PROGRESSION,
   repairForBeat,
   simulateFlight,
+  STAIRS_FLOOR_GAP,
   stairsFallEnter,
   stepPolicyFor,
   travelRoutesFor,
+  ZIG_FLOOR_GAP_LEFT,
+  ZIG_FLOOR_GAP_RIGHT,
   zigFallEnter,
   zigJumpFromLeftEnter,
-  zigRiseEnter,
-  ZIG_CORNER_Y_FRAC,
 } from "../modules/progress";
 import {
-  BREAK_SPEED,
   FIXED_DT,
   LAUNCH_BAND,
   NOTCH_BLOCK,
@@ -45,6 +46,9 @@ import {
   pullForLaunchDegree,
   step,
 } from "../modules/sim";
+
+/** A falling ship whose hull is touching the frame floor at world x. */
+const floorTouch = (x: number) => ({ x, y: SHIP_R * 0.5, vy: -400 });
 
 const ANACH = { anachrometer: true, tails: [] as const };
 
@@ -133,7 +137,7 @@ describe("v.04 route traversal — forward spine", () => {
     expect(zone).not.toBeNull();
     const body = { x: 450, y: WORLD_H + 250 };
     expect(leftFrameThroughExit(zone!, body)).toBe(true);
-    const route = matchTravelRoute("notch-calibrate", body, false);
+    const route = matchTravelRoute("notch-calibrate", body);
     expect(route?.id).toBe("notch-up");
     expect(route?.to).toBe("launch-bridge");
     expect(route?.mode).toBe("forward");
@@ -158,7 +162,7 @@ describe("v.04 route traversal — forward spine", () => {
     expect(zone).not.toBeNull();
     const body = { x: 450, y: WORLD_H + 250 };
     expect(leftFrameThroughExit(zone!, body)).toBe(true);
-    const route = matchTravelRoute("launch-bridge", body, true);
+    const route = matchTravelRoute("launch-bridge", body);
     expect(route?.id).toBe("bridge-up");
     expect(route?.to).toBe("stairs-anach");
     expect(route?.mode).toBe("forward");
@@ -179,13 +183,13 @@ describe("v.04 route traversal — forward spine", () => {
     expect(PROGRESSION["launch-bridge"].next).toBe("stairs-anach");
   });
 
-  it("6. stairs-right → zig-1 (rise enter)", () => {
+  it("6. stairs-right → zig-1 (same jump-in as the warp loop)", () => {
     const body = { x: WORLD_W + 140, y: 1100 };
-    const route = matchTravelRoute("stairs-anach", body, false);
+    const route = matchTravelRoute("stairs-anach", body);
     expect(route?.id).toBe("stairs-right");
     expect(route?.to).toBe("zig-1");
     expect(route?.mode).toBe("forward");
-    expect(zigRiseEnter().vy).toBeGreaterThan(0);
+    expect(PROGRESSION["zig-1"].enter(ANACH)).toEqual(zigJumpFromLeftEnter());
     const cleared = PROGRESSION["stairs-anach"].evaluate(
       {
         apexY: 0,
@@ -202,20 +206,7 @@ describe("v.04 route traversal — forward spine", () => {
     expect(PROGRESSION["stairs-anach"].next).toBe("zig-1");
   });
 
-  it("7. stairs-warp-zig → zig-1 (jump-in from left barrier)", () => {
-    const body = { x: WORLD_W + 140, y: WORLD_H * 0.05 };
-    const route = matchTravelRoute("stairs-anach", body, false);
-    expect(route?.id).toBe("stairs-warp-zig");
-    expect(route?.to).toBe("zig-1");
-    expect(route?.mode).toBe("forward");
-    expect(route?.enterBody).toBe(zigJumpFromLeftEnter);
-    const enter = route!.enterBody!();
-    expect(enter.x).toBeLessThan(WORLD_W * 0.2);
-    expect(enter.vx).toBeGreaterThan(0);
-    expect(enter.vy).toBeGreaterThan(0);
-  });
-
-  it("8. zig-up → launch-tail through the top exit", () => {
+  it("7. zig-up → launch-tail through the top exit", () => {
     const zone = exitZoneFor("zig-1");
     expect(zone).not.toBeNull();
     const opening = openingFromExitZone(zone!);
@@ -223,7 +214,7 @@ describe("v.04 route traversal — forward spine", () => {
       x: (opening.x0 + opening.x1) / 2,
       y: WORLD_H + 250,
     };
-    const route = matchTravelRoute("zig-1", body, false);
+    const route = matchTravelRoute("zig-1", body);
     expect(route?.id).toBe("zig-up");
     expect(route?.to).toBe("launch-tail");
     expect(route?.mode).toBe("forward");
@@ -244,66 +235,85 @@ describe("v.04 route traversal — forward spine", () => {
   });
 });
 
-describe("v.04 route traversal — returns & warp", () => {
-  it("9. bridge-return-notch (seated) → notch-calibrate fall enter", () => {
-    const body = { x: -130, y: WORLD_H * 0.04 };
-    const route = matchTravelRoute("launch-bridge", body, true);
+const CATCH = { breakSpeed: 0, catchBands: true };
+
+describe("v.04 route traversal — bottom-edge returns & warp", () => {
+  it("8. bridge floor touch → notch-calibrate fall enter", () => {
+    const route = matchTouchRoute("launch-bridge", floorTouch(450));
     expect(route?.id).toBe("bridge-return-notch");
     expect(route?.to).toBe("notch-calibrate");
     expect(route?.mode).toBe("return");
-    expect(route?.requireSeated).toBe(true);
+    expect(route?.fallIn).toBe(true);
     expect(route?.enterBody).toBe(notchReturnEnter);
     const enter = route!.enterBody!();
     expect(enter.vy).toBeLessThan(0);
     expect(enter.y).toBeGreaterThan(WORLD_H * 0.5);
   });
 
-  it("10. stairs-return-bridge → launch-bridge fall enter", () => {
-    const body = { x: -130, y: WORLD_H * 0.2 };
-    const route = matchTravelRoute("stairs-anach", body, false);
+  it("9. stairs floor touch → launch-bridge, falls onto the band", () => {
+    const route = matchTouchRoute("stairs-anach", floorTouch(200));
     expect(route?.id).toBe("stairs-return-bridge");
     expect(route?.to).toBe("launch-bridge");
-    expect(route?.mode).toBe("return");
     expect(route?.enterBody).toBe(bridgeFallEnter);
-    const fall = route!.enterBody!();
-    expect(fall.vy).toBeLessThan(0);
-    expect(Math.abs(fall.vy)).toBeLessThan(BREAK_SPEED);
+    const flight = simulateFlight({
+      regionId: "launch",
+      body: bridgeFallEnter(),
+      policy: CATCH,
+      beatId: "launch-bridge",
+    });
+    expect(flight.landedOn).toBe(LAUNCH_BAND.id);
   });
 
-  it("11. zig-return-stairs-left → stairs-anach onto band right edge", () => {
-    const body = { x: -130, y: WORLD_H * 0.05 };
-    const route = matchTravelRoute("zig-1", body, false);
-    expect(route?.id).toBe("zig-return-stairs-left");
+  it("10. zig lower-left floor touch → stairs, lands on the band's right edge", () => {
+    const route = matchTouchRoute("zig-1", floorTouch(150));
+    expect(route?.id).toBe("zig-return-stairs");
     expect(route?.to).toBe("stairs-anach");
-    expect(route?.mode).toBe("return");
     expect(route?.enterBody).toBe(stairsFallEnter);
-    const fall = route!.enterBody!();
-    expect(fall.x).toBeGreaterThan((STAIR_BAND.x0 + STAIR_BAND.x1) / 2);
-    expect(fall.x).toBeLessThanOrEqual(STAIR_BAND.x1);
-    expect(fall.vy).toBeLessThan(0);
+    const enter = stairsFallEnter();
+    expect(enter.x).toBeGreaterThan((STAIR_BAND.x0 + STAIR_BAND.x1) / 2);
+    expect(enter.x).toBeLessThanOrEqual(STAIR_BAND.x1);
+    const flight = simulateFlight({
+      regionId: "stairs",
+      body: enter,
+      policy: CATCH,
+      beatId: "stairs-anach",
+    });
+    expect(flight.landedOn).toBe(STAIR_BAND.id);
   });
 
-  it("12. zig-warp-loop soft-reenters zig-1 from the left barrier", () => {
-    const body = { x: WORLD_W + 140, y: WORLD_H * 0.05 };
-    const route = matchTravelRoute("zig-1", body, false);
+  it("11. zig lower-right floor touch warps back in from the left gap onto the peak", () => {
+    const route = matchTouchRoute("zig-1", floorTouch(780));
     expect(route?.id).toBe("zig-warp-loop");
     expect(route?.to).toBe("zig-1");
     expect(route?.mode).toBe("warp");
     expect(route?.softReentry).toBe(true);
     expect(route?.enterBody).toBe(zigJumpFromLeftEnter);
+    const enter = zigJumpFromLeftEnter();
+    // Emerges from the left floor gap, rising, so that gap's exit stays quiet.
+    expect(enter.x).toBeGreaterThanOrEqual(ZIG_FLOOR_GAP_LEFT.x0);
+    expect(enter.x).toBeLessThanOrEqual(ZIG_FLOOR_GAP_LEFT.x1);
+    expect(matchTouchRoute("zig-1", enter)).toBeNull();
+    const flight = simulateFlight({
+      regionId: "zig",
+      body: enter,
+      policy: CATCH,
+      beatId: "zig-1",
+    });
+    expect(flight.landedOn).toBe("zig-peak");
   });
 
-  it("13. tail-return-zig (seated) → zig-1 fall enter", () => {
-    const body = { x: -130, y: WORLD_H * 0.04 };
-    const route = matchTravelRoute("launch-tail", body, true);
+  it("12. tail floor touch → zig-1, falls onto the peak", () => {
+    const route = matchTouchRoute("launch-tail", floorTouch(450));
     expect(route?.id).toBe("tail-return-zig");
     expect(route?.to).toBe("zig-1");
-    expect(route?.mode).toBe("return");
-    expect(route?.requireSeated).toBe(true);
     expect(route?.enterBody).toBe(zigFallEnter);
-    const fall = route!.enterBody!();
-    expect(fall.vy).toBeLessThan(0);
-    expect(fall.y).toBeGreaterThan(WORLD_H * 0.5);
+    const flight = simulateFlight({
+      regionId: "zig",
+      body: zigFallEnter(),
+      policy: CATCH,
+      beatId: "zig-1",
+    });
+    expect(flight.landedOn).toBe("zig-peak");
   });
 
   it("enumerates every travel edge on the graph", () => {
@@ -326,8 +336,7 @@ describe("v.04 route traversal — returns & warp", () => {
         "notch-calibrate:notch-up->launch-bridge",
         "stairs-anach:stairs-return-bridge->launch-bridge",
         "stairs-anach:stairs-right->zig-1",
-        "stairs-anach:stairs-warp-zig->zig-1",
-        "zig-1:zig-return-stairs-left->stairs-anach",
+        "zig-1:zig-return-stairs->stairs-anach",
         "zig-1:zig-up->launch-tail",
         "zig-1:zig-warp-loop->zig-1",
       ].sort(),
@@ -336,46 +345,57 @@ describe("v.04 route traversal — returns & warp", () => {
 });
 
 describe("v.04 route traversal — negatives (sealed)", () => {
-  it("unseated Bridge / Tail lower-left does not travel", () => {
-    const left = { x: -130, y: WORLD_H * 0.04 };
-    expect(matchTravelRoute("launch-bridge", left, false)).toBeNull();
-    expect(matchTravelRoute("launch-tail", left, false)).toBeNull();
+  it("rise-in enter bodies never fire a floor exit", () => {
+    for (const beatId of ["launch-bridge", "stairs-anach", "zig-1"] as const) {
+      const enter = PROGRESSION[beatId].enter(ANACH);
+      expect(matchTouchRoute(beatId, enter)).toBeNull();
+    }
   });
 
-  it("Zig mid-height left / mid corner intent stay sealed", () => {
+  it("rising at the floor does not travel", () => {
     expect(
-      matchTravelRoute("zig-1", { x: -130, y: WORLD_H * 0.5 }, false),
+      matchTouchRoute("launch-bridge", { x: 450, y: SHIP_R * 0.5, vy: 400 }),
+    ).toBeNull();
+  });
+
+  it("falling at the floor outside a gap does not travel", () => {
+    expect(
+      matchTouchRoute("launch-bridge", floorTouch(LAUNCH_FLOOR_GAP.x1 + 60)),
     ).toBeNull();
     expect(
-      matchZigCornerIntent({
-        x: SHIP_R,
-        y: WORLD_H * 0.5,
-        vx: -20,
-        vy: 0,
-      }),
+      matchTouchRoute("stairs-anach", floorTouch(STAIRS_FLOOR_GAP.x1 + 60)),
+    ).toBeNull();
+    // Under the Zig peak island, between the two floor gaps.
+    expect(
+      matchTouchRoute(
+        "zig-1",
+        floorTouch((ZIG_FLOOR_GAP_LEFT.x1 + ZIG_FLOOR_GAP_RIGHT.x0) / 2),
+      ),
+    ).toBeNull();
+    // Notch has no floor exit.
+    expect(matchTouchRoute("notch-calibrate", floorTouch(450))).toBeNull();
+  });
+
+  it("left / right edges no longer carry exits (except the Stairs right exit)", () => {
+    expect(
+      matchTravelRoute("launch-bridge", { x: -130, y: WORLD_H * 0.04 }),
+    ).toBeNull();
+    expect(
+      matchTravelRoute("launch-tail", { x: -130, y: WORLD_H * 0.04 }),
+    ).toBeNull();
+    expect(matchTravelRoute("zig-1", { x: -130, y: WORLD_H * 0.05 })).toBeNull();
+    expect(
+      matchTravelRoute("zig-1", { x: WORLD_W + 140, y: WORLD_H * 0.05 }),
+    ).toBeNull();
+    expect(
+      matchTravelRoute("stairs-anach", { x: -130, y: WORLD_H * 0.2 }),
     ).toBeNull();
   });
 
   it("off-gap OOB does not match a travel route", () => {
     // Off the top outside Notch exit shaft.
     expect(
-      matchTravelRoute(
-        "notch-calibrate",
-        { x: 40, y: WORLD_H + 250 },
-        false,
-      ),
-    ).toBeNull();
-    // Below world on Bridge left — not the corner gap.
-    expect(
-      matchTravelRoute("launch-bridge", { x: -130, y: -40 }, true),
-    ).toBeNull();
-    // Stairs left above the return corridor (~40% H).
-    expect(
-      matchTravelRoute(
-        "stairs-anach",
-        { x: -130, y: WORLD_H * 0.8 },
-        false,
-      ),
+      matchTravelRoute("notch-calibrate", { x: 40, y: WORLD_H + 250 }),
     ).toBeNull();
   });
 
@@ -400,8 +420,5 @@ describe("v.04 route traversal — negatives (sealed)", () => {
       false,
     );
   });
-
-  it("Zig corner Y band stays at the documented fraction", () => {
-    expect(ZIG_CORNER_Y_FRAC).toBe(0.14);
-  });
 });
+

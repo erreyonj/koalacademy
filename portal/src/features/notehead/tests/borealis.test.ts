@@ -8,7 +8,11 @@ import {
   spawnBorealis,
   stepBorealis,
 } from "../modules/borealis";
+import { resolveMasses } from "../modules/collide";
+import { liveLedges, zigJumpFromLeftEnter } from "../modules/progress";
+import { applyCollect, challengeFor, emptyAttempt } from "../modules/tonation";
 import {
+  FIXED_DT,
   NOTCH_BLOCK,
   NOTCH_POCKET,
   SHIP_R,
@@ -16,9 +20,31 @@ import {
   ZIG_LEFT,
   ZIG_PEAK,
   ZIG_RIGHT,
+  step,
 } from "../modules/sim";
 
 describe("Borealis", () => {
+  it("Zig jump-in arc reaches the peak without collecting or pulling any orb", () => {
+    let body = zigJumpFromLeftEnter();
+    const orbs = spawnBorealis("zig-1");
+    let landed: string | null = null;
+    for (let frame = 0; frame < 600 && !landed; frame++) {
+      const result = step(body, liveLedges("zig", null), FIXED_DT, undefined, {
+        breakSpeed: 0,
+        catchBands: true,
+      });
+      body = result.body;
+      if (!body.restingOn) body = resolveMasses(body, "zig").body;
+      for (const orb of orbs) {
+        expect(Math.hypot(body.x - orb.x, body.y - orb.y)).toBeGreaterThan(
+          MAGNET_RANGE,
+        );
+      }
+      landed = result.landedId ?? null;
+    }
+    expect(landed).toBe(ZIG_PEAK.id);
+  });
+
   it("spawns pocket and block for notch-calibrate with two goal tones", () => {
     const list = spawnBorealis("notch-calibrate");
     expect(list.map((entry) => entry.id)).toEqual([
@@ -99,20 +125,31 @@ describe("Borealis", () => {
     expect(grab.list[1]?.collected).toBe(true);
   });
 
-  it("locks magnetize / collect when the interval attempt failed", () => {
-    const list = spawnBorealis("notch-calibrate");
-    const [gem] = list;
-    if (!gem) throw new Error("expected gem");
-    const body = {
+  it("keeps collecting after a wrong-order pick fails the interval", () => {
+    const challenge = challengeFor("notch-calibrate");
+    if (!challenge) throw new Error("expected notch challenge");
+    let list = spawnBorealis("notch-calibrate");
+    const pocket = list.find((entry) => entry.id === NOTCH_POCKET.id);
+    const block = list.find((entry) => entry.id === NOTCH_BLOCK.id);
+    if (!pocket || !block) throw new Error("expected notch gems");
+    const at = (gem: typeof pocket) => ({
       x: gem.x,
       y: gem.y,
       vx: 0,
       vy: 0,
       restingOn: null as string | null,
-    };
-    const locked = stepBorealis(list, body, 1 / 60, true);
-    expect(locked.collected).toHaveLength(0);
-    expect(locked.list[0]?.collected).toBe(false);
+    });
+
+    // A4 pocket first is out of order (E4 → A4 required).
+    const first = stepBorealis(list, at(pocket), 1 / 60);
+    list = first.list;
+    const attempt = applyCollect(challenge, emptyAttempt(), "A4").attempt;
+    expect(attempt.failed).toBe(true);
+
+    // The block gem stays live and still collects.
+    const second = stepBorealis(list, at(block), 1 / 60);
+    expect(second.collected.map((entry) => entry.id)).toEqual([NOTCH_BLOCK.id]);
+    expect(applyCollect(challenge, attempt, "E4").kind).toBe("fail");
   });
 
   it("ignores already-collected gems", () => {

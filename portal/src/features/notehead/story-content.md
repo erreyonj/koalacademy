@@ -46,10 +46,14 @@ No story interrupt — scripted fall into Notch.
 - **GI:** If there's a breach the Anachrometer resets you to try again.
 - Ship shatter plays first (`breach` phase); hull stays empty (0 HP) through the GI until dismiss, then the beat restarts with a full hull.
 
-### Exit (clear / leave Notch) — GI
+## First Tonation banked (any region) — GI
 
-- **GI:** Collecting Borealis orbs repairs the ship's tonal calibration so you can repair the Note-Tails and gain new abilities!
-- Holds advance to Launch Bridge until dismissed.
+Fires once per run, the first time an interval in pitch order banks Tonation. One card per sentence. Replaces the old Notch exit GI — leaving Notch no longer interrupts.
+
+- **GI:** Tonation is the ship's internal energy source.
+- **GI:** Collecting Borealis orbs in the correct interval order calibrates Tonation for the ship.
+- **GI:** In this route it's gathered by a specific interval group.
+- **GI:** Other routes may have other requirements.
 
 ## Tail (`launch-tail`)
 

@@ -100,7 +100,6 @@ export function ZigArt({
           y={gem.y}
           pitch={gem.pitch}
           collected={gem.collected}
-          active={!gem.collected && !gesture.borealisLocked}
           regionId={REGION}
           testId={`borealis-${gem.id}`}
         />

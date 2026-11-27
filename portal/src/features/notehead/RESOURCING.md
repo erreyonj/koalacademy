@@ -31,29 +31,29 @@ Four related systems as implemented:
 | --- | --- | --- |
 | **Borealis** | Ordered mid-air energy / visit markers. Next-only magnetize & collect; full gather heals +1 HP, plants exit Frequency Band, lights exit zone. | [`modules/borealis.ts`](./modules/borealis.ts) |
 | **Tonation** | Derived HUD pitch list via `tonationPitches()` — Borealis pitches in gather order, or the region’s single guide pitch. Goal button plays the chain. | `tonationPitches` → HUD in `NoteheadApp` |
-| **Anachrometer** | Mid-air press-to-warp: slow ship physics, place transient Frequency Band, re-pull. Unlocked via `repair.anachrometer` after `notch-crash`. Whole-note hull bleach while warping. **Not** stored in `tails[]`. | [`modules/anachrometer.ts`](./modules/anachrometer.ts) |
-| **Note-Tails** | Inventory strings on `repair.tails`. Only `"eighth"` is collectible (`launch-tail`). **No ability code reads the array yet.** | [`modules/note-tail.ts`](./modules/note-tail.ts), `progress` |
+| **Anachrometer** | Mid-air press-to-warp: slow ship physics, place transient Frequency Band, re-pull. Granted by a level's events (`grant.anachrometer`, `notch1` in the tutorial route) via `repair.anachrometer`. Whole-note hull bleach while warping. **Not** stored in `tails[]`. | [`modules/anachrometer.ts`](./modules/anachrometer.ts) |
+| **Note-Tails** | Inventory strings on `repair.tails`. Only `"eighth"` is collectible (`8thTail1`, via `LevelEvents.noteTail`). **No ability code reads the array yet.** | [`modules/note-tail.ts`](./modules/note-tail.ts), `progress` |
 
 ```mermaid
 flowchart TD
-  beat[BeatId] --> borealis[spawnBorealis pitches]
+  level[Level id] --> borealis[spawnBorealis pitches]
   borealis --> tonationHud[Tonation HUD / goal playback]
   borealis --> gatherOrder[Next-only gather]
   gatherOrder --> healExit[Heal +1 and exit band / zone]
-  crash[notch-crash clear] --> anach[repair.anachrometer]
+  crash[notch1 enter] --> anach[repair.anachrometer]
   anach --> warp[Press-to-warp whole-note feel]
-  launchTail[launch-tail] --> eighth[repair.tails eighth]
+  launchTail[8thTail1] --> eighth[repair.tails eighth]
   eighth --> noAbility[No ability wired yet]
 ```
 
 ### Pitch chains on the route
 
-| Beat | Tonation / Borealis | Musical reading | What play trains today |
+| Level | Tonation / Borealis | Musical reading | What play trains today |
 | --- | --- | --- | --- |
-| `notch-calibrate` | E4 → A4 | Perfect 4th (degrees 3→6) | Pocket then block path |
-| `stairs-anach` | C4 → E4 → G4 | **C major arpeggio** (1–3–5) | Bottom → top tread hops |
-| `zig-1` | C4 → E4 → A4 | 1–3–6 contour (Am-ish / C6 without G) | Float → left → right zig |
-| Beats without Borealis | Single guide (launch/stairs `G4`, notch/zig `A4`) | One target tone | Aim / clear without a phrase |
+| `notch1` | E4 → A4 | Perfect 4th (degrees 3→6) | Pocket then block path |
+| `stairs1` | C4 → E4 → G4 | **C major arpeggio** (1–3–5) | Bottom → top tread hops |
+| `zig1` | C4 → E4 → A4 | 1–3–6 contour (Am-ish / C6 without G) | Float → left → right zig |
+| Levels without Borealis | Single guide (launch/stairs `G4`, notch/zig `A4`) | One target tone | Aim / clear without a phrase |
 
 Stairs is the only chain that cleanly teaches a triad. Notch and Zig still carry interval content — but only if named and replayable, which the current loop does not do.
 
@@ -154,7 +154,7 @@ Origin: an older idea that some levels would force gathering Borealis (or anothe
 
 Framing:
 
-- The **eighth Note-Tail** is the reward for finishing the first set of regions (`launch-tail`).
+- The **eighth Note-Tail** is the reward for finishing the first set of regions (`8thTail1`).
 - **All tails** may unlock new in-game functions and **their own level structures** later.
 - The **Anachrometer is the function of the Whole Note-Tail** (a whole note has no stem/tail in notation; in Notehead lore it is the “whole” repair: longest sustained control of time).
 - Duration still flavors control length; **musical focus rides on the region type** each Tail opens.
@@ -255,9 +255,9 @@ Live in code / `GAME_SPEC.md` (supersedes earlier “any-order-for-exit-only” 
 | **HP dials** | GAME_SPEC Difficulty table Easy 8 / Med 5 / Hard 3; Hull section + code **10 / 8 / 5**; StartScreen Hard “Only 5 HP!” | `PROFILES.maxHp` 10/8/5 | Align Difficulty table to Hull/code |
 | **Borealis → abilities** | Exit GI: orbs repair calibration so you can repair Note-Tails / gain abilities | Borealis heals +1 and unlocks exit; tails unlock separately | Soften lore or wire a real spend sink |
 | **Anachrometer unlock timing** | CM on `notch-calibrate` enter dramatizes divert-power repair | Flag already `true` from `notch-crash` evaluate | Accept as narrative reboot, or move flag flip |
-| **MVP tails** | GAME_SPEC lore: “MVP only implements the Anachrometer”; type omits `launch-tail` | Tail beat + inventory write exist; no ability | Update spec types + lore |
+| **MVP tails** | GAME_SPEC lore: “MVP only implements the Anachrometer”; type omits `8thTail1` | Tail beat + inventory write exist; no ability | Update spec types + lore |
 | **Stairs story** | `story-content.md` draft (“tonal order”, Anachrometer tips) | Not in `story.ts` | Wire or mark deferred |
-| **Eighth collect pitch** | No tonation entry on `launch-tail` (HUD G4) | Collect SFX hard-coded `A4` | Align SFX to goal or give the Tail its own tone |
+| **Eighth collect pitch** | No tonation entry on `8thTail1` (HUD G4) | Collect SFX hard-coded `A4` | Align SFX to goal or give the Tail its own tone |
 | **Visited vs Borealis** | Clear was `visited` + Borealis | Exit is `crossedExit` only; Tonation is separate | Done |
 
 `GAME_SPEC.md` says: if spec and code disagree, follow the spec. Several places **Hull section + tests + code** already agree against the Difficulty table — update the table rather than reverting HP.
@@ -288,7 +288,7 @@ Sandbox beat-jumps can leave launch-enter CM visible on later beats; treat as de
 | --- | --- | --- |
 | Half musical hook | Sustain (1) or harmonic interval (3) | Classroom playtest of cling + audio |
 | Quarter orientation | Portrait staff (vertical = pitch) vs landscape Temple Run | Tablet readability prototype |
-| Eighth unlock order | Eighth after first Whole arc (`launch-tail`); Sixteenth later | Maze prototype before Sixteenth art |
+| Eighth unlock order | Eighth after first Whole arc (`8thTail1`); Sixteenth later | Maze prototype before Sixteenth art |
 | Borealis on non-Whole levels | Optional / reskin per family (lane orbs, maze cells) | Don’t force slingshot gem rules into staff/maze |
 | Difficulty without chains | HP + aim + Tail-local density | New StartScreen lines |
 

@@ -111,7 +111,7 @@ export function LevelEditor() {
       ) {
         return;
       }
-      store.dispatch({ type: "loadRoute", levels: result.levels });
+      store.dispatch({ type: "loadRoute", levels: result.levels, origin: result.origin });
       const count = result.levels.length;
       setNotice(count === 1 ? `Imported ${files[0]?.name}.` : `Imported ${count} levels as a route.`);
       setZoomKey((n) => n + 1);
@@ -165,7 +165,7 @@ export function LevelEditor() {
         onImport={onImport}
         onCopy={onCopy}
         onExportRoute={() => {
-          downloadRoute(state.library);
+          downloadRoute(state.library, state.originId);
           setNotice("Exported the route as one file.");
         }}
         onFit={() => setZoomKey((n) => n + 1)}

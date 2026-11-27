@@ -2,12 +2,12 @@
 
 Captain Monologue (CM) and Game Interrupt (GI). Wired via `modules/story.ts`.
 
-## Launch (`launch-teach`)
+## Launch (the slingshot lesson on `landing1`)
 
 ### Enter — CM then GI
 
 - **CM:**
-  1. Darn it!... This planet had a huge Borealis reading, but that landing scattered every one of the ship's Note-Tails...
+  1. Darn it!... This planet has huge raw Borealis readings, but that landing scattered every one of the ship's Note-Tails...
   2. Wait a minute... there's almost no Tonal Force on this planet either!! The ship will need to be recalibrated. At least the Frequency Band is still working...
 - **GI:** Pull the ship against the Frequency Band to launch the ship
 
@@ -15,9 +15,9 @@ Captain Monologue (CM) and Game Interrupt (GI). Wired via `modules/story.ts`.
 
 - **CM:** Hmm. Gotta try a stronger pull!
 
-## Notch crash (`notch-crash`)
+## Crash into `notch1`
 
-No story interrupt — scripted fall into Notch.
+No story interrupt: the fall out of `landing1`'s floor gap lands on `notch1`'s authored Enter pose.
 
 ## Notch calibrate (`notch-calibrate`)
 
@@ -55,7 +55,7 @@ Fires once per run, the first time an interval in pitch order banks Tonation. On
 - **GI:** In this route it's gathered by a specific interval group.
 - **GI:** Other routes may have other requirements.
 
-## Tail (`launch-tail`)
+## Tail (`8thTail1`)
 
 Launch terrain + Frequency Band. Floating eighth-note Note-Tail pickup.
 

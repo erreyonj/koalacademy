@@ -13,7 +13,7 @@ export interface Pt {
   y: number;
 }
 
-/** Portrait mirrors launch / stairs / notch (200×360); landscape mirrors zig (360×200). */
+/** Portrait mirrors launch / stairs / notch (200×360); landscape mirrors zig (554×308). */
 export type LevelView = "portrait" | "landscape";
 
 /** One rock mass. Open lines are closed off-frame by the adapter. */

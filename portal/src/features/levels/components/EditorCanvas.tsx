@@ -38,7 +38,8 @@ interface Box {
 
 function fitBox(view: LevelView): Box {
   const r = outerRect(view);
-  const pad = 14;
+  // Just enough air around the bleed outline that handles at the edge stay reachable.
+  const pad = 6;
   return { x: r.x0 - pad, y: r.y0 - pad, w: r.x1 - r.x0 + pad * 2, h: r.y1 - r.y0 + pad * 2 };
 }
 

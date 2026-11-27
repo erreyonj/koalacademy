@@ -25,8 +25,8 @@ const SHARDS = [
 ] as const;
 
 /**
- * Hull-breach burst: the notehead splits into capsule shards with a flash
- * ring. CSS drives the motion so reduced-motion can collapse to a fade.
+ * Hull-breach burst: the notehead splits into capsule shards with a flash.
+ * CSS drives the motion so reduced-motion can collapse to a fade.
  */
 export function ShipBreach({
   cx,
@@ -54,7 +54,6 @@ export function ShipBreach({
       data-testid={testId}
     >
       <circle className="notehead-ship-breach-flash" r={rx * 1.35} />
-      <circle className="notehead-ship-breach-ring" r={rx * 1.1} />
       <ellipse
         className="notehead-ship-breach-core"
         rx={rx}

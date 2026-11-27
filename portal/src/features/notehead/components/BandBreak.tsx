@@ -38,7 +38,6 @@ export function BandBreak({
     >
       <g className="notehead-band-break-flash">
         <circle className="notehead-band-break-flash-core" r={5} />
-        <circle className="notehead-band-break-flash-ring" r={14} />
       </g>
 
       <g className="notehead-band-break-left">

@@ -104,6 +104,31 @@ describe("parseLevelSet", () => {
     expect(many.ok && many.levels.map((l) => l.id)).toEqual(["a", "b"]);
   });
 
+  it("round-trips a route file with its id and origin", () => {
+    const text = serializeRoute([a, b], "b");
+    expect(JSON.parse(text)).toMatchObject({ version: 1, id: "a", origin: "b" });
+    const parsed = parseLevelSet(text);
+    expect(parsed.ok && parsed.origin).toBe("b");
+    expect(parsed.ok && parsed.routeId).toBe("a");
+    expect(parsed.ok && parsed.levels.map((l) => l.id)).toEqual(["a", "b"]);
+  });
+
+  it("defaults the origin to the first level and reads bare arrays", () => {
+    expect(JSON.parse(serializeRoute([a, b])).origin).toBe("a");
+    expect(JSON.parse(serializeRoute([a, b], "ghost")).origin).toBe("a");
+    const bare = parseLevelSet(JSON.stringify([JSON.parse(serializeLevel(a))]));
+    expect(bare.ok && bare.origin).toBeUndefined();
+  });
+
+  it("rejects an origin that is not in the route", () => {
+    const text = JSON.stringify({ version: 1, origin: "zz", levels: [JSON.parse(serializeLevel(a))] });
+    expect(parseLevelSet(text)).toEqual({
+      ok: false,
+      errors: ['origin "zz" is not a level in the route'],
+    });
+    expect(validateRoute([a], "zz").errors).toEqual(['origin "zz" is not a level in the route']);
+  });
+
   it("reports the index of a bad level and refuses an empty array", () => {
     const text = JSON.stringify([JSON.parse(serializeLevel(a)), { version: 2 }]);
     const bad = parseLevelSet(text);
@@ -425,6 +450,14 @@ describe("route origin", () => {
     const before = store.getState();
     store.dispatch({ type: "setOrigin", id: "ghost" });
     expect(store.getState()).toBe(before);
+  });
+
+  it("takes the origin from an imported route", () => {
+    const store = createEditorStore();
+    store.dispatch({ type: "loadRoute", levels: route(), origin: "c" });
+    expect(store.getState().originId).toBe("c");
+    store.dispatch({ type: "loadRoute", levels: route(), origin: "ghost" });
+    expect(store.getState().originId).toBe("c");
   });
 
   it("follows a rename, clears on removal and on a new import, and is frozen in play", () => {

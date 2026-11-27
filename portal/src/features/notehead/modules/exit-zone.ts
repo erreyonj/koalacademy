@@ -1,12 +1,10 @@
 /**
- * Level exit gates: on Borealis / interval beats the exit is always available
- * (skip freely). Sealed frame edges block other escapes so the ship must leave
- * through an open gap (forward exit and/or reverse travel).
+ * Level exits. A level's exits come from its route file (see
+ * `routes/scene.ts`); sealed frame edges block every other escape so the ship
+ * must leave through an open gap (forward exit and/or reverse travel).
  */
 import { MASS_HIT_SPEED } from "./collide";
-import type { BeatId } from "./progress";
 import {
-  fromSvgPoint,
   SHIP_R,
   WORLD_H,
   WORLD_W,
@@ -16,7 +14,7 @@ import {
 
 export type ExitFacing = "up" | "right";
 
-/** Barrier + arrow in the region's SVG view space (+y down). */
+/** Barrier + arrow in the level's SVG view space (+y down). */
 export interface ExitZone {
   regionId: RegionId;
   facing: ExitFacing;
@@ -47,87 +45,6 @@ export interface FrameOpening {
 /** Match NoteheadApp / sim out-of-bounds margins. */
 export const OOB_Y = 240;
 export const OOB_X = 120;
-/** Extra lateral slack so a near-edge exit path still counts. */
-const LATERAL_SLACK = 40;
-
-const ZONES: Partial<Record<BeatId, ExitZone>> = {
-  // Notch — top of the open shaft.
-  "notch-calibrate": {
-    regionId: "notch",
-    facing: "up",
-    x1: 58,
-    y1: 20,
-    x2: 186,
-    y2: 20,
-    ax: 122,
-    ay: 36,
-  },
-  // Launch bridge — top of the launch corridor.
-  "launch-bridge": {
-    regionId: "launch",
-    facing: "up",
-    x1: 36,
-    y1: 26,
-    x2: 164,
-    y2: 26,
-    ax: 100,
-    ay: 42,
-  },
-  // Stairs — right edge above the stack.
-  "stairs-anach": {
-    regionId: "stairs",
-    facing: "right",
-    x1: 192,
-    y1: 16,
-    x2: 192,
-    y2: 132,
-    ax: 174,
-    ay: 64,
-  },
-  // Zig — top opening of the corridor (content frame).
-  "zig-1": {
-    regionId: "zig",
-    facing: "up",
-    x1: 128,
-    y1: 12,
-    x2: 232,
-    y2: 12,
-    ax: 180,
-    ay: 28,
-  },
-};
-
-export function exitZoneFor(beatId: BeatId): ExitZone | null {
-  return ZONES[beatId] ?? null;
-}
-
-/** Exit is ready whenever this beat has a forward zone (Borealis no longer gates). */
-export function exitZoneReady(beatId: BeatId): boolean {
-  return exitZoneFor(beatId) !== null;
-}
-
-function exitGap(zone: ExitZone): { x0: number; x1: number; y0: number; y1: number } {
-  const a = fromSvgPoint(zone.x1, zone.y1, zone.regionId);
-  const b = fromSvgPoint(zone.x2, zone.y2, zone.regionId);
-  return {
-    x0: Math.min(a.x, b.x) - LATERAL_SLACK,
-    x1: Math.max(a.x, b.x) + LATERAL_SLACK,
-    y0: Math.min(a.y, b.y) - LATERAL_SLACK,
-    y1: Math.max(a.y, b.y) + LATERAL_SLACK,
-  };
-}
-
-/** Forward exit zone → frame opening. */
-export function openingFromExitZone(zone: ExitZone): FrameOpening {
-  const gap = exitGap(zone);
-  return {
-    facing: zone.facing,
-    x0: gap.x0,
-    x1: gap.x1,
-    y0: gap.y0,
-    y1: gap.y1,
-  };
-}
 
 /** Bottom-edge gap over world x in [x0, x1]. Fires on touch (see touchedOpening). */
 export function bottomOpening(x0: number, x1: number): FrameOpening {
@@ -149,14 +66,6 @@ export function touchedOpening(
     body.x >= opening.x0 &&
     body.x <= opening.x1
   );
-}
-
-/** True when the ship has left the frame through the exit opening. */
-export function leftFrameThroughExit(
-  zone: ExitZone,
-  body: { x: number; y: number },
-): boolean {
-  return leftFrameThroughOpening(openingFromExitZone(zone), body);
 }
 
 /** True when the ship has left the frame through a frame opening. */
@@ -223,17 +132,4 @@ export function containAgainstOpenings(
   }
 
   return { body: { x, y, vx, vy, restingOn }, hit };
-}
-
-/**
- * Soft frame walls once the exit is live: every edge seals except the exit gap.
- * Keeps the ship from OOB-restarting after Borealis is gathered.
- * `hit` is true only on a hard impact into a sealed edge (speed gate), so
- * callers can tax hull without draining HP while the ship rests on a wall.
- */
-export function containAgainstExitFrame(
-  body: Body,
-  zone: ExitZone,
-): { body: Body; hit: boolean } {
-  return containAgainstOpenings(body, [openingFromExitZone(zone)]);
 }

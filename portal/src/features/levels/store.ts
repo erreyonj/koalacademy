@@ -143,7 +143,7 @@ export type Action =
   | { type: "undo" }
   | { type: "redo" }
   | { type: "load"; level: LevelFile }
-  | { type: "loadRoute"; levels: LevelFile[] }
+  | { type: "loadRoute"; levels: LevelFile[]; origin?: string }
   | { type: "selectLevel"; index: number }
   | { type: "moveLevel"; from: number; to: number }
   | { type: "addLevel" }
@@ -438,8 +438,8 @@ function reduceEditor(state: EditorState, action: Action): EditorState {
       return { ...openLevel(state, [action.level], 0), originId: null };
     case "loadRoute": {
       if (action.levels.length === 0) return state;
-      if (validateRoute(action.levels).errors.length > 0) return state;
-      return { ...openLevel(state, action.levels, 0), originId: null };
+      if (validateRoute(action.levels, action.origin).errors.length > 0) return state;
+      return { ...openLevel(state, action.levels, 0), originId: action.origin ?? null };
     }
     case "selectLevel": {
       if (state.base || state.gesture) return state;

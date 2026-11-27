@@ -2,18 +2,20 @@
  * Coordinates, snapping, and hit-testing for the editor.
  *
  * Level data lives in logical space (900×1600, +y up). The game draws it in a
- * y-down SVG view (portrait 200×360, landscape 360×200). Landscape logical
+ * y-down SVG view (portrait 200×360, landscape 554×308). Landscape logical
  * space is anisotropic, so every distance a person can see is measured in
  * view space, never logical space.
  */
 import {
+  LANDSCAPE_REGION,
+  LAUNCH_REGION,
   WORLD_H,
   WORLD_W,
   fromSvgPoint,
   ledgeYAt,
   svgViewFor,
   toSvg,
-  zigCameraFrame,
+  landscapeCameraFrame,
   type RegionId,
   type SvgViewSize,
 } from "../notehead/modules/sim";
@@ -33,8 +35,9 @@ import type {
 /** How far masses run past the frame (matches `OVER` in the game's terrain). */
 export const OVER = 16;
 
+/** The plain frame region the editor uses for a view (not a route level). */
 export function regionOf(view: LevelView): RegionId {
-  return view === "landscape" ? "zig" : "launch";
+  return view === "landscape" ? LANDSCAPE_REGION : LAUNCH_REGION;
 }
 
 export function viewSizeOf(view: LevelView): SvgViewSize {
@@ -66,7 +69,7 @@ export interface Rect {
 export function outerRect(view: LevelView): Rect {
   const size = viewSizeOf(view);
   if (view === "landscape") {
-    const { ox, oy } = zigCameraFrame();
+    const { ox, oy } = landscapeCameraFrame();
     return {
       x0: -ox - OVER,
       y0: -oy - OVER,

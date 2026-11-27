@@ -32,18 +32,19 @@ export interface LogicalMass {
   outline: Point[];
 }
 
-const logicalCache = new Map<RegionId, readonly LogicalMass[]>();
+const logicalCache = new WeakMap<readonly Mass[], readonly LogicalMass[]>();
 
 function logicalMasses(regionId: RegionId): readonly LogicalMass[] {
-  let cached = logicalCache.get(regionId);
+  const view = massesFor(regionId);
+  let cached = logicalCache.get(view);
   if (cached) return cached;
-  cached = massesFor(regionId).map((mass) => ({
+  cached = view.map((mass) => ({
     id: mass.id,
     outline: mass.outline.map((point) =>
       fromSvgPoint(point.x, point.y, regionId),
     ),
   }));
-  logicalCache.set(regionId, cached);
+  logicalCache.set(view, cached);
   return cached;
 }
 
@@ -238,4 +239,36 @@ export function chartShotSolid(
   }
 
   return { points, apex, landedOn };
+}
+
+/**
+ * The highest rock surface directly below (x, y), in logical space, or null
+ * over open sky. Used to plant an exit band under a Borealis.
+ */
+export function surfaceBelow(
+  masses: readonly LogicalMass[],
+  x: number,
+  y: number,
+): number | null {
+  let best: number | null = null;
+  for (const mass of masses) {
+    const ring = mass.outline;
+    for (let i = 0; i < ring.length; i++) {
+      const a = ring[i]!;
+      const b = ring[(i + 1) % ring.length]!;
+      if (a.x === b.x) continue;
+      const lo = Math.min(a.x, b.x);
+      const hi = Math.max(a.x, b.x);
+      if (x < lo || x > hi) continue;
+      const surface = a.y + ((x - a.x) / (b.x - a.x)) * (b.y - a.y);
+      if (surface > y) continue;
+      if (best === null || surface > best) best = surface;
+    }
+  }
+  return best;
+}
+
+/** Logical rock for a registered region (cached). */
+export function logicalMassesFor(regionId: RegionId): readonly LogicalMass[] {
+  return logicalMasses(regionId);
 }

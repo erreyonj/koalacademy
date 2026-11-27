@@ -487,8 +487,8 @@ export function PlaytestView({
           <Ship
             cx={ship.x}
             cy={ship.y}
-            rx={size.w > size.h ? 10 : 8}
-            ry={size.w > size.h ? 7 : 6}
+            rx={8}
+            ry={6}
             look={lookFor(state, frame?.whole ?? 0)}
             testId="playtest-ship"
             regionId={scene.regionId}
@@ -499,9 +499,7 @@ export function PlaytestView({
       <PlayHud
         state={state}
         session={session}
-        levelId={level.id}
-        levelIndex={index}
-        levelCount={levels.length}
+        inRoute={levels.length > 1}
       />
 
       {state.cleared && (

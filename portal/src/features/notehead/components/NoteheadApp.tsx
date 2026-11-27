@@ -27,7 +27,6 @@ import {
   type Borealis,
   COLLECT_RADIUS,
   exitBandFor,
-  seedVisited,
   spawnBorealis,
   stepBorealis,
 } from "../modules/borealis";
@@ -50,32 +49,18 @@ import {
   maxHp,
 } from "../modules/health";
 import { clearanceBelow } from "../modules/momentum";
+import { containAgainstOpenings } from "../modules/exit-zone";
 import {
-  containAgainstOpenings,
-  exitZoneFor,
-  exitZoneReady,
-} from "../modules/exit-zone";
-import {
-  type BeatFlight,
-  type BeatId,
-  PLAYABLE_BEATS,
-  aimModeForBeat,
-  applyWarp,
-  bounceOffCrashBlock,
-  createRoute,
-  emptyRouteMemory,
-  launchGoalY,
-  liveLedges,
-  markCrashSeen,
-  markStorySeen,
-  matchTouchRoute,
-  matchTravelRoute,
-  openingsForBeat,
-  PROGRESSION,
-  repairForBeat,
-  stepPolicyFor,
   type RouteMemory,
-  type TravelRoute,
+  aimModeFor,
+  applyWarp,
+  emptyRepair,
+  emptyRouteMemory,
+  evaluateSlingshot,
+  guideY,
+  liveLedges,
+  markStorySeen,
+  stepPolicyFor,
 } from "../modules/progress";
 import {
   type Aim,
@@ -86,10 +71,7 @@ import {
   type ShipRepair,
   C_MAJOR,
   FIXED_DT,
-  ANACH_TEACH_Y,
-  LAUNCH_BAND,
   LAUNCH_SPACING,
-  NOTCH_BLOCK,
   PROFILES,
   SHIP_R,
   WORLD_H,
@@ -97,6 +79,7 @@ import {
   aimFromPull,
   fromSvgPoint,
   isDockableBand,
+  isLandscapeRegion,
   isSlopedStep,
   launchVelocity,
   ledgeById,
@@ -108,10 +91,8 @@ import {
 import {
   applyCollect,
   awardIfNew,
-  challengeFor,
   emptyAttempt,
   emptyRouteTonation,
-  INTERVAL_BEATS,
   intervalHudPair,
   noteTailGateOk,
   TONATION_CAP,
@@ -125,11 +106,13 @@ import {
   useThemeMusic,
 } from "@/features/games/theme-music";
 import {
-  enterEventsForBeat,
   interruptsForEvent,
   type StoryEventId,
   type StoryInterrupt as StoryInterruptData,
 } from "../modules/story";
+import { getRoute } from "../routes/registry";
+import { eventsFor, type Slingshot } from "../routes/events";
+import { arrive, matchDeparture, type Departure } from "../routes/runtime";
 import { HullCueMark } from "./ExitZone";
 import { StartScreen } from "./StartScreen";
 import { StoryInterrupt } from "./StoryInterrupt";
@@ -140,12 +123,12 @@ type Phase = GesturePhase;
 type ScreenPhase = "start" | "play";
 
 const THEME_SRC = "/assets/notehead/notehead-etheral-vibe.wav";
-/** Slow-mo while the Launch band snaps and the ship falls out of frame. */
+/** Slow-mo while the band snaps and the ship falls out through the floor gap. */
 const BREAK_FALL_TIME_SCALE = 0.22;
-/** Hull-breach shatter before GI / beat restart. */
+/** Hull-breach shatter before GI / level restart. */
 const HULL_BREACH_MS = 880;
 /**
- * Dev chrome (beat jump pills + under-stage helper text) — on in local/dev
+ * Dev chrome (level jump pills + under-stage helper text) — on in local/dev
  * by default; set NEXT_PUBLIC_NOTEHEAD_LEVEL_SELECT=1 to show in a production
  * build, or =0 to force-hide even in development.
  */
@@ -154,13 +137,30 @@ const SHOW_DEV_CHROME =
   (process.env.NODE_ENV === "development" &&
     process.env.NEXT_PUBLIC_NOTEHEAD_LEVEL_SELECT !== "0");
 
+/** Repairs a place starts with (dev jumps): none at the origin, all after. */
+function repairForPlace(placeId: string, origin: string): ShipRepair {
+  return placeId === origin ? emptyRepair() : { anachrometer: true, tails: [] };
+}
+
+function hintForPlace(
+  routeId: string,
+  placeId: string,
+  slingshot: Slingshot | undefined,
+): string {
+  if (slingshot) return slingshot.hint;
+  const tonation = eventsFor(routeId, placeId).tonation;
+  return tonation
+    ? `Exit anytime — ${tonation.label} earns Tonation.`
+    : "Pull a Frequency Band to launch — exit anytime.";
+}
+
 type JumpOpts = {
   skipStory?: boolean;
   enterBody?: Body;
 };
 
 type JumpFn = (
-  id: BeatId,
+  id: string,
   nextRepair?: ShipRepair,
   opts?: JumpOpts,
 ) => void;
@@ -174,35 +174,41 @@ export function NoteheadApp() {
   const cutsceneOpenRef = useRef(false);
   const interruptQueueRef = useRef<StoryInterruptData[]>([]);
   const pendingAfterDismissRef = useRef<(() => void) | null>(null);
-  const anachTeachShownRef = useRef(false);
+  const riseGateShownRef = useRef(false);
+  /** The player has pulled a slingshot shot that has not landed yet. */
+  const lessonShotRef = useRef(false);
+  /** Level whose enter stories wait for the ship to finish arriving and seat. */
+  const pendingEnterRef = useRef<string | null>(null);
   /** First Tonation bank GI — once per run (survives a Hard breach wipe). */
   const tonationTeachShownRef = useRef(false);
   const hullHitTeachShownRef = useRef(false);
   const hullBreachTeachShownRef = useRef(false);
   const openInterruptRef = useRef<(id: StoryEventId) => void>(() => {});
-  const openEnterRef = useRef<(id: BeatId) => void>(() => {});
-  const route = createRoute();
-  const beatRef = useRef<BeatId>(route.beatId);
-  const repairRef = useRef<ShipRepair>(route.repair);
+  const openEnterRef = useRef<(id: string) => void>(() => {});
+  const gameRoute = getRoute("zig1perspective");
+  const startBody = { ...gameRoute.scenes.get(gameRoute.origin)!.start };
+  const placeRef = useRef<string>(gameRoute.origin);
+  /** The slingshot lesson has been broken through (or left): the level is plain. */
+  const slingshotDoneRef = useRef(false);
+  const repairRef = useRef<ShipRepair>(emptyRepair());
   const difficultyRef = useRef<DifficultyId>("easy");
-  const phaseRef = useRef<Phase>(route.body.restingOn ? "idle" : "flight");
+  const phaseRef = useRef<Phase>(startBody.restingOn ? "idle" : "flight");
   const aimRef = useRef<Aim>({ power: 0, angle: 0 });
-  const bodyRef = useRef<Body>(route.body);
+  const bodyRef = useRef<Body>(startBody);
   const visitedRef = useRef<string[]>([]);
   const crossedRef = useRef<PitchName[]>([]);
-  const apexRef = useRef(route.body.y);
+  const apexRef = useRef(startBody.y);
   const crossedGoalRef = useRef(false);
   const brokeBandRef = useRef(false);
   const bandBreakRef = useRef<{ x: number; y: number } | null>(null);
-  const crossedExitRef = useRef(false);
   const shotPowerRef = useRef(0);
   const warpRef = useRef<Ledge | null>(null);
   const exitBandRef = useRef<Ledge | null>(null);
-  const borealisRef = useRef<Borealis[]>(spawnBorealis(route.beatId));
-  const noteTailRef = useRef<NoteTail | null>(spawnNoteTail(route.beatId));
+  const borealisRef = useRef<Borealis[]>([]);
+  const noteTailRef = useRef<NoteTail | null>(null);
   const tonationRef = useRef<RouteTonation>(emptyRouteTonation());
   const attemptRef = useRef<IntervalAttempt>(emptyAttempt());
-  const healedBeatsRef = useRef<BeatId[]>([]);
+  const healedRef = useRef<string[]>([]);
   const memoryRef = useRef<RouteMemory>(emptyRouteMemory());
   const hpRef = useRef(maxHp("easy"));
   const stingRef = useRef(0);
@@ -210,13 +216,19 @@ export function NoteheadApp() {
   const tRef = useRef(0);
   const originX = useRef(0);
   const originY = useRef(0);
-  const [beatId, setBeatId] = useState<BeatId>(route.beatId);
-  const [, setRepair] = useState<ShipRepair>(route.repair);
+  const [placeId, setPlaceId] = useState<string>(gameRoute.origin);
+  const [, setRepair] = useState<ShipRepair>(emptyRepair());
   const [difficulty, setDifficulty] = useState<DifficultyId>("easy");
   const [hp, setHp] = useState(maxHp("easy"));
   const [tonationValue, setTonationValue] = useState(0);
   const [attemptTick, setAttemptTick] = useState(0);
-  const [hint, setHint] = useState(PROGRESSION[route.beatId].hint);
+  const [hint, setHint] = useState(() =>
+    hintForPlace(
+      gameRoute.id,
+      gameRoute.origin,
+      eventsFor(gameRoute.id, gameRoute.origin).slingshot,
+    ),
+  );
   const [phase, setPhase] = useState<Phase>(phaseRef.current);
   const [screenPhase, setScreenPhase] = useState<ScreenPhase>("start");
   const screenPhaseRef = useRef<ScreenPhase>("start");
@@ -231,7 +243,7 @@ export function NoteheadApp() {
     hpRef.current = cap;
     setHp(cap);
     tonationRef.current = emptyRouteTonation();
-    healedBeatsRef.current = [];
+    healedRef.current = [];
     memoryRef.current = emptyRouteMemory();
     attemptRef.current = emptyAttempt();
     tonationTeachShownRef.current = false;
@@ -240,12 +252,9 @@ export function NoteheadApp() {
     setScreenPhase("play");
     resume();
     music.start();
-    const batch = enterEventsForBeat(beatRef.current).flatMap((eventId) => [
-      ...interruptsForEvent(eventId),
-    ]);
-    interruptQueueRef.current = batch.slice(1);
-    cutsceneOpenRef.current = batch.length > 0;
-    setActiveInterrupt(batch[0] ?? null);
+    // The enter animation plays first; the stories fire once the ship seats.
+    memoryRef.current = markStorySeen(memoryRef.current, placeRef.current);
+    pendingEnterRef.current = placeRef.current;
   };
 
   const promoteInterrupt = (batch: readonly StoryInterruptData[]) => {
@@ -268,8 +277,23 @@ export function NoteheadApp() {
   };
   openInterruptRef.current = openInterrupt;
 
-  const openEnterStory = (id: BeatId) => {
-    const batch = enterEventsForBeat(id).flatMap((eventId) => [
+  /** The slingshot lesson for the current level, while it is still live. */
+  const slingshotNow = (): Slingshot | undefined =>
+    slingshotDoneRef.current
+      ? undefined
+      : eventsFor(gameRoute.id, placeRef.current).slingshot;
+
+  /** The first authored band: the slingshot's band and guide anchor. */
+  const slingshotBand = (): Ledge | undefined =>
+    gameRoute.scenes
+      .get(placeRef.current)
+      ?.ledges.find((ledge) => ledge.kind === "band");
+
+  const enterStoriesFor = (id: string): readonly StoryEventId[] =>
+    eventsFor(gameRoute.id, id).enter ?? [];
+
+  const openEnterStory = (id: string) => {
+    const batch = enterStoriesFor(id).flatMap((eventId) => [
       ...interruptsForEvent(eventId),
     ]);
     promoteInterrupt(batch);
@@ -292,8 +316,7 @@ export function NoteheadApp() {
     pending?.();
   };
 
-  const beat = PROGRESSION[beatId];
-  const intervalChallenge = challengeFor(beatId);
+  const intervalChallenge = eventsFor(gameRoute.id, placeId).tonation ?? null;
   // attemptTick forces HUD pair refresh when collects change inside the rAF loop.
   void attemptTick;
   const intervalPair = intervalChallenge
@@ -307,17 +330,6 @@ export function NoteheadApp() {
     view.mount(host);
     viewRef.current = view;
 
-    const flightSnapshot = (landedOn: string | null): BeatFlight => ({
-      apexY: apexRef.current,
-      crossedGoal: crossedGoalRef.current,
-      brokeBand: brokeBandRef.current,
-      crossedExit: crossedExitRef.current,
-      visited: visitedRef.current,
-      landedOn,
-      restingOn: bodyRef.current.restingOn,
-      power: shotPowerRef.current,
-    });
-
     const setHull = (next: number) => {
       const clamped = clampHp(next, difficultyRef.current);
       hpRef.current = clamped;
@@ -329,16 +341,17 @@ export function NoteheadApp() {
       setAttemptTick((n) => n + 1);
     };
 
-    /** Notch hull tips — once per beat visit, on first damage / first breach. */
+    /** Hull tips — once per level visit, on first damage / first breach. */
     const teachHullDamage = (prev: number, next: number) => {
-      if (beatRef.current !== "notch-calibrate" || next >= prev) return;
-      if (!hullHitTeachShownRef.current) {
+      const hull = eventsFor(gameRoute.id, placeRef.current).hull;
+      if (!hull || next >= prev) return;
+      if (hull.hit && !hullHitTeachShownRef.current) {
         hullHitTeachShownRef.current = true;
-        openInterruptRef.current("notch-calibrate-hull-hit");
+        openInterruptRef.current(hull.hit);
       }
-      if (next <= 0 && !hullBreachTeachShownRef.current) {
+      if (hull.breach && next <= 0 && !hullBreachTeachShownRef.current) {
         hullBreachTeachShownRef.current = true;
-        openInterruptRef.current("notch-calibrate-hull-breach");
+        openInterruptRef.current(hull.breach);
       }
     };
 
@@ -357,17 +370,17 @@ export function NoteheadApp() {
       const restart = () => {
         if (breachWipesTonation(difficultyRef.current)) {
           tonationRef.current = wipeTonation();
-          healedBeatsRef.current = [];
+          healedRef.current = [];
           syncTonationHud();
         }
-        jumpBeat(beatRef.current, repairRef.current);
+        jumpTo(placeRef.current, repairRef.current);
         setHull(maxHp(difficultyRef.current));
       };
 
       window.setTimeout(() => {
         teachHullDamage(prevHp, nextHp);
         if (
-          beatRef.current === "notch-calibrate" &&
+          eventsFor(gameRoute.id, placeRef.current).hull &&
           (cutsceneOpenRef.current || interruptQueueRef.current.length > 0)
         ) {
           // Keep 0 HP so the hull cue points at empty pips until dismiss.
@@ -378,63 +391,73 @@ export function NoteheadApp() {
       }, HULL_BREACH_MS);
     };
 
-    const jumpBeat: JumpFn = (id, nextRepair, opts) => {
-      const prevId = beatRef.current;
-      const repair = nextRepair ?? repairForBeat(id);
-      const def = PROGRESSION[id];
-      beatRef.current = id;
+    const jumpTo: JumpFn = (id, nextRepair, opts) => {
+      const prevId = placeRef.current;
+      const events = eventsFor(gameRoute.id, id);
+      const scene = gameRoute.scenes.get(id) ?? null;
+      let repair = nextRepair ?? repairForPlace(id, gameRoute.origin);
+      if (events.grant?.anachrometer && !repair.anachrometer) {
+        repair = { ...repair, anachrometer: true };
+      }
+      placeRef.current = id;
       repairRef.current = repair;
-      bodyRef.current = opts?.enterBody ?? def.enter(repair);
+      bodyRef.current =
+        opts?.enterBody ?? (scene ? { ...scene.start } : bodyRef.current);
       warpRef.current = null;
       exitBandRef.current = null;
-      borealisRef.current = spawnBorealis(id);
+      borealisRef.current = spawnBorealis(scene?.borealis ?? []);
       attemptRef.current = emptyAttempt();
       syncTonationHud();
-      noteTailRef.current = spawnNoteTail(id);
+      noteTailRef.current =
+        events.noteTail && !repair.tails.includes("eighth")
+          ? spawnNoteTail(events.noteTail)
+          : null;
       timeScaleRef.current = 1;
       stopAnachWarp();
       aimRef.current = { power: 0, angle: 0 };
-      visitedRef.current = seedVisited(id);
+      visitedRef.current = [];
       crossedRef.current = [];
       apexRef.current = bodyRef.current.y;
       crossedGoalRef.current = false;
       brokeBandRef.current = false;
       bandBreakRef.current = null;
-      crossedExitRef.current = false;
+      lessonShotRef.current = false;
       shotPowerRef.current = 0;
       tRef.current = 0;
-      setBeatId(id);
+      setPlaceId(id);
       setRepair(repair);
-      setHint(def.hint);
+      setHint(hintForPlace(gameRoute.id, id, slingshotNow()));
       setClimb(null);
       setAimTone(null);
       const nextPhase: Phase = bodyRef.current.restingOn ? "idle" : "flight";
       phaseRef.current = nextPhase;
       setPhase(nextPhase);
-      // Same-beat restart (hull breach) keeps teach flags and skips enter CM.
+      // Same-level restart (hull breach) keeps teach flags and skips enter CM.
       if (id !== prevId) {
-        anachTeachShownRef.current = false;
+        riseGateShownRef.current = false;
         hullHitTeachShownRef.current = false;
         hullBreachTeachShownRef.current = false;
-        // Drop any in-flight CM/GI from the previous beat so sandbox jumps
+        // Drop any in-flight CM/GI from the previous level so sandbox jumps
         // (and soft returns) never leak dialogue into the next place.
         interruptQueueRef.current = [];
         cutsceneOpenRef.current = false;
         pendingAfterDismissRef.current = null;
+        pendingEnterRef.current = null;
         setActiveInterrupt(null);
         const skip =
           opts?.skipStory || memoryRef.current.storySeen.includes(id);
         if (!skip) {
           memoryRef.current = markStorySeen(memoryRef.current, id);
-          openEnterRef.current(id);
+          // After the arrival animation: see the loop.
+          pendingEnterRef.current = id;
         }
       }
     };
-    jumpRef.current = jumpBeat;
+    jumpRef.current = jumpTo;
 
-    /** Soft reverse travel into a prior region (skip enter CM when revisited). */
+    /** Soft reverse travel into a prior level (skip enter CM when revisited). */
     const takeReturnRoute = (
-      to: BeatId,
+      to: string,
       enterBody: Body,
       hint: string,
       slowMo = false,
@@ -443,26 +466,24 @@ export function NoteheadApp() {
       phaseRef.current = "flight";
       setPhase("flight");
       if (slowMo) timeScaleRef.current = BREAK_FALL_TIME_SCALE;
-      jumpBeat(to, repairRef.current, {
+      jumpTo(to, repairRef.current, {
         skipStory: true,
         enterBody,
       });
       if (slowMo) {
         timeScaleRef.current = BREAK_FALL_TIME_SCALE;
         window.setTimeout(() => {
-          if (beatRef.current === to) timeScaleRef.current = 1;
+          if (placeRef.current === to) timeScaleRef.current = 1;
         }, 900);
       }
     };
 
-    const seatLedges = () => {
-      const def = PROGRESSION[beatRef.current];
-      return liveLedges(
-        def.regionId,
+    const seatLedges = () =>
+      liveLedges(
+        placeRef.current,
         warpRef.current,
         exitBandRef.current,
       );
-    };
 
     const slidingOnStep = () =>
       isSlopedStep(ledgeById(seatLedges(), bodyRef.current.restingOn));
@@ -476,84 +497,116 @@ export function NoteheadApp() {
       );
     };
 
-    const advanceIfClear = (
-      landedOn: string | null,
-      enterBody?: Body,
-    ): boolean => {
-      const def = PROGRESSION[beatRef.current];
-      const result = def.evaluate(flightSnapshot(landedOn), repairRef.current);
-      setHint(result.hint);
-      if (!result.cleared) {
-        // Sloped treads keep simulating (land → slide → bounce); don't freeze.
-        // An active pull (incl. after air-warp contact) also stays live.
-        if (
-          phaseRef.current !== "pulling" &&
-          bodyRef.current.restingOn &&
-          !slidingOnStep()
-        ) {
-          phaseRef.current = "idle";
-          setPhase("idle");
+    /** The last Note-Tail is back: the tutorial route is done. */
+    const finishRoute = (hint: string) => {
+      phaseRef.current = "sparkle";
+      setPhase("sparkle");
+      setHint(hint);
+      window.setTimeout(() => {
+        phaseRef.current = "idle";
+        setPhase("idle");
+        setHint("Route clear");
+      }, 720);
+    };
+
+    /**
+     * The ship left through an exit. Forward exits celebrate, then carry the
+     * ship on; back exits drop it straight in; a same-level exit re-enters.
+     */
+    const takeDeparture = (departure: Departure): boolean => {
+      const scene = gameRoute.scenes.get(placeRef.current);
+      if (!scene) return false;
+      const lesson = slingshotNow();
+      if (lesson) {
+        const exit = scene.level.exits[departure.exit];
+        const target = departure.to ? gameRoute.scenes.get(departure.to) : null;
+        if (exit?.facing === "down") {
+          if (brokeBandRef.current && target) {
+            // Through the band and out the floor gap: crash into the target at
+            // its authored Enter pose.
+            slingshotDoneRef.current = true;
+            jumpTo(target.id, repairRef.current, { enterBody: { ...target.start } });
+            return true;
+          }
+          // Slid off the band without breaking it: start the lesson over.
+          jumpTo(placeRef.current, repairRef.current);
+          return true;
         }
+        // Left upward or sideways instead: the lesson is over.
+        slingshotDoneRef.current = true;
+      }
+      const arrival = arrive(gameRoute, scene, departure, bodyRef.current);
+      if (arrival.kind === "error") {
+        setHint(arrival.message);
         return false;
       }
-      repairRef.current = result.repair;
-      setRepair(result.repair);
-      setHint(def.clearHint);
-      const firstIntervalClear =
-        (INTERVAL_BEATS as readonly string[]).includes(def.id) &&
-        !healedBeatsRef.current.includes(def.id);
-      if (firstIntervalClear) {
-        healedBeatsRef.current = [...healedBeatsRef.current, def.id];
-        setHull(
-          applyRegionClearHeal(hpRef.current, difficultyRef.current),
+      if (arrival.kind === "end") {
+        finishRoute("Route clear");
+        return true;
+      }
+      if (arrival.soft) {
+        // Same level: keep Borealis and the Tonation attempt.
+        bodyRef.current = arrival.body;
+        warpRef.current = null;
+        stopAnachWarp();
+        timeScaleRef.current = 1;
+        phaseRef.current = "flight";
+        setPhase("flight");
+        setHint("Looping back in…");
+        return true;
+      }
+      if (!arrival.forward) {
+        takeReturnRoute(
+          arrival.levelId,
+          arrival.body,
+          arrival.fallIn ? "Falling back in…" : "Returning…",
+          arrival.fallIn,
         );
-      }
-      // Launch break-through and Notch crash are escapes/impacts, not wins —
-      // skip the star burst. Launch already waited for the slo-mo fall OOB.
-      const celebrate =
-        def.id !== "launch-teach" && def.id !== "notch-crash";
-      if (celebrate) {
-        phaseRef.current = "sparkle";
-        setPhase("sparkle");
-      }
-      const cut = () => {
-        if (def.id === "notch-crash") {
-          memoryRef.current = markCrashSeen(memoryRef.current);
-        }
-        let nextId = def.next;
-        // First Launch break-through always plays the crash intro once.
-        if (def.id === "launch-teach") {
-          nextId = memoryRef.current.crashSeen
-            ? "notch-calibrate"
-            : "notch-crash";
-        }
-        // Warp / alternate exits may override the destination enter pose.
-        if (nextId) {
-          jumpBeat(
-            nextId,
-            result.repair,
-            enterBody ? { enterBody } : undefined,
-          );
-        } else {
-          phaseRef.current = "idle";
-          setPhase("idle");
-          setHint("Route clear");
-        }
-      };
-      if (def.id === "launch-teach") {
-        cut();
         return true;
       }
-      if (def.id === "notch-calibrate") {
-        window.setTimeout(cut, 280);
-        return true;
+      const events = eventsFor(gameRoute.id, placeRef.current);
+      const firstIntervalClear =
+        Boolean(events.tonation) && !healedRef.current.includes(placeRef.current);
+      if (firstIntervalClear) {
+        healedRef.current = [...healedRef.current, placeRef.current];
+        setHull(applyRegionClearHeal(hpRef.current, difficultyRef.current));
       }
-      window.setTimeout(cut, celebrate ? 720 : 280);
+      setHint("Through the exit");
+      phaseRef.current = "sparkle";
+      setPhase("sparkle");
+      window.setTimeout(() => {
+        jumpTo(arrival.levelId, repairRef.current, { enterBody: arrival.body });
+      }, events.departMs ?? 720);
       return true;
     };
 
+    /**
+     * The ship has settled (or landed on a sloping tread). During the
+     * slingshot lesson this is where a flight is judged; elsewhere it rests.
+     */
+    const settle = () => {
+      if (slingshotNow()) {
+        setHint(
+          evaluateSlingshot({
+            crossedGoal: crossedGoalRef.current,
+            brokeBand: brokeBandRef.current,
+          }).hint,
+        );
+      }
+      // Sloped treads keep simulating (land → slide → bounce); don't freeze.
+      // An active pull (incl. after air-warp contact) also stays live.
+      if (
+        phaseRef.current !== "pulling" &&
+        bodyRef.current.restingOn &&
+        !slidingOnStep()
+      ) {
+        phaseRef.current = "idle";
+        setPhase("idle");
+      }
+    };
+
     const paint = () => {
-      const def = PROGRESSION[beatRef.current];
+      const regionId = placeRef.current;
       const sample = {
         t: tRef.current,
         body: bodyRef.current,
@@ -567,19 +620,19 @@ export function NoteheadApp() {
         (warpRef.current ? WARP_BAND_ID : null);
       const chart = aiming
         ? chartShotSolid(
-            def.regionId,
+            regionId,
             chartHome
               ? { ...bodyRef.current, restingOn: chartHome }
               : bodyRef.current,
             aimRef.current,
             PROFILES[difficultyRef.current].aimInset,
-            aimModeForBeat(beatRef.current),
+            aimModeFor(Boolean(slingshotNow())),
           )
         : null;
       // Decay the red hit flash between paints.
       stingRef.current = Math.max(0, stingRef.current - 0.018);
       const live = liveLedges(
-        def.regionId,
+        regionId,
         warpRef.current,
         exitBandRef.current,
       );
@@ -594,33 +647,33 @@ export function NoteheadApp() {
         exitBand: exitBandRef.current,
         borealis: borealisRef.current,
         noteTail: noteTailRef.current,
-        exitZone: exitZoneFor(beatRef.current),
-        exitLit: exitZoneReady(beatRef.current),
         bandBreak: bandBreakRef.current,
+        guide: (() => {
+          const lesson = slingshotNow();
+          const band = slingshotBand();
+          return lesson && band ? guideY(band, lesson.goal) : null;
+        })(),
         clearance: clearanceBelow(bodyRef.current, live),
         sting: stingRef.current,
       };
-      view.frame(sample, regionById(def.regionId), gesture);
+      view.frame(sample, regionById(regionId), gesture);
     };
 
     const tickSim = () => {
-      const def = PROGRESSION[beatRef.current];
-      const policy = stepPolicyFor(
-        def,
-        repairRef.current,
-        crossedGoalRef.current,
-      );
+      const place = placeRef.current;
+      const lesson = slingshotNow();
+      const lessonBand = slingshotBand();
+      const regionId = place;
+      const scene = gameRoute.scenes.get(place) ?? null;
+      const events = eventsFor(gameRoute.id, place);
+      const policy = stepPolicyFor(Boolean(lesson), crossedGoalRef.current);
       // Warp is visual + aim home only while the ship is still flying —
       // colliding with the transient band would kill mid-air aim.
-      // Calibrate replaces the pocket wait-band with Borealis.
-      let ledges = liveLedges(
-        def.regionId,
+      const ledges = liveLedges(
+        regionId,
         phaseRef.current === "pulling" ? null : warpRef.current,
         exitBandRef.current,
       );
-      if (beatRef.current === "notch-calibrate") {
-        ledges = ledges.filter((ledge) => ledge.id !== "pocket");
-      }
       const rising = bodyRef.current.vy > 0;
       const prevY = bodyRef.current.y;
       const prevBottom = bodyRef.current.y - SHIP_R;
@@ -636,12 +689,12 @@ export function NoteheadApp() {
       const seat = ledgeById(ledges, bodyRef.current.restingOn);
       const solid =
         !bodyRef.current.restingOn || isSlopedStep(seat)
-          ? resolveMasses(bodyRef.current, def.regionId)
+          ? resolveMasses(bodyRef.current, regionId)
           : { body: bodyRef.current, hit: false, massId: null, into: 0 };
       bodyRef.current = solid.body;
-      const openings = openingsForBeat(beatRef.current);
+      const openings = scene?.openings ?? [];
       let exitBarrierHit = false;
-      // Seal every edge except forward + reverse travel openings.
+      // Seal every edge except the level's exits.
       if (
         openings.length > 0 &&
         (!bodyRef.current.restingOn || isSlopedStep(seat))
@@ -659,25 +712,27 @@ export function NoteheadApp() {
       tRef.current += FIXED_DT;
       if (bodyRef.current.y > apexRef.current) apexRef.current = bodyRef.current.y;
 
-      const goalY = launchGoalY();
-      if (rising && prevY < goalY && bodyRef.current.y >= goalY) {
-        crossedGoalRef.current = true;
+      if (lesson && lessonBand) {
+        const goalY = guideY(lessonBand, lesson.goal);
+        if (rising && prevY < goalY && bodyRef.current.y >= goalY) {
+          crossedGoalRef.current = true;
+        }
       }
-      // Anachrometer teach: first rise past the invisible pocket-height gate.
+      // Level GI: first rise past an authored height (e.g. the Anachrometer teach).
       if (
-        beatRef.current === "notch-calibrate" &&
-        !anachTeachShownRef.current &&
+        events.riseGate &&
+        !riseGateShownRef.current &&
         rising &&
-        prevY < ANACH_TEACH_Y &&
-        bodyRef.current.y >= ANACH_TEACH_Y
+        prevY < events.riseGate.y &&
+        bodyRef.current.y >= events.riseGate.y
       ) {
-        anachTeachShownRef.current = true;
-        openInterruptRef.current("notch-calibrate-first-warp");
+        riseGateShownRef.current = true;
+        openInterruptRef.current(events.riseGate.event);
       }
-      // Climb ladder voice is launch-teach only (the slingshot lesson).
-      if (rising && beatRef.current === "launch-teach") {
+      // Climb ladder voice belongs to the slingshot lesson.
+      if (rising && lesson && lessonBand) {
         for (let index = 0; index < C_MAJOR.pitches.length; index++) {
-          const y = LAUNCH_BAND.y + (index + 1) * LAUNCH_SPACING;
+          const y = lessonBand.y + (index + 1) * LAUNCH_SPACING;
           const pitch = C_MAJOR.pitches[index];
           if (!pitch) continue;
           if (
@@ -693,6 +748,7 @@ export function NoteheadApp() {
       if (rising && bodyRef.current.vy <= 0) setClimb(null);
 
       if (
+        lesson &&
         !result.landedId &&
         bodyRef.current.vy < 0 &&
         Math.abs(bodyRef.current.vy) > policy.breakSpeed
@@ -711,13 +767,10 @@ export function NoteheadApp() {
                 x: bodyRef.current.x,
                 y: ledge.y,
               };
-              if (
-                beatRef.current === "launch-teach" &&
-                crossedGoalRef.current
-              ) {
-                // Slo-mo fall while the band break plays; advance on OOB.
+              if (crossedGoalRef.current) {
+                // Slo-mo fall while the band break plays, out through the floor gap.
                 timeScaleRef.current = BREAK_FALL_TIME_SCALE;
-                setHint(PROGRESSION["launch-teach"].clearHint);
+                setHint(lesson.clearHint);
               }
             }
             brokeBandRef.current = true;
@@ -725,44 +778,11 @@ export function NoteheadApp() {
         }
       }
 
-      const takeMatchedRoute = (route: TravelRoute): boolean => {
-        if (route.mode === "forward") {
-          crossedExitRef.current = true;
-          const enter = route.enterBody?.();
-          return advanceIfClear(null, enter);
-        }
-        if (route.softReentry && route.enterBody) {
-          // Zig lower-right warp: same beat, keep Borealis / tonation.
-          bodyRef.current = route.enterBody();
-          warpRef.current = null;
-          stopAnachWarp();
-          timeScaleRef.current = 1;
-          phaseRef.current = "flight";
-          setPhase("flight");
-          setHint("Warping in from the left barrier…");
-          return true;
-        }
-        if (route.enterBody) {
-          const hints: Record<string, string> = {
-            "bridge-return-notch": "Falling back into the Notch…",
-            "stairs-return-bridge": "Falling back onto the Launch Bridge…",
-            "zig-return-stairs": "Falling back into the Stairs…",
-            "tail-return-zig": "Falling back into Zig…",
-          };
-          takeReturnRoute(
-            route.to,
-            route.enterBody(),
-            hints[route.id] ?? "Returning…",
-            Boolean(route.fallIn),
-          );
-          return true;
-        }
-        return false;
-      };
-
-      // Lower exits fire as soon as a falling hull touches the floor gap.
-      const touch = matchTouchRoute(beatRef.current, bodyRef.current);
-      if (touch && takeMatchedRoute(touch)) return;
+      // Exits: out the top / right, or a falling hull touching the floor gap.
+      if (scene) {
+        const departure = matchDeparture(scene, bodyRef.current);
+        if (departure && takeDeparture(departure)) return;
+      }
 
       if (
         bodyRef.current.y < -240 ||
@@ -770,9 +790,6 @@ export function NoteheadApp() {
         bodyRef.current.x < -120 ||
         bodyRef.current.x > WORLD_W + 120
       ) {
-        const openings = openingsForBeat(beatRef.current);
-        const route = matchTravelRoute(beatRef.current, bodyRef.current);
-        if (route && takeMatchedRoute(route)) return;
         if (openings.length > 0) {
           // Sealed frame: bounce back instead of losing the Borealis run.
           const bounced = containAgainstOpenings(bodyRef.current, openings);
@@ -795,12 +812,7 @@ export function NoteheadApp() {
           }
           return;
         }
-        if (beatRef.current === "launch-teach") {
-          // After break-through, OOB ends the slo-mo fall into Notch.
-          advanceIfClear(null);
-          return;
-        }
-        jumpBeat(beatRef.current, repairRef.current);
+        jumpTo(place, repairRef.current);
         return;
       }
 
@@ -874,37 +886,26 @@ export function NoteheadApp() {
         setHint("Fly out through the exit");
       }
 
-      if (
-        beatRef.current === "notch-crash" &&
-        result.landedId === NOTCH_BLOCK.id &&
-        bodyRef.current.restingOn
-      ) {
-        bodyRef.current = bounceOffCrashBlock(bodyRef.current);
-        return;
-      }
-
       // Soft tread land: stay in flight so slide + lip bounce keep running.
       if (isSlopedStep(landed) && bodyRef.current.restingOn) {
-        advanceIfClear(result.landedId);
+        settle();
         return;
       }
 
       if (!bodyRef.current.restingOn) {
-        advanceIfClear(result.landedId);
+        settle();
         return;
       }
 
       warpRef.current = null;
       timeScaleRef.current = 1;
       stopAnachWarp();
-      const cleared = advanceIfClear(result.landedId);
-      if (
-        !cleared &&
-        beatRef.current === "launch-teach" &&
-        landed?.kind === "band" &&
-        !crossedGoalRef.current
-      ) {
-        openInterruptRef.current("launch-guide-miss");
+      settle();
+      // Only after the player's own short pull, not the arrival landing.
+      if (lesson && landed?.kind === "band") {
+        const shot = lessonShotRef.current;
+        lessonShotRef.current = false;
+        if (shot && !crossedGoalRef.current) openInterruptRef.current(lesson.miss);
       }
     };
 
@@ -930,7 +931,8 @@ export function NoteheadApp() {
       );
       borealisRef.current = borealisStep.list;
       if (!borealisStep.collected.length) return;
-      const challenge = challengeFor(beatRef.current);
+      const place = placeRef.current;
+      const challenge = eventsFor(gameRoute.id, place).tonation ?? null;
       for (const gem of borealisStep.collected) {
         playPitch(gem.pitch);
         if (!visitedRef.current.includes(gem.id)) {
@@ -950,7 +952,7 @@ export function NoteheadApp() {
           const before = tonationRef.current.value;
           tonationRef.current = awardIfNew(
             tonationRef.current,
-            beatRef.current,
+            place,
             challenge.payout,
           );
           syncTonationHud();
@@ -961,7 +963,10 @@ export function NoteheadApp() {
             tonationTeachShownRef.current = true;
             openInterruptRef.current("tonation-first");
           }
-          const planted = exitBandFor(gem);
+          const scene = gameRoute.scenes.get(place);
+          const planted = scene
+            ? exitBandFor(gem, scene.logical, scene.ledges)
+            : null;
           if (planted) exitBandRef.current = planted;
           setHint("Interval locked — fly out through the exit");
         }
@@ -995,8 +1000,12 @@ export function NoteheadApp() {
       if (!visitedRef.current.includes(TAIL_EIGHTH_ID)) {
         visitedRef.current = [...visitedRef.current, TAIL_EIGHTH_ID];
       }
-      setHint("Note-Tail recovered");
-      advanceIfClear(null);
+      const repair = repairRef.current;
+      if (!repair.tails.includes("eighth")) {
+        repairRef.current = { ...repair, tails: [...repair.tails, "eighth"] };
+        setRepair(repairRef.current);
+      }
+      finishRoute("Note-Tail recovered");
     };
 
     let raf = 0;
@@ -1015,6 +1024,27 @@ export function NoteheadApp() {
         paint();
         raf = window.requestAnimationFrame(loop);
         return;
+      }
+      // Hold the world until the run begins, so the enter animation is seen.
+      if (screenPhaseRef.current !== "play") {
+        paint();
+        raf = window.requestAnimationFrame(loop);
+        return;
+      }
+      // Enter stories wait for the arrival to finish: the ship has seated.
+      if (
+        pendingEnterRef.current &&
+        phaseRef.current === "idle" &&
+        bodyRef.current.restingOn
+      ) {
+        const id = pendingEnterRef.current;
+        pendingEnterRef.current = null;
+        openEnterRef.current(id);
+        if (cutsceneOpenRef.current) {
+          paint();
+          raf = window.requestAnimationFrame(loop);
+          return;
+        }
       }
       // Real-time magnet / collect — not scaled by warp timeScale.
       tickBorealis(dt);
@@ -1059,11 +1089,7 @@ export function NoteheadApp() {
               ledges,
               FIXED_DT,
               undefined,
-              stepPolicyFor(
-                PROGRESSION[beatRef.current],
-                repairRef.current,
-                crossedGoalRef.current,
-              ),
+              stepPolicyFor(Boolean(slingshotNow()), crossedGoalRef.current),
             );
             bodyRef.current = result.body;
           } else {
@@ -1122,11 +1148,11 @@ export function NoteheadApp() {
       borealisRef.current.some((gem) => !gem.collected)
     ) {
       const rect = event.currentTarget.getBoundingClientRect();
-      const def = PROGRESSION[beatRef.current];
-      const view = svgViewFor(def.regionId);
+      const regionId = placeRef.current;
+      const view = svgViewFor(regionId);
       const svgX = ((event.clientX - rect.left) / rect.width) * view.w;
       const svgY = ((event.clientY - rect.top) / rect.height) * view.h;
-      const logical = fromSvgPoint(svgX, svgY, def.regionId);
+      const logical = fromSvgPoint(svgX, svgY, regionId);
       const tapR = COLLECT_RADIUS * 1.8;
       const hit = borealisRef.current.find((gem) => {
         if (gem.collected) return false;
@@ -1176,17 +1202,16 @@ export function NoteheadApp() {
     const rect = event.currentTarget.getBoundingClientRect();
     const pullX = (event.clientX - originX.current) * (WORLD_W / rect.width);
     const pullY = -(event.clientY - originY.current) * (WORLD_H / rect.height);
-    const def = PROGRESSION[beatRef.current];
     const home =
       bodyRef.current.restingOn ??
       (warpRef.current ? WARP_BAND_ID : "");
     aimRef.current = aimFromPull(
-      def.regionId,
+      placeRef.current,
       home,
       pullX,
       pullY,
       PROFILES[difficultyRef.current].aimInset,
-      aimModeForBeat(beatRef.current),
+      aimModeFor(Boolean(slingshotNow())),
     );
     setAimTone(aimRef.current.power);
   };
@@ -1211,23 +1236,22 @@ export function NoteheadApp() {
         stopAnachWarp();
         phaseRef.current = "flight";
         setPhase("flight");
-        setHint(PROGRESSION[beatRef.current].hint);
+        setHint(hintForPlace(gameRoute.id, placeRef.current, slingshotNow()));
         return;
       }
       phaseRef.current = "idle";
       setPhase("idle");
-      setHint(PROGRESSION[beatRef.current].hint);
+      setHint(hintForPlace(gameRoute.id, placeRef.current, slingshotNow()));
       return;
     }
-    const def = PROGRESSION[beatRef.current];
     const home =
       bodyRef.current.restingOn ?? (airWarp ? WARP_BAND_ID : "");
     const velocity = launchVelocity(
-      def.regionId,
+      placeRef.current,
       home,
       aim,
       PROFILES[difficultyRef.current].aimInset,
-      aimModeForBeat(beatRef.current),
+      aimModeFor(Boolean(slingshotNow())),
     );
     // New shot replaces current velocity from the live pose.
     bodyRef.current = { ...bodyRef.current, ...velocity, restingOn: null };
@@ -1235,12 +1259,9 @@ export function NoteheadApp() {
     timeScaleRef.current = 1;
     stopAnachWarp();
     shotPowerRef.current = aim.power;
-    crossedExitRef.current = false;
     crossedRef.current = [];
-    if (
-      beatRef.current === "launch-teach" ||
-      beatRef.current === "launch-bridge"
-    ) {
+    if (slingshotNow()) {
+      lessonShotRef.current = true;
       visitedRef.current = [];
       crossedGoalRef.current = false;
       brokeBandRef.current = false;
@@ -1258,24 +1279,27 @@ export function NoteheadApp() {
       ref={pageRef}
       className="notehead-page"
       data-testid="notehead-stage"
-      data-region={beat.regionId}
-      data-beat={beatId}
-      data-view="portrait"
+      data-orientation={
+        isLandscapeRegion(placeId) ? "landscape" : "portrait"
+      }
+      data-place={placeId}
     >
       {SHOW_DEV_CHROME ? (
-        <nav className="notehead-regions" aria-label="Beats">
-          {PLAYABLE_BEATS.map((id) => (
-            <button
-              key={id}
-              type="button"
-              className={beatId === id ? "is-on" : ""}
-              aria-pressed={beatId === id}
-              data-testid={`beat-${id}`}
-              onClick={() => jumpRef.current?.(id)}
-            >
-              {PROGRESSION[id].label}
-            </button>
-          ))}
+        <nav className="notehead-regions" aria-label="Levels">
+          {gameRoute.levels.map((level) => level.id).map(
+            (id) => (
+              <button
+                key={id}
+                type="button"
+                className={placeId === id ? "is-on" : ""}
+                aria-pressed={placeId === id}
+                data-testid={`place-${id}`}
+                onClick={() => jumpRef.current?.(id)}
+              >
+                {id}
+              </button>
+            ),
+          )}
         </nav>
       ) : null}
       <div className="notehead-stage" data-phase={phase} data-screen={screenPhase}>

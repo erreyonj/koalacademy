@@ -40,57 +40,32 @@
 }
 
 /*
- * Zig art is a rotated portrait frame (360×200). Size the playfield a bit
- * taller than that (360×230) — no terrain changes, just container.
+ * Landscape levels show the 554×308 frame edge to edge (no camera pad). The
+ * stage grows with the window: as wide as the width allows, but never taller
+ * than the viewport once the HUD, hint and music chrome are counted.
+ * --nh-chrome is that chrome's height (HUD row, hint line, music bar, gaps).
  */
-.notehead-page[data-region="zig"] .notehead-stage {
-  width: min(100%, 53.13rem);
+.notehead-page[data-orientation="landscape"] .notehead-stage {
+  --nh-chrome: 10.5rem;
+  --nh-pad: 1.5rem;
+  /* Backed off from the full fit so the canvas is not edge to edge. */
+  --nh-scale: 0.85;
+  width: calc(
+    min(100%, (100svh - var(--nh-chrome)) * 554 / 308 + var(--nh-pad)) * var(--nh-scale)
+  );
   height: auto;
-  max-height: min(100svh, 52rem);
   justify-self: center;
   grid-template-rows: auto auto auto auto;
 }
 
-.notehead-page[data-region="zig"] .notehead-scene-wrap {
-  aspect-ratio: 360 / 306;
+.notehead-page[data-orientation="landscape"] .notehead-scene-wrap {
+  aspect-ratio: 554 / 308;
   width: 100%;
   height: auto;
-  max-height: calc(min(100svh, 52rem) - 8rem);
-}
-
-.notehead-page[data-view="landscape"] {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  justify-content: stretch;
-  place-items: unset;
-}
-
-.notehead-stage.is-landscape {
-  /* Fill the page under the beat nav — zig canvas should own the playfield. */
-  flex: 1 1 auto;
-  width: 100%;
-  height: auto;
-  min-height: 0;
-  max-width: none;
-  max-height: none;
-  padding: 2.75rem 0.75rem 0.65rem;
-  box-sizing: border-box;
 }
 
 .notehead-scene-wrap {
   position: relative;
-  width: 100%;
-  height: 100%;
-  min-height: 0;
-}
-
-.notehead-stage.is-landscape .notehead-scene-wrap {
-  min-height: 12rem;
-}
-
-.notehead-stage.is-landscape .notehead-scene,
-.notehead-stage.is-landscape .notehead-scene svg {
   width: 100%;
   height: 100%;
   min-height: 0;
@@ -625,14 +600,6 @@
   animation: notehead-band-flash-core 0.4s ease-out both;
 }
 
-.notehead-band-break-flash-ring {
-  fill: none;
-  stroke: var(--nh-band);
-  stroke-width: 2;
-  opacity: 0;
-  animation: notehead-band-flash-ring 0.5s ease-out both;
-}
-
 @keyframes notehead-band-flash-core {
   0% {
     opacity: 0.95;
@@ -641,17 +608,6 @@
   100% {
     opacity: 0;
     transform: scale(1.8);
-  }
-}
-
-@keyframes notehead-band-flash-ring {
-  0% {
-    opacity: 0.85;
-    transform: scale(0.35);
-  }
-  100% {
-    opacity: 0;
-    transform: scale(2.4);
   }
 }
 
@@ -682,7 +638,6 @@
   .notehead-band-break-left,
   .notehead-band-break-right,
   .notehead-band-break-flash-core,
-  .notehead-band-break-flash-ring,
   .notehead-band-break-shard {
     animation: none;
   }
@@ -698,20 +653,12 @@
   }
 
   .notehead-band-break-flash-core,
-  .notehead-band-break-flash-ring,
   .notehead-band-break-shard {
     opacity: 0;
   }
 }
 
 /* Ship */
-
-.notehead-ring {
-  fill: none;
-  stroke: var(--nh-band);
-  stroke-width: 1.2;
-  opacity: 0.35;
-}
 
 /* Level exit — pulsing purple chevron (~20% transparent at peak) */
 .notehead-exit-arrow {
@@ -859,14 +806,6 @@
   animation: notehead-ship-breach-flash 520ms ease-out both;
 }
 
-.notehead-ship-breach-ring {
-  fill: none;
-  stroke: color-mix(in srgb, var(--nh-spark) 70%, var(--nh-band));
-  stroke-width: 1.6;
-  opacity: 0;
-  animation: notehead-ship-breach-ring 700ms ease-out both;
-}
-
 .notehead-ship-breach-core {
   fill: #04060a;
   stroke: color-mix(in srgb, var(--nh-band) 65%, #ffffff);
@@ -898,17 +837,6 @@
   100% {
     opacity: 0;
     transform: scale(2.4);
-  }
-}
-
-@keyframes notehead-ship-breach-ring {
-  0% {
-    opacity: 0.9;
-    transform: scale(0.4);
-  }
-  100% {
-    opacity: 0;
-    transform: scale(3.2);
   }
 }
 
@@ -944,14 +872,12 @@
 
 @media (prefers-reduced-motion: reduce) {
   .notehead-ship-breach-flash,
-  .notehead-ship-breach-ring,
   .notehead-ship-breach-core,
   .notehead-ship-breach-shard {
     animation: none;
   }
 
-  .notehead-ship-breach-flash,
-  .notehead-ship-breach-ring {
+  .notehead-ship-breach-flash {
     opacity: 0;
   }
 

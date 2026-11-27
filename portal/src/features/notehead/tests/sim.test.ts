@@ -14,15 +14,13 @@ import {
   restBody,
   step,
 } from "../modules/sim";
-
-/** Up and toward the stack. Power clears the top; a shorter pull falls short. */
-const STAIR_AIM = 0.22;
-/** From the classic right-side floor band up into the pocket / block. */
-const POCKET_AIM: Aim = { power: 0.75, angle: -0.2 };
-const BLOCK_AIM: Aim = { power: 1, angle: 0 };
+import { getRoute } from "../routes/registry";
 
 const easy = PROFILES.easy;
 const medium = PROFILES.medium;
+
+// Registers the tutorial route's levels with the sim.
+getRoute();
 
 describe("launch apex", () => {
   it("an overshoot that crosses the guide does not clear", () => {
@@ -46,69 +44,45 @@ describe("launch apex", () => {
   });
 });
 
-describe("stairs", () => {
-  it("a strong up-right aim touches the top tread then slides off", () => {
-    const shot = flyShot("stairs", medium, { power: 0.88, angle: STAIR_AIM });
-    expect(shot.visited).toContain("s3");
-    // Sloped treads no longer chain-drop; may settle on the stair band below.
-    expect(shot.body.restingOn === null || shot.body.restingOn === "band").toBe(
-      true,
-    );
+describe("route level shots", () => {
+  it("a gentle straight-up pull on landing1 comes back down to its band", () => {
+    const band = getRoute().scenes.get("landing1")!.ledges[0]!;
+    const shot = flyShot("landing1", easy, { power: 0.4, angle: 0 });
+    expect(shot.landedOn).toBe(band.id);
+    expect(shot.body.restingOn).toBe(band.id);
   });
 
-  it("the same aim with less power misses the top", () => {
-    const shot = flyShot("stairs", easy, { power: 0.45, angle: STAIR_AIM });
-    expect(shot.visited).not.toContain("s3");
-    expect(shot.cleared).toBe(false);
-  });
-});
-
-describe("notch", () => {
-  it("an aim toward the pocket lands there", () => {
-    const shot = flyShot("notch", easy, POCKET_AIM);
-    expect(shot.landedOn).toBe("pocket");
-  });
-
-  it("an aim straight up at full power lands on the block", () => {
-    const shot = flyShot("notch", medium, BLOCK_AIM);
-    expect(shot.landedOn).toBe("block");
-  });
-
-  it("easy clears the pocket and medium does not", () => {
-    const shotEasy = flyShot("notch", easy, POCKET_AIM);
-    const shotMedium = flyShot("notch", medium, POCKET_AIM);
-    expect(shotEasy.cleared).toBe(true);
-    expect(shotMedium.cleared).toBe(false);
-    expect(flyShot("notch", medium, BLOCK_AIM).cleared).toBe(true);
-  });
-});
-
-describe("shot chart", () => {
-  it("traces a stair shot that touches the top tread", () => {
-    const aim: Aim = { power: 0.88, angle: STAIR_AIM };
-    const shot = flyShot("stairs", medium, aim);
-    const chart = chartShot("stairs", restBody("stairs"), aim, medium.aimInset);
-    expect(shot.visited).toContain("s3");
+  it("charts the same landing the flight lands on", () => {
+    const aim: Aim = { power: 0.4, angle: 0 };
+    const shot = flyShot("landing1", easy, aim);
+    const chart = chartShot("landing1", restBody("landing1"), aim, easy.aimInset);
     expect(chart.points.length).toBeGreaterThan(4);
     expect(chart.apex).not.toBeNull();
+    expect(chart.landedOn).toBe(shot.landedOn);
   });
 
-  it("lands where the pocket aim lands", () => {
-    const shot = flyShot("notch", easy, POCKET_AIM);
-    const chart = chartShot("notch", restBody("notch"), POCKET_AIM, easy.aimInset);
-    expect(chart.landedOn).toBe("pocket");
-    expect(chart.landedOn).toBe(shot.landedOn);
+  it("a harder pull rises higher", () => {
+    const low = chartShot("landing1", restBody("landing1"), { power: 0.3, angle: 0 }, 0);
+    const high = chartShot("landing1", restBody("landing1"), { power: 0.6, angle: 0 }, 0);
+    expect(high.apex!.y).toBeGreaterThan(low.apex!.y);
   });
 });
 
 describe("aim cone", () => {
-  it("hard shaves a wide stair aim back into the cone", () => {
-    const wide: Aim = { power: 1, angle: 1.02 };
-    expect(clampAim(wide, "stairs", "band", PROFILES.easy.aimInset).angle).toBeCloseTo(
-      1.02,
+  it("route levels share the editor's cone: portrait 0.95, landscape 1.0", () => {
+    const wide: Aim = { power: 1, angle: 1.2 };
+    expect(clampAim(wide, "notch1", "band-1").angle).toBeCloseTo(0.95);
+    expect(clampAim(wide, "zig1", "band-1").angle).toBeCloseTo(1.0);
+    expect(clampAim({ power: 1, angle: -1.2 }, "zig1", "band-1").angle).toBeCloseTo(-1.0);
+  });
+
+  it("hard shaves a wide aim back into the cone", () => {
+    const wide: Aim = { power: 1, angle: 0.93 };
+    expect(clampAim(wide, "notch1", "band-1", PROFILES.easy.aimInset).angle).toBeCloseTo(
+      0.93,
     );
     expect(
-      clampAim(wide, "stairs", "band", PROFILES.hard.aimInset).angle,
+      clampAim(wide, "notch1", "band-1", PROFILES.hard.aimInset).angle,
     ).toBeLessThan(0.9);
   });
 

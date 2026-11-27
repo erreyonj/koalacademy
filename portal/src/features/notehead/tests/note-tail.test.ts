@@ -5,24 +5,36 @@ import {
   TAIL_EIGHTH_ID,
 } from "../modules/note-tail";
 import { COLLECT_RADIUS, MAGNET_RANGE } from "../modules/borealis";
-import { LAUNCH_BAND, restOn } from "../modules/sim";
-import { repairForBeat } from "../modules/progress";
+import { eventsFor } from "../routes/events";
+import { getRoute } from "../routes/registry";
+
+const spot = eventsFor("notch1", "8thTail1").noteTail!;
 
 describe("Note-Tail pickup", () => {
-  it("spawns only on launch-tail, above the Frequency Band", () => {
-    expect(spawnNoteTail("zig-1")).toBeNull();
-    const tail = spawnNoteTail("launch-tail");
-    expect(tail?.id).toBe(TAIL_EIGHTH_ID);
-    expect(tail?.kind).toBe("eighth");
-    expect(tail?.collected).toBe(false);
-    expect(tail!.y).toBeGreaterThan(LAUNCH_BAND.y);
-    const seat = restOn(LAUNCH_BAND);
-    const dist = Math.hypot(tail!.x - seat.x, tail!.y - seat.y);
-    expect(dist).toBeGreaterThan(MAGNET_RANGE);
+  it("is authored only on the last level, above its Frequency Band", () => {
+    for (const level of getRoute().levels) {
+      const tail = eventsFor("notch1", level.id).noteTail;
+      expect(Boolean(tail)).toBe(level.id === "8thTail1");
+    }
+    const tail = spawnNoteTail(spot);
+    expect(tail.id).toBe(TAIL_EIGHTH_ID);
+    expect(tail.kind).toBe("eighth");
+    expect(tail.collected).toBe(false);
+
+    const level = getRoute().scenes.get("8thTail1")!;
+    const band = level.ledges[0]!;
+    expect(tail.y).toBeGreaterThan(band.y);
+    expect(tail.x).toBeGreaterThanOrEqual(band.x0);
+    expect(tail.x).toBeLessThanOrEqual(band.x1);
+    // Outside the magnet range of a ship seated on the band.
+    const seat = { x: (band.x0 + band.x1) / 2, y: band.y };
+    expect(Math.hypot(tail.x - seat.x, tail.y - seat.y)).toBeGreaterThan(
+      MAGNET_RANGE,
+    );
   });
 
   it("magnets in then collects within COLLECT_RADIUS", () => {
-    const tail = spawnNoteTail("launch-tail")!;
+    const tail = spawnNoteTail(spot);
     const body = {
       x: tail.x,
       y: tail.y - MAGNET_RANGE * 0.5,
@@ -42,11 +54,5 @@ describe("Note-Tail pickup", () => {
     const grabbed = stepNoteTail(pulled.tail, close, 0.02);
     expect(grabbed.collected?.id).toBe(TAIL_EIGHTH_ID);
     expect(grabbed.tail?.collected).toBe(true);
-  });
-
-  it("sandbox jump to launch-tail starts with Anachrometer and no tails", () => {
-    const repair = repairForBeat("launch-tail");
-    expect(repair.anachrometer).toBe(true);
-    expect(repair.tails).toEqual([]);
   });
 });

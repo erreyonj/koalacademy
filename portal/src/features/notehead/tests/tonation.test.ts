@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { eventsFor } from "../routes/events";
 import {
   applyCollect,
   awardIfNew,
-  challengeFor,
   clampTonation,
   emptyAttempt,
   emptyRouteTonation,
@@ -14,11 +14,13 @@ import {
   wipeTonation,
 } from "../modules/tonation";
 
+const challengeFor = (levelId: string) => eventsFor("notch1", levelId).tonation;
+
 describe("Tonation", () => {
-  it("defines Notch / Stairs / Zig payouts that sum to the cap", () => {
-    const notch = challengeFor("notch-calibrate")!;
-    const stairs = challengeFor("stairs-anach")!;
-    const zig = challengeFor("zig-1")!;
+  it("defines notch1 / stairs1 / zig1 payouts that sum to the cap", () => {
+    const notch = challengeFor("notch1")!;
+    const stairs = challengeFor("stairs1")!;
+    const zig = challengeFor("zig1")!;
     expect(notch.pitches).toEqual(["E4", "A4"]);
     expect(notch.payout).toBe(5);
     expect(stairs.payout).toBe(9);
@@ -26,18 +28,18 @@ describe("Tonation", () => {
     expect(notch.payout + stairs.payout + zig.payout).toBe(TONATION_CAP);
   });
 
-  it("awards once per beat and clamps to the cap", () => {
-    const challenge = challengeFor("notch-calibrate")!;
+  it("awards once per level and clamps to the cap", () => {
+    const challenge = challengeFor("notch1")!;
     let route = emptyRouteTonation();
-    route = awardIfNew(route, "notch-calibrate", challenge.payout);
+    route = awardIfNew(route, "notch1", challenge.payout);
     expect(route.value).toBe(5);
-    route = awardIfNew(route, "notch-calibrate", challenge.payout);
+    route = awardIfNew(route, "notch1", challenge.payout);
     expect(route.value).toBe(5);
     expect(clampTonation(99)).toBe(TONATION_CAP);
   });
 
   it("progresses, succeeds, and fails interval attempts", () => {
-    const challenge = challengeFor("notch-calibrate")!;
+    const challenge = challengeFor("notch1")!;
     const mid = applyCollect(challenge, emptyAttempt(), "E4");
     expect(mid.kind).toBe("progress");
     const win = applyCollect(challenge, mid.attempt, "A4");
@@ -49,10 +51,16 @@ describe("Tonation", () => {
   });
 
   it("shows progressive HUD pairs for multi-note challenges", () => {
-    const stairs = challengeFor("stairs-anach")!;
+    const stairs = challengeFor("stairs1")!;
     expect(intervalHudPair(stairs, emptyAttempt())).toEqual(["C4", "E4"]);
     const afterC = applyCollect(stairs, emptyAttempt(), "C4").attempt;
     expect(intervalHudPair(stairs, afterC)).toEqual(["E4", "G4"]);
+  });
+
+  it("hosts no interval on the levels in between", () => {
+    expect(challengeFor("landing1")).toBeUndefined();
+    expect(challengeFor("8thTail1")).toBeUndefined();
+    expect(challengeFor("nowhere")).toBeUndefined();
   });
 
   it("gates the eighth Note-Tail by difficulty", () => {
@@ -72,7 +80,7 @@ describe("Tonation", () => {
   });
 
   it("wipes the bank for Hard breach", () => {
-    let route = awardIfNew(emptyRouteTonation(), "stairs-anach", 9);
+    let route = awardIfNew(emptyRouteTonation(), "stairs1", 9);
     expect(route.value).toBe(9);
     route = wipeTonation();
     expect(route).toEqual(emptyRouteTonation());

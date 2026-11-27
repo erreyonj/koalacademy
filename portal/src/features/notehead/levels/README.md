@@ -6,8 +6,9 @@ Level files authored in the level editor live here, one per level:
 <level-id>.level.json
 ```
 
-A route (several levels flown in sequence) can also be exported as one array
-file:
+A route (several levels flown in sequence) can also be exported as one route
+file, `{version, id, origin, levels}`. The `origin` is the level the route
+begins on (set with **Set Origin** in the editor):
 
 ```
 <first-level-id>.route.json
@@ -33,7 +34,9 @@ the editor's Route section, or by hand:
 { "id": "exit-1", "facing": "up", "x0": 280, "x1": 646, "y0": 1600, "y1": 1600, "to": "stairs1" }
 ```
 
-Coordinates are logical (900 x 1600, +y up). The game does not read these files
-yet. `src/features/levels/tests/persist.test.ts` validates every file in this
+Coordinates are logical (900 x 1600, +y up). The game plays route files from
+`../routes/` (see `../routes/registry.ts`); what happens in each level beyond
+flying through it lives in `../routes/events/`, keyed by route id and level id.
+The `*.level.json` files here are editor sources only. `src/features/levels/tests/persist.test.ts` validates every file in this
 folder and loads the whole folder as one route, so a bad export or a repeated
 id fails the test run.

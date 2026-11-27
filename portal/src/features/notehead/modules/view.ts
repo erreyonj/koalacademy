@@ -1,5 +1,4 @@
 import type { Borealis } from "./borealis";
-import type { ExitZone } from "./exit-zone";
 import type { NoteTail } from "./note-tail";
 import type { Ledge, Region, ShotSample } from "./sim";
 
@@ -8,7 +7,7 @@ export type GesturePhase =
   | "pulling"
   | "flight"
   | "sparkle"
-  /** Hull at 0 HP — ship shatter, then GI / beat restart. */
+  /** Hull at 0 HP — ship shatter, then GI / level restart. */
   | "breach";
 
 /** Aim and phase sit beside the sample. They are gesture state, not sim state. */
@@ -25,16 +24,14 @@ export interface FrameGesture {
   warp: Ledge | null;
   /** Exit Frequency Band planted after the last Borealis, if any. */
   exitBand: Ledge | null;
-  /** Live Borealis pickups for this beat. */
+  /** Live Borealis pickups for this level. */
   borealis: readonly Borealis[];
-  /** Floating Note-Tail pickup, when this beat has one. */
+  /** Floating Note-Tail pickup, when this level has one. */
   noteTail: NoteTail | null;
-  /** Level exit barrier + arrow, when this beat has one. */
-  exitZone: ExitZone | null;
-  /** Exit is lit (always on beats that have a zone). */
-  exitLit: boolean;
+  /** Logical height of the slingshot guide line, while that lesson is live. */
+  guide: number | null;
   /**
-   * Launch break-through impact in logical space, if the Frequency Band
+   * Slingshot break-through impact in logical space, if the Frequency Band
    * has snapped this flight.
    */
   bandBreak: { x: number; y: number } | null;

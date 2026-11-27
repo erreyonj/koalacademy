@@ -5,11 +5,8 @@ import { wholePulseAmount } from "../modules/anachrometer";
 import { REST_GLOW, easeGlow, glowTarget, type ShipGlow } from "../modules/momentum";
 import type { Ledge, Region, ShotSample } from "../modules/sim";
 import type { FrameGesture, NoteheadView } from "../modules/view";
-import { LaunchArt } from "./LaunchSite";
-import { NotchArt } from "./CanyonRun";
+import { LevelArt } from "./LevelArt";
 import type { ShipLook } from "./Ship";
-import { StairArt } from "./StairCave";
-import { ZigArt } from "./ZigRun";
 
 function SceneArt({
   sample,
@@ -24,26 +21,11 @@ function SceneArt({
   look: ShipLook;
   warp: Ledge | null;
 }) {
-  if (region.id === "stairs") {
-    return (
-      <StairArt body={sample.body} gesture={gesture} look={look} warp={warp} />
-    );
-  }
-  if (region.id === "notch") {
-    return (
-      <NotchArt body={sample.body} gesture={gesture} look={look} warp={warp} />
-    );
-  }
-  if (region.id === "zig") {
-    return (
-      <ZigArt body={sample.body} gesture={gesture} look={look} warp={warp} />
-    );
-  }
   return (
-    <LaunchArt
+    <LevelArt
+      regionId={region.id}
       body={sample.body}
       gesture={gesture}
-      goalPitch={region.goalPitch}
       look={look}
       warp={warp}
     />
@@ -78,7 +60,7 @@ export class SvgNoteheadView implements NoteheadView {
 
   resize(_width: number, _height: number): void {
     if (!this.host) return;
-    // Fill the wrap via CSS. Pixel locks from a prior region (e.g. wide zig)
+    // Fill the wrap via CSS. Pixel locks from a prior region (e.g. a wide landscape level)
     // were sticking after beat jumps and shoving portrait stages off-center.
     this.host.style.width = "100%";
     this.host.style.height = "100%";

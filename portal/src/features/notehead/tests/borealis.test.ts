@@ -4,185 +4,124 @@ import {
   EXIT_BAND_ID,
   MAGNET_RANGE,
   exitBandFor,
-  seedVisited,
   spawnBorealis,
   stepBorealis,
 } from "../modules/borealis";
-import { resolveMasses } from "../modules/collide";
-import { liveLedges, zigJumpFromLeftEnter } from "../modules/progress";
-import { applyCollect, challengeFor, emptyAttempt } from "../modules/tonation";
-import {
-  FIXED_DT,
-  NOTCH_BLOCK,
-  NOTCH_POCKET,
-  SHIP_R,
-  STAIR_TREADS,
-  ZIG_LEFT,
-  ZIG_PEAK,
-  ZIG_RIGHT,
-  step,
-} from "../modules/sim";
+import { applyCollect, emptyAttempt } from "../modules/tonation";
+import { eventsFor } from "../routes/events";
+import { getRoute } from "../routes/registry";
+
+const route = getRoute();
+const scene = (id: string) => route.scenes.get(id)!;
+const gems = (id: string) => spawnBorealis(scene(id).borealis);
+const at = (gem: { x: number; y: number }) => ({
+  x: gem.x,
+  y: gem.y,
+  vx: 0,
+  vy: 0,
+  restingOn: null as string | null,
+});
 
 describe("Borealis", () => {
-  it("Zig jump-in arc reaches the peak without collecting or pulling any orb", () => {
-    let body = zigJumpFromLeftEnter();
-    const orbs = spawnBorealis("zig-1");
-    let landed: string | null = null;
-    for (let frame = 0; frame < 600 && !landed; frame++) {
-      const result = step(body, liveLedges("zig", null), FIXED_DT, undefined, {
-        breakSpeed: 0,
-        catchBands: true,
-      });
-      body = result.body;
-      if (!body.restingOn) body = resolveMasses(body, "zig").body;
-      for (const orb of orbs) {
-        expect(Math.hypot(body.x - orb.x, body.y - orb.y)).toBeGreaterThan(
-          MAGNET_RANGE,
-        );
-      }
-      landed = result.landedId ?? null;
+  it("spawns exactly the level's authored spots, uncollected", () => {
+    for (const level of route.levels) {
+      const list = gems(level.id);
+      expect(list.map((gem) => gem.id)).toEqual(level.borealis.map((spot) => spot.id));
+      expect(list.map((gem) => gem.pitch)).toEqual(level.borealis.map((spot) => spot.pitch));
+      expect(list.every((gem) => !gem.collected && gem.homeX === gem.x)).toBe(true);
     }
-    expect(landed).toBe(ZIG_PEAK.id);
+    expect(gems("landing1")).toEqual([]);
+    expect(gems("8thTail1")).toEqual([]);
   });
 
-  it("spawns pocket and block for notch-calibrate with two goal tones", () => {
-    const list = spawnBorealis("notch-calibrate");
-    expect(list.map((entry) => entry.id)).toEqual([
-      NOTCH_POCKET.id,
-      NOTCH_BLOCK.id,
-    ]);
-    // Lower shelf A4, higher block E4 (Ascending 4th still gathers E → A).
-    expect(list.map((entry) => entry.pitch)).toEqual(["A4", "E4"]);
-    expect(list.every((entry) => !entry.collected)).toBe(true);
+  it("gives every interval level the pitches its challenge needs", () => {
+    for (const level of route.levels) {
+      const challenge = eventsFor(route.id, level.id).tonation;
+      if (!challenge) continue;
+      const have = gems(level.id).map((gem) => gem.pitch);
+      for (const pitch of challenge.pitches) expect(have).toContain(pitch);
+    }
   });
 
-  it("spawns one gem over each tread's open face with tread goal tones", () => {
-    const list = spawnBorealis("stairs-anach");
-    expect(list.map((entry) => entry.id)).toEqual(
-      STAIR_TREADS.map((tread) => tread.id),
-    );
-    expect(list.map((entry) => entry.pitch)).toEqual(["C4", "E4", "G4"]);
-    const bottom = list[0];
-    const top = list[list.length - 1];
-    const s1 = STAIR_TREADS[0];
-    const s3 = STAIR_TREADS[STAIR_TREADS.length - 1];
-    if (!bottom || !top || !s1 || !s3) throw new Error("expected gems");
-    expect(bottom.x).toBeLessThan((s1.x0 + s1.x1) / 2);
-    expect(top.y).toBeGreaterThan(s3.y);
-    expect(list).toHaveLength(3);
-  });
-
-  it("seeds floor visited on calibrate enter", () => {
-    expect(seedVisited("notch-calibrate")).toEqual(["floor"]);
-    expect(seedVisited("stairs-anach")).toEqual([]);
-    expect(seedVisited("zig-1")).toEqual([ZIG_PEAK.id]);
-  });
-
-  it("spawns zig-1 Borealis float → left → right shelf with goal tones", () => {
-    const list = spawnBorealis("zig-1");
-    expect(list).toHaveLength(3);
-    expect(list.map((entry) => entry.id)).toEqual([
-      ZIG_PEAK.id,
-      ZIG_LEFT.id,
-      ZIG_RIGHT.id,
-    ]);
-    expect(list.map((entry) => entry.pitch)).toEqual(["C4", "E4", "A4"]);
-    const floating = list[0]!;
-    const left = list[1]!;
-    const right = list[2]!;
-    expect(floating.y).toBeGreaterThan(ZIG_PEAK.y + SHIP_R * 2);
-    expect(left.y).toBeGreaterThan(ZIG_LEFT.y);
-    expect(right.y).toBeGreaterThan(ZIG_RIGHT.y);
+  it("starts the ship out of every gem's magnet range", () => {
+    for (const level of route.levels) {
+      const start = scene(level.id).start;
+      for (const gem of gems(level.id)) {
+        expect(Math.hypot(start.x - gem.x, start.y - gem.y)).toBeGreaterThan(MAGNET_RANGE);
+      }
+    }
   });
 
   it("magnetizes any uncollected gem toward the ship then collects", () => {
-    const list = spawnBorealis("notch-calibrate");
-    const second = list[1];
-    if (!second) throw new Error("expected second gem");
-    // Second gem first — any-order collect is allowed.
-    const body = {
-      x: second.x + MAGNET_RANGE * 0.5,
-      y: second.y,
-      vx: 0,
-      vy: 0,
-      restingOn: null as string | null,
-    };
+    const list = gems("stairs1");
+    const second = list[1]!;
+    // Second gem first: any-order collect is allowed.
+    const body = { ...at(second), x: second.x + MAGNET_RANGE * 0.5 };
     const pulled = stepBorealis(list, body, 1 / 60);
-    const next = pulled.list[1];
-    if (!next) throw new Error("expected next");
+    const next = pulled.list[1]!;
     expect(next.collected).toBe(false);
     expect(Math.hypot(next.x - body.x, next.y - body.y)).toBeLessThan(
       Math.hypot(second.x - body.x, second.y - body.y),
     );
 
-    const close = {
-      ...body,
-      x: second.x + COLLECT_RADIUS * 0.4,
-      y: second.y,
-    };
+    const close = { ...body, x: second.x + COLLECT_RADIUS * 0.4, y: second.y };
     const grab = stepBorealis(list, close, 1 / 60);
-    expect(grab.collected.map((entry) => entry.id)).toEqual([second.id]);
+    expect(grab.collected.map((gem) => gem.id)).toEqual([second.id]);
     expect(grab.list[1]?.collected).toBe(true);
   });
 
   it("keeps collecting after a wrong-order pick fails the interval", () => {
-    const challenge = challengeFor("notch-calibrate");
-    if (!challenge) throw new Error("expected notch challenge");
-    let list = spawnBorealis("notch-calibrate");
-    const pocket = list.find((entry) => entry.id === NOTCH_POCKET.id);
-    const block = list.find((entry) => entry.id === NOTCH_BLOCK.id);
-    if (!pocket || !block) throw new Error("expected notch gems");
-    const at = (gem: typeof pocket) => ({
-      x: gem.x,
-      y: gem.y,
-      vx: 0,
-      vy: 0,
-      restingOn: null as string | null,
-    });
+    const challenge = eventsFor(route.id, "notch1").tonation!;
+    const list = gems("notch1");
+    const high = list.find((gem) => gem.pitch === "A4")!;
+    const low = list.find((gem) => gem.pitch === "E4")!;
 
-    // A4 pocket first is out of order (E4 → A4 required).
-    const first = stepBorealis(list, at(pocket), 1 / 60);
-    list = first.list;
+    // A4 first is out of order (E4 then A4 required).
+    const first = stepBorealis(list, at(high), 1 / 60);
     const attempt = applyCollect(challenge, emptyAttempt(), "A4").attempt;
     expect(attempt.failed).toBe(true);
 
-    // The block gem stays live and still collects.
-    const second = stepBorealis(list, at(block), 1 / 60);
-    expect(second.collected.map((entry) => entry.id)).toEqual([NOTCH_BLOCK.id]);
+    // The other gem stays live and still collects.
+    const second = stepBorealis(first.list, at(low), 1 / 60);
+    expect(second.collected.map((gem) => gem.id)).toEqual([low.id]);
     expect(applyCollect(challenge, attempt, "E4").kind).toBe("fail");
   });
 
   it("ignores already-collected gems", () => {
-    const [gem] = spawnBorealis("notch-calibrate");
-    if (!gem) throw new Error("expected gem");
-    const taken = { ...gem, collected: true };
-    const body = {
-      x: gem.x,
-      y: gem.y + SHIP_R,
-      vx: 0,
-      vy: 0,
-      restingOn: null as string | null,
-    };
-    const result = stepBorealis([taken], body, 1 / 60);
+    const [gem] = gems("notch1");
+    const taken = { ...gem!, collected: true };
+    const result = stepBorealis([taken], at(gem!), 1 / 60);
     expect(result.collected).toHaveLength(0);
   });
 
-  it("plants an exit Frequency Band under a gem's platform", () => {
-    const list = spawnBorealis("notch-calibrate");
-    const last = list[list.length - 1];
-    if (!last) throw new Error("expected last gem");
-    const band = exitBandFor(last);
-    expect(band?.id).toBe(EXIT_BAND_ID);
-    expect(band?.kind).toBe("band");
-    expect(band?.y).toBeLessThan(last.y);
-    expect(band!.y).toBeGreaterThan(NOTCH_BLOCK.y);
-    expect(last.homeX).toBeGreaterThanOrEqual(band!.x0);
-    expect(last.homeX).toBeLessThanOrEqual(band!.x1);
+  it("plants an exit Frequency Band on the rock under a gem", () => {
+    for (const id of ["notch1", "stairs1", "zig1"]) {
+      const s = scene(id);
+      for (const gem of gems(id)) {
+        const band = exitBandFor(gem, s.logical, s.ledges);
+        // Open sky under a gem plants nothing; otherwise the band sits below it.
+        if (!band) continue;
+        expect(band.id).toBe(EXIT_BAND_ID);
+        expect(band.kind).toBe("band");
+        expect(band.y).toBeLessThan(gem.y);
+        expect(gem.homeX).toBeGreaterThanOrEqual(band.x0);
+        expect(gem.homeX).toBeLessThanOrEqual(band.x1);
+      }
+    }
+    // At least the stairs and notch gems have rock beneath them.
+    const stairs = scene("stairs1");
+    const planted = gems("stairs1").filter((gem) =>
+      exitBandFor(gem, stairs.logical, stairs.ledges),
+    );
+    expect(planted.length).toBeGreaterThan(0);
+  });
 
-    const top = spawnBorealis("stairs-anach").at(-1);
-    if (!top) throw new Error("expected top tread gem");
-    const stairBand = exitBandFor(top);
-    expect(stairBand?.id).toBe(EXIT_BAND_ID);
-    expect(stairBand?.y).toBeLessThan(top.y);
+  it("prefers a ledge that sits above the rock", () => {
+    const ledge = { id: "l", x0: 0, x1: 900, y: 500, pitch: "C4" as const, kind: "band" as const };
+    const gem = { ...gems("stairs1")[0]!, x: 450, y: 800, homeX: 450 };
+    const band = exitBandFor(gem, [], [ledge]);
+    expect(band?.y).toBeGreaterThan(500);
+    expect(band?.y).toBeLessThan(800);
+    expect(exitBandFor(gem, [], [])).toBeNull();
   });
 });

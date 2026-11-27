@@ -1,8 +1,10 @@
 import { memo } from "react";
 import { seeded } from "../modules/rand";
+import { regionData } from "../modules/regions";
 import {
+  isLandscapeRegion,
+  landscapeCameraFrame,
   svgViewFor,
-  zigCameraFrame,
   type RegionId,
   type SvgViewSize,
 } from "../modules/sim";
@@ -10,12 +12,12 @@ import flecks from "../assets/notehead-black-star-flecks.png";
 import haze from "../assets/notehead-haze-30-opacity.png";
 import photo from "../assets/notehead-space-bg-seamless.png";
 
-const SEEDS: Record<RegionId, number> = {
-  launch: 0x11,
-  stairs: 0x23,
-  notch: 0x37,
-  zig: 0x5a,
-};
+/** The sky of the bare "launch" pseudo-region; route levels seed theirs from the level id. */
+const LAUNCH_SEED = 0x11;
+
+function seedFor(regionId: RegionId): number {
+  return regionData(regionId)?.skySeed ?? LAUNCH_SEED;
+}
 
 const TINTS = ["#ffffff", "#d6e6ff", "#a9c9f5"] as const;
 
@@ -45,12 +47,14 @@ interface SkyField {
 }
 
 function frameFor(regionId: RegionId): SvgViewSize {
-  return regionId === "zig" ? zigCameraFrame().view : svgViewFor(regionId);
+  return isLandscapeRegion(regionId)
+    ? landscapeCameraFrame().view
+    : svgViewFor(regionId);
 }
 
 function buildSky(regionId: RegionId): SkyField {
   const { w: W, h: H } = frameFor(regionId);
-  const rand = seeded(SEEDS[regionId]);
+  const rand = seeded(seedFor(regionId));
 
   // Clouds follow one slanted lane across the frame, like the photo's band.
   const lane = {

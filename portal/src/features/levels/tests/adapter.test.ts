@@ -140,6 +140,6 @@ describe("previewLevel", () => {
   });
 
   it("uses the landscape region for landscape levels", () => {
-    expect(previewLevel({ ...level, view: "landscape" }).regionId).toBe("zig");
+    expect(previewLevel({ ...level, view: "landscape" }).regionId).toBe("landscape");
   });
 });

@@ -1,8 +1,10 @@
 /**
  * Notehead sim. Logical space is portrait 900×1600, origin bottom-left, +y up.
- * Portrait regions use 200×360 y-down art; zig uses landscape 360×200 art,
- * both mapped into the same logical world.
+ * Portrait regions use 200×360 y-down art; landscape levels use 554×308 art,
+ * both mapped into the same logical world. Route levels register their data
+ * in `regions.ts`; "launch" is the one built-in region.
  */
+import { regionData } from "./regions";
 
 export const WORLD_W = 900;
 export const WORLD_H = 1600;
@@ -13,25 +15,33 @@ export interface SvgViewSize {
   h: number;
 }
 
-/** Portrait art frame shared by launch, stairs, and notch. */
+/** Portrait art frame shared by the launch site and every portrait level. */
 export const PORTRAIT_VIEW: SvgViewSize = { w: 200, h: 360 };
 /**
- * Zig content frame (ledge / terrain authoring, same 1.8 ratio as the mocks).
- * The on-screen camera zooms out via {@link ZIG_CAMERA} — see {@link zigCameraFrame}.
+ * Landscape content frame, same 1.8 ratio as the mocks. Sized so one view
+ * unit is about the same pixels as in portrait (the landscape stage is about
+ * 2.8x wider than the portrait one, so it holds about 2.8x the units). Anything
+ * drawn in view units (ship, band, strokes, gems) then reads at the same size
+ * in both orientations. The on-screen camera shows exactly this frame
+ * (see {@link LANDSCAPE_CAMERA}).
  */
-export const LANDSCAPE_VIEW: SvgViewSize = { w: 360, h: 200 };
-/** Zig render scale. Below 1 zooms out (more sky around the level). */
-export const ZIG_CAMERA = 0.88;
+export const LANDSCAPE_VIEW: SvgViewSize = { w: 554, h: 308 };
+/**
+ * Landscape render scale. 1 shows the authored frame edge to edge, like
+ * portrait. Below 1 would zoom out and add a sky gutter around the level,
+ * which also throws off pointer mapping and the editor's frame.
+ */
+export const LANDSCAPE_CAMERA = 1;
 
-/** Outer SVG view + content origin for zig's zoomed-out camera. */
-export function zigCameraFrame(): {
+/** Outer SVG view + content origin for the landscape zoomed-out camera. */
+export function landscapeCameraFrame(): {
   content: SvgViewSize;
   view: SvgViewSize;
   ox: number;
   oy: number;
 } {
   const content = LANDSCAPE_VIEW;
-  const view = { w: content.w / ZIG_CAMERA, h: content.h / ZIG_CAMERA };
+  const view = { w: content.w / LANDSCAPE_CAMERA, h: content.h / LANDSCAPE_CAMERA };
   return {
     content,
     view,
@@ -92,10 +102,23 @@ export type PitchName =
   `${"A" | "B" | "C" | "D" | "E" | "F" | "G"}${"" | "#" | "b"}${number}`;
 
 export type DifficultyId = "easy" | "medium" | "hard";
-export type RegionId = "launch" | "stairs" | "notch" | "zig";
+/**
+ * "launch" (the opening slingshot), "landscape" (a plain landscape frame the
+ * editor uses), or the id of a level registered from a route file.
+ */
+export type RegionId = string;
+
+export const LAUNCH_REGION = "launch";
+export const LANDSCAPE_REGION = "landscape";
+
+export function isLandscapeRegion(regionId: RegionId): boolean {
+  return (
+    regionId === LANDSCAPE_REGION || regionData(regionId)?.view === "landscape"
+  );
+}
 
 export function svgViewFor(regionId: RegionId): SvgViewSize {
-  return regionId === "zig" ? LANDSCAPE_VIEW : PORTRAIT_VIEW;
+  return isLandscapeRegion(regionId) ? LANDSCAPE_VIEW : PORTRAIT_VIEW;
 }
 export type LedgeKind = "band" | "step" | "block";
 
@@ -107,8 +130,6 @@ export interface Scale {
 export interface DifficultyProfile {
   id: DifficultyId;
   apexWindowDegrees: number;
-  stairClear: "top-three" | "all";
-  notchClear: "pocket-or-block" | "block";
   splitSkills: boolean;
   /** Radians shaved off each side of the aim cone. */
   aimInset: number;
@@ -205,8 +226,6 @@ export const PROFILES: Record<DifficultyId, DifficultyProfile> = {
   easy: {
     id: "easy",
     apexWindowDegrees: 1,
-    stairClear: "top-three",
-    notchClear: "pocket-or-block",
     splitSkills: false,
     aimInset: 0,
     maxHp: 10,
@@ -214,8 +233,6 @@ export const PROFILES: Record<DifficultyId, DifficultyProfile> = {
   medium: {
     id: "medium",
     apexWindowDegrees: 0,
-    stairClear: "all",
-    notchClear: "block",
     splitSkills: false,
     aimInset: 0.08,
     maxHp: 8,
@@ -223,8 +240,6 @@ export const PROFILES: Record<DifficultyId, DifficultyProfile> = {
   hard: {
     id: "hard",
     apexWindowDegrees: 0,
-    stairClear: "all",
-    notchClear: "block",
     splitSkills: true,
     aimInset: 0.22,
     maxHp: 5,
@@ -238,9 +253,6 @@ export const AIM_SPEED = 2800;
 
 export const REGIONS: readonly Region[] = [
   { id: "launch", label: "Launch", scaleId: C_MAJOR.id, goalPitch: "G4" },
-  { id: "stairs", label: "Stairs", scaleId: C_MAJOR.id, goalPitch: "G4" },
-  { id: "notch", label: "Notch", scaleId: C_MAJOR.id, goalPitch: "A4" },
-  { id: "zig", label: "Zig", scaleId: C_MAJOR.id, goalPitch: "A4" },
 ];
 
 export const LAUNCH_BAND: Ledge = {
@@ -256,64 +268,6 @@ export const LAUNCH_BAND: Ledge = {
 export const LAUNCH_SPACING = 140;
 const LAUNCH_RISE_MAX = LAUNCH_SPACING * 8.8;
 
-function fromSvg(
-  partial: {
-    id: string;
-    x0: number;
-    x1: number;
-    y: number;
-    pitch: PitchName;
-    kind: LedgeKind;
-    slope?: number;
-  },
-  view: SvgViewSize = PORTRAIT_VIEW,
-): Ledge {
-  const { sx, sy } = scalesFor(view);
-  return {
-    id: partial.id,
-    x0: partial.x0 * sx,
-    x1: partial.x1 * sx,
-    y: (view.h - partial.y) * sy,
-    pitch: partial.pitch,
-    kind: partial.kind,
-    slope: partial.slope,
-  };
-}
-
-/**
- * Three long treads tucked into the lower-right stair cave.
- * Open faces stay wide; slope tips down toward open sky (−x).
- */
-export const STAIR_TREADS: readonly Ledge[] = [
-  fromSvg({
-    id: "s1",
-    x0: 96,
-    x1: 200,
-    y: 318,
-    pitch: "C4",
-    kind: "step",
-    slope: STAIR_SLOPE,
-  }),
-  fromSvg({
-    id: "s2",
-    x0: 128,
-    x1: 200,
-    y: 248,
-    pitch: "E4",
-    kind: "step",
-    slope: STAIR_SLOPE,
-  }),
-  fromSvg({
-    id: "s3",
-    x0: 156,
-    x1: 200,
-    y: 178,
-    pitch: "G4",
-    kind: "step",
-    slope: STAIR_SLOPE,
-  }),
-];
-
 /** Surface height of a ledge at logical x (+y up). */
 export function ledgeYAt(ledge: Ledge, x: number): number {
   const mid = (ledge.x0 + ledge.x1) / 2;
@@ -324,116 +278,7 @@ export function isSlopedStep(ledge: Ledge | null | undefined): boolean {
   return Boolean(ledge && ledge.kind === "step" && (ledge.slope ?? 0) !== 0);
 }
 
-/**
- * Visible open span of a tread (excludes the part buried under higher steps).
- * Used for Borealis placement along the climb path.
- */
-export function openTreadSpan(tread: Ledge): { x0: number; x1: number } {
-  const next = [...STAIR_TREADS]
-    .sort((a, b) => a.y - b.y)
-    .find((entry) => entry.y > tread.y);
-  return { x0: tread.x0, x1: next ? next.x0 : tread.x1 };
-}
-
-/** Approach Frequency Band — left of the lowest tread, slightly below its open lip. */
-export const STAIR_BAND: Ledge = fromSvg({
-  id: "band",
-  x0: 18,
-  x1: 78,
-  y: 336,
-  pitch: "C4",
-  kind: "band",
-});
-
-/** Classic notch: left pocket, high right block, floor band on the lower slope. */
-export const NOTCH_POCKET: Ledge = fromSvg({
-  id: "pocket",
-  // Seat sits further into the shaft so straight-up / up-right charts clear the wall.
-  // Lower shelf carries the higher pitch (A4); Ascending 4th is E4 (block) → A4.
-  x0: 78,
-  x1: 118,
-  y: 156,
-  pitch: "A4",
-  kind: "band",
-});
-
-export const NOTCH_BLOCK: Ledge = fromSvg({
-  id: "block",
-  x0: 164,
-  x1: 190,
-  y: 78,
-  pitch: "E4",
-  kind: "block",
-});
-
-export const NOTCH_FLOOR: Ledge = fromSvg({
-  id: "floor",
-  x0: 148,
-  x1: 196,
-  y: 292,
-  pitch: "C4",
-  kind: "band",
-});
-
-/**
- * Invisible teach height on notch-calibrate (pocket altitude). Crossing it
- * rising fires the Anachrometer GI. Not drawn — no on-screen guide line.
- */
-export const ANACH_TEACH_Y = NOTCH_POCKET.y;
-
-/**
- * Zig landscape: bottom peak → left shelf → right wedge (Borealis zig-zag).
- * Coords are landscape 360×200 view space. Shelves are spread ~2× farther
- * apart than the first mock so the climb reads across the wide frame.
- */
-export const ZIG_PEAK: Ledge = fromSvg(
-  {
-    id: "zig-peak",
-    x0: 128,
-    x1: 232,
-    y: 178,
-    pitch: "C4",
-    kind: "band",
-  },
-  LANDSCAPE_VIEW,
-);
-
-export const ZIG_LEFT: Ledge = fromSvg(
-  {
-    id: "zig-left",
-    x0: 48,
-    x1: 132,
-    y: 102,
-    pitch: "E4",
-    kind: "band",
-  },
-  LANDSCAPE_VIEW,
-);
-
-/** Right wedge tip — slopes down toward the shaft (−x). */
-export const ZIG_RIGHT: Ledge = fromSvg(
-  {
-    id: "zig-right",
-    x0: 228,
-    x1: 318,
-    y: 48,
-    pitch: "A4",
-    kind: "step",
-    slope: -0.28,
-  },
-  LANDSCAPE_VIEW,
-);
-
 export const LAUNCH_LEDGES: readonly Ledge[] = [LAUNCH_BAND];
-export const STAIR_LEDGES: readonly Ledge[] = [STAIR_BAND, ...STAIR_TREADS];
-export const NOTCH_LEDGES: readonly Ledge[] = [
-  NOTCH_POCKET,
-  NOTCH_BLOCK,
-  NOTCH_FLOOR,
-];
-export const ZIG_LEDGES: readonly Ledge[] = [ZIG_PEAK, ZIG_LEFT, ZIG_RIGHT];
-
-const TOP_THREE = ["s1", "s2", "s3"] as const;
 
 export function createWorld(): NoteheadWorldState {
   return {
@@ -444,15 +289,17 @@ export function createWorld(): NoteheadWorldState {
 
 export function regionById(id: RegionId): Region {
   const region = REGIONS.find((entry) => entry.id === id);
-  if (!region) throw new Error(`Unknown region ${id}`);
-  return region;
+  if (region) return region;
+  // A route level (or the editor's plain landscape frame): no goal pitch.
+  if (regionData(id) || id === LANDSCAPE_REGION) {
+    return { id, label: id, scaleId: C_MAJOR.id, goalPitch: "G4" };
+  }
+  throw new Error(`Unknown region ${id}`);
 }
 
 export function ledgesFor(id: RegionId): readonly Ledge[] {
   if (id === "launch") return LAUNCH_LEDGES;
-  if (id === "stairs") return STAIR_LEDGES;
-  if (id === "zig") return ZIG_LEDGES;
-  return NOTCH_LEDGES;
+  return regionData(id)?.ledges ?? [];
 }
 
 export function ledgeById(
@@ -476,38 +323,16 @@ export function restOn(ledge: Ledge, x?: number): Body {
 
 export function restBody(regionId: RegionId): Body {
   if (regionId === "launch") return restOn(LAUNCH_BAND);
-  if (regionId === "stairs") return restOn(STAIR_BAND);
-  if (regionId === "zig") return restOn(ZIG_PEAK);
-  return restOn(NOTCH_FLOOR);
-}
-
-/** Next stair tread strictly below `id`. */
-export function lowerTread(id: string): Ledge | null {
-  const current = ledgeById(STAIR_TREADS, id);
-  if (!current) return null;
-  const below = STAIR_TREADS.filter((ledge) => ledge.y < current.y - 1);
-  below.sort((a, b) => b.y - a.y);
-  return below[0] ?? null;
-}
-
-export function dropOnto(from: Ledge, target: Ledge, currentX: number): Body {
-  let x = currentX - 16 * SX;
-  if (x >= from.x0) x = from.x0 - 8 * SX;
-  if (x < target.x0 + 4 * SX) x = target.x0 + 6 * SX;
-  if (x > target.x1 - 4 * SX) x = target.x1 - 6 * SX;
-  return {
-    x,
-    y: target.y + SHIP_R + 22 * SY,
-    vx: 0,
-    vy: -30 * SY,
-    restingOn: null,
-  };
+  const data = regionData(regionId);
+  const first = data?.ledges[0];
+  if (first) return restOn(first);
+  return data ? { ...data.start } : restOn(LAUNCH_BAND);
 }
 
 /**
- * How pulls resolve on a beat.
- * `vertical` — Launch teach / Tail: straight up only.
- * `free` — cones (or Launch Bridge free aim on the launch band).
+ * How pulls resolve.
+ * `vertical` — the slingshot lesson: straight up only.
+ * `free` — a cone of angles (every route level).
  */
 export type AimMode = "vertical" | "free";
 
@@ -517,22 +342,11 @@ export function aimCone(
   restingId: string,
   mode: AimMode = regionId === "launch" ? "vertical" : "free",
 ): AimCone | null {
-  if (regionId === "launch") {
-    if (mode === "vertical") return null;
-    return { min: -0.95, max: 0.95 };
-  }
-  if (regionId === "stairs") return { min: -0.35, max: 1.05 };
-  if (regionId === "zig") {
-    if (restingId === ZIG_PEAK.id) return { min: -1.15, max: 0.25 };
-    if (restingId === ZIG_LEFT.id) return { min: -0.15, max: 1.25 };
-    // From the right wedge, aim back up the shaft / toward exit.
-    if (restingId === ZIG_RIGHT.id) return { min: -1.25, max: 0.2 };
-    return { min: -1.0, max: 1.0 };
-  }
-  // Pocket mouth opens upward; allow near-vertical and out into the shaft.
-  if (restingId === "pocket") return { min: -0.15, max: 1.2 };
-  if (restingId === "block") return { min: -1.0, max: 0.45 };
-  return { min: -1.15, max: 0.55 };
+  if (mode === "vertical") return null;
+  if (regionId === "launch") return { min: -0.95, max: 0.95 };
+  // Route levels: one cone per frame shape, the same the editor playtest uses.
+  if (isLandscapeRegion(regionId)) return { min: -1.0, max: 1.0 };
+  return { min: -0.95, max: 0.95 };
 }
 
 export function clampAim(
@@ -567,7 +381,7 @@ export function aimFromPull(
   inset = 0,
   mode: AimMode = regionId === "launch" ? "vertical" : "free",
 ): Aim {
-  if (regionId === "launch" && mode === "vertical") {
+  if (mode === "vertical") {
     const down = Math.max(0, -pullY);
     return { power: Math.min(1, down / PULL_REACH), angle: 0 };
   }
@@ -584,7 +398,7 @@ export function launchVelocity(
   mode: AimMode = regionId === "launch" ? "vertical" : "free",
 ): { vx: number; vy: number } {
   const clamped = clampAim(aim, regionId, restingId, inset, mode);
-  if (regionId === "launch" && mode === "vertical") {
+  if (mode === "vertical") {
     return {
       vx: 0,
       vy: Math.sqrt(2 * GRAVITY * LAUNCH_RISE_MAX) * clamped.power,
@@ -802,25 +616,6 @@ export function step(
   };
 }
 
-/**
- * Legacy auto drop-down between stair treads. Route stairs no longer use this;
- * sloping treads + Anachrometer hops replace it. Kept for older sandbox calls.
- */
-export function afterLanding(
-  regionId: RegionId,
-  body: Body,
-  landedId: string,
-): Body | null {
-  if (regionId !== "stairs" || !landedId.startsWith("s")) return null;
-  const from = ledgeById(STAIR_TREADS, landedId);
-  const hit = from;
-  // Sloped route treads never chain-drop.
-  if (hit?.slope) return null;
-  const next = lowerTread(landedId);
-  if (!from || !next) return null;
-  return dropOnto(from, next, body.x);
-}
-
 function outOfBounds(body: Body): boolean {
   return body.y < -240 || body.y > WORLD_H + 240 || body.x < -120 || body.x > WORLD_W + 120;
 }
@@ -852,36 +647,15 @@ export function resolveShot(
     };
   }
 
-  if (region.id === "stairs") {
-    const required =
-      profile.stairClear === "all"
-        ? STAIR_TREADS.map((ledge) => ledge.id)
-        : [...TOP_THREE];
-    const pitchOk = required.every((id) => partial.visited.includes(id));
-    const landingOk = partial.visited.some((id) => id.startsWith("s"));
-    return {
-      regionId: region.id,
-      apexPitch: partial.apexPitch,
-      landedOn: partial.landedOn,
-      visited: partial.visited,
-      pitchOk,
-      landingOk,
-      cleared: pitchOk && landingOk,
-    };
-  }
-
-  const onBlock = partial.landedOn === "block";
-  const onPocket = partial.landedOn === "pocket";
-  const cleared =
-    profile.notchClear === "block" ? onBlock : onBlock || onPocket;
+  // Route levels have no apex or landing goal of their own.
   return {
     regionId: region.id,
     apexPitch: partial.apexPitch,
     landedOn: partial.landedOn,
     visited: partial.visited,
-    pitchOk: cleared,
+    pitchOk: true,
     landingOk: partial.landedOn !== null,
-    cleared,
+    cleared: partial.landedOn !== null,
   };
 }
 
@@ -937,11 +711,6 @@ export function flyShot(
     if (isSlopedStep(ledgeById(ledges, body.restingOn))) continue;
     if (!result.landedId) continue;
     if (!body.restingOn) continue;
-    const follow = afterLanding(regionId, body, result.landedId);
-    if (follow) {
-      body = follow;
-      continue;
-    }
     landedOn = result.landedId;
   }
 
@@ -960,8 +729,8 @@ export interface ShotChart {
 }
 
 /**
- * The flight `launchVelocity` would produce from `body`, including stair
- * drop-downs. The preview draws this. It does not change the live shot.
+ * The flight `launchVelocity` would produce from `body`. The preview draws
+ * this. It does not change the live shot.
  */
 export function chartShot(
   regionId: RegionId,
@@ -991,12 +760,6 @@ export function chartShot(
     if (!result.landedId) continue;
     points.push({ x: current.x, y: current.y });
     if (!current.restingOn) continue;
-    const follow = afterLanding(regionId, current, result.landedId);
-    if (follow) {
-      current = follow;
-      points.push({ x: current.x, y: current.y });
-      continue;
-    }
     landedOn = result.landedId;
   }
 

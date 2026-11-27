@@ -29,16 +29,12 @@ export function statusLine(state: PlaytestState, session: PlaySession): string {
 export function PlayHud({
   state,
   session,
-  levelId,
-  levelIndex = 0,
-  levelCount = 1,
+  inRoute = false,
 }: {
   state: PlaytestState;
   session: PlaySession;
-  /** The level being flown, shown when it is part of a route. */
-  levelId?: string;
-  levelIndex?: number;
-  levelCount?: number;
+  /** True when more than one level is in play, so Shift+R restarts the route. */
+  inRoute?: boolean;
 }) {
   const badge = warpBadge(state, session);
   return (
@@ -99,11 +95,6 @@ export function PlayHud({
           anachrometer {badge}
         </span>
       </div>
-      {levelId && levelCount > 1 && (
-        <div className="mt-2 font-mono text-[0.72rem] tracking-wide text-sky-200" data-testid="play-hud-level">
-          {levelId} · level {levelIndex + 1} of {levelCount}
-        </div>
-      )}
       <div
         className="mt-2 font-mono text-[0.72rem] tracking-wide text-zinc-300"
         data-testid="playtest-hud"
@@ -115,7 +106,7 @@ export function PlayHud({
         {statusLine(state, session)}
       </div>
       <div className="mt-1 text-xs text-zinc-500">
-        R restarts{levelCount > 1 ? " the level, Shift+R the route" : ""}. Esc or P returns to the editor.
+        R restarts{inRoute ? " the level, Shift+R the route" : ""}. Esc or P returns to the editor.
       </div>
     </div>
   );

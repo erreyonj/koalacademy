@@ -1,143 +1,82 @@
 import { describe, expect, it } from "vitest";
-import { resolveMasses, stepSolid } from "../modules/collide";
+import { resolveMasses, stepSolid, surfaceBelow } from "../modules/collide";
 import {
   FIXED_DT,
   MASS_HIT_SPEED,
-  NOTCH_FLOOR,
   SHIP_R,
-  fromSvgPoint,
   restOn,
 } from "../modules/sim";
-import { massesFor } from "../modules/terrain";
+import { insideMass } from "../modules/terrain";
+import { getRoute } from "../routes/registry";
+
+const route = getRoute();
+
+/** A point deep inside a level's rock (logical space), found by scanning. */
+function buried(levelId: string): { x: number; y: number } {
+  const scene = route.scenes.get(levelId)!;
+  for (let y = 40; y < 1600; y += 40) {
+    for (let x = 20; x < 900; x += 20) {
+      const point = { x, y };
+      if (scene.logical.some((mass) => insideMass(point, mass))) return point;
+    }
+  }
+  throw new Error(`no rock in ${levelId}`);
+}
 
 describe("solid terrain", () => {
-  it("pushes the ship out of the notch wall mass", () => {
-    const wall = massesFor("notch").find((mass) => mass.id === "notch-wall-left");
-    if (!wall) throw new Error("expected wall");
-    // A point deep inside the classic left wall.
-    const buried = fromSvgPoint(20, 120, "notch");
-    const body = {
-      x: buried.x,
-      y: buried.y,
-      vx: 200,
-      vy: -100,
-      restingOn: null as string | null,
-    };
-    const result = resolveMasses(body, "notch");
-    expect(result.body.x).not.toBeCloseTo(body.x, 0);
-    const again = resolveMasses(result.body, "notch");
-    expect(again.body.x).toBeCloseTo(result.body.x, 0);
-    expect(again.body.y).toBeCloseTo(result.body.y, 0);
+  it("pushes the ship out of buried rock and then leaves it alone", () => {
+    for (const id of ["notch1", "stairs1", "zig1"]) {
+      const spot = buried(id);
+      const body = { ...spot, vx: 200, vy: -100, restingOn: null as string | null };
+      const result = resolveMasses(body, id);
+      expect(Math.hypot(result.body.x - body.x, result.body.y - body.y)).toBeGreaterThan(
+        SHIP_R * 0.1,
+      );
+      const again = resolveMasses(result.body, id);
+      expect(again.body.x).toBeCloseTo(result.body.x, 0);
+      expect(again.body.y).toBeCloseTo(result.body.y, 0);
+    }
   });
 
   it("keeps a floor seat without clearing restingOn", () => {
-    const seated = restOn(NOTCH_FLOOR);
-    const result = stepSolid(
-      seated,
-      [NOTCH_FLOOR],
-      FIXED_DT,
-      "notch",
-    );
-    expect(result.body.restingOn).toBe(NOTCH_FLOOR.id);
+    const scene = route.scenes.get("landing1")!;
+    const band = scene.ledges[0]!;
+    const result = stepSolid(restOn(band), [band], FIXED_DT, "landing1");
+    expect(result.body.restingOn).toBe(band.id);
     expect(result.massHit).toBe(false);
   });
 
-  it("stops a drive into the notch left wall", () => {
-    const start = {
-      x: fromSvgPoint(140, 120, "notch").x,
-      y: fromSvgPoint(140, 120, "notch").y,
-      vx: -2200,
-      vy: 0,
-      restingOn: null as string | null,
+  it("stops a drive into a wall; short taps stay below the hard-hit bar, slams cross it", () => {
+    const scene = route.scenes.get("landing1")!;
+    // Drive left along the band's height until rock stops the ship.
+    const band = scene.ledges[0]!;
+    const start = restOn(band);
+    const run = (speed: number) => {
+      let body = { ...start, y: start.y + SHIP_R * 3, vx: -speed, restingOn: null as string | null };
+      let hard = false;
+      for (let frame = 0; frame < 240; frame++) {
+        const result = stepSolid(body, [], FIXED_DT, "landing1", 0, {
+          breakSpeed: 0,
+          catchBands: true,
+        });
+        body = { ...result.body, vy: 0 };
+        if (result.massHit) hard = true;
+      }
+      return { body, hard };
     };
-    let body = start;
-    let hitWall = false;
-    for (let frame = 0; frame < 120; frame++) {
-      const result = stepSolid(body, [], FIXED_DT, "notch", 0, {
-        breakSpeed: 0,
-        catchBands: true,
-      });
-      body = result.body;
-      if (result.massHit) hitWall = true;
-      if (body.x < 40) break;
-    }
-    expect(hitWall).toBe(true);
-    expect(body.x).toBeGreaterThan(40);
-    expect(body.vx).toBeGreaterThanOrEqual(start.vx);
+    const slam = run(MASS_HIT_SPEED * 1.8);
+    expect(slam.hard).toBe(true);
+    expect(slam.body.x).toBeGreaterThan(0);
+    const tap = run(MASS_HIT_SPEED * 0.4);
+    expect(tap.hard).toBe(false);
   });
 
-  it("short wall taps stay below the hard-hit bar; slams cross it", () => {
-    const origin = fromSvgPoint(140, 120, "notch");
-    const soft = resolveMasses(
-      {
-        x: origin.x,
-        y: origin.y,
-        vx: -(MASS_HIT_SPEED * 0.4),
-        vy: 0,
-        restingOn: null,
-      },
-      "notch",
-    );
-    // May or may not touch rock from this pose; if it does, it must not hard-hit.
-    if (soft.into > 0) expect(soft.hit).toBe(false);
-
-    const slam = resolveMasses(
-      {
-        x: origin.x,
-        y: origin.y,
-        vx: -(MASS_HIT_SPEED * 1.5),
-        vy: 0,
-        restingOn: null,
-      },
-      "notch",
-    );
-    // Drive toward the wall over a few frames so contact is guaranteed.
-    let body = {
-      x: origin.x,
-      y: origin.y,
-      vx: -MASS_HIT_SPEED * 1.8,
-      vy: 0,
-      restingOn: null as string | null,
-    };
-    let hard = slam.hit;
-    for (let frame = 0; frame < 90; frame++) {
-      const result = stepSolid(body, [], FIXED_DT, "notch", 0, {
-        breakSpeed: 0,
-        catchBands: true,
-      });
-      body = result.body;
-      if (result.massHit) hard = true;
-    }
-    expect(hard).toBe(true);
-  });
-
-  it("ejects a ship buried in the stair stack", () => {
-    const buried = fromSvgPoint(185, 180, "stairs");
-    const body = {
-      x: buried.x,
-      y: buried.y,
-      vx: 0,
-      vy: 0,
-      restingOn: null as string | null,
-    };
-    const result = resolveMasses(body, "stairs");
-    expect(Math.hypot(result.body.x - body.x, result.body.y - body.y)).toBeGreaterThan(
-      SHIP_R * 0.25,
-    );
-  });
-
-  it("pushes the ship out of a zig cliff", () => {
-    const buried = fromSvgPoint(40, 60, "zig");
-    const body = {
-      x: buried.x,
-      y: buried.y,
-      vx: 100,
-      vy: 0,
-      restingOn: null as string | null,
-    };
-    const result = resolveMasses(body, "zig");
-    expect(Math.hypot(result.body.x - body.x, result.body.y - body.y)).toBeGreaterThan(
-      SHIP_R * 0.1,
-    );
+  it("finds the rock surface directly below a point", () => {
+    const scene = route.scenes.get("stairs1")!;
+    const spot = buried("stairs1");
+    // Straight above buried rock there is a surface at or below the point.
+    const surface = surfaceBelow(scene.logical, spot.x, 1599);
+    expect(surface).not.toBeNull();
+    expect(surfaceBelow(scene.logical, spot.x, -50)).toBeNull();
   });
 });

@@ -7,8 +7,7 @@ import {
   MAGNET_RANGE,
   MAGNET_SPEED,
 } from "./borealis";
-import type { BeatId } from "./progress";
-import { LAUNCH_BAND, LAUNCH_SPACING, type Body } from "./sim";
+import type { Body } from "./sim";
 
 /** First recovered tail — eighth-note silhouette. */
 export const TAIL_EIGHTH_ID = "tail-eighth";
@@ -22,16 +21,13 @@ export interface NoteTail {
   collected: boolean;
 }
 
-/** Spawn the floating Note-Tail for a beat, if any. */
-export function spawnNoteTail(beatId: BeatId): NoteTail | null {
-  if (beatId !== "launch-tail") return null;
-  // Hover above the launch Frequency Band, outside start magnet range.
-  const midX = (LAUNCH_BAND.x0 + LAUNCH_BAND.x1) / 2;
+/** The floating Note-Tail at a level's authored spot. */
+export function spawnNoteTail(spot: { x: number; y: number }): NoteTail {
   return {
     id: TAIL_EIGHTH_ID,
     kind: "eighth",
-    x: midX,
-    y: LAUNCH_BAND.y + LAUNCH_SPACING * 2.6,
+    x: spot.x,
+    y: spot.y,
     collected: false,
   };
 }

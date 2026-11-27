@@ -466,10 +466,20 @@ export function parseLevel(text: string): ParseResult {
 }
 
 export type ParseSetResult =
-  | { ok: true; levels: LevelFile[] }
+  | {
+      ok: true;
+      levels: LevelFile[];
+      /** Route id, when the file is a route file. */
+      routeId?: string;
+      /** The level the route begins on, when the file names one. */
+      origin?: string;
+    }
   | { ok: false; errors: string[] };
 
-/** One level file, or an array of them. Every level must be valid. */
+/**
+ * One level file, an array of levels, or a route file
+ * (`{version, id, origin, levels}`). Every level must be valid.
+ */
 export function parseLevelSet(text: string): ParseSetResult {
   let raw: unknown;
   try {
@@ -477,18 +487,41 @@ export function parseLevelSet(text: string): ParseSetResult {
   } catch {
     return { ok: false, errors: ["file is not valid JSON"] };
   }
-  if (!Array.isArray(raw)) {
-    const errors = validateLevel(raw);
+  let items: unknown = raw;
+  let routeId: string | undefined;
+  let origin: string | undefined;
+  if (isObject(raw) && Array.isArray(raw.levels)) {
+    items = raw.levels;
+    if (raw.id !== undefined && (typeof raw.id !== "string" || raw.id.trim() === "")) {
+      return { ok: false, errors: ["route id must be a non-empty string"] };
+    }
+    if (raw.origin !== undefined && (typeof raw.origin !== "string" || raw.origin.trim() === "")) {
+      return { ok: false, errors: ["origin must be a non-empty level id"] };
+    }
+    routeId = raw.id as string | undefined;
+    origin = raw.origin as string | undefined;
+  }
+  if (!Array.isArray(items)) {
+    const errors = validateLevel(items);
     return errors.length > 0
       ? { ok: false, errors }
-      : { ok: true, levels: [clean(raw as LevelFile)] };
+      : { ok: true, levels: [clean(items as LevelFile)] };
   }
-  if (raw.length === 0) return { ok: false, errors: ["the array has no levels"] };
-  const errors = raw.flatMap((item, i) =>
+  if (items.length === 0) return { ok: false, errors: ["the array has no levels"] };
+  const errors = items.flatMap((item, i) =>
     validateLevel(item).map((message) => `levels[${i}]: ${message}`),
   );
   if (errors.length > 0) return { ok: false, errors };
-  return { ok: true, levels: (raw as LevelFile[]).map(clean) };
+  const levels = (items as LevelFile[]).map(clean);
+  if (origin !== undefined && !levels.some((l) => l.id === origin)) {
+    return { ok: false, errors: [`origin "${origin}" is not a level in the route`] };
+  }
+  return {
+    ok: true,
+    levels,
+    ...(routeId !== undefined ? { routeId } : {}),
+    ...(origin !== undefined ? { origin } : {}),
+  };
 }
 
 export interface RouteCheck {
@@ -498,13 +531,16 @@ export interface RouteCheck {
   warnings: string[];
 }
 
-export function validateRoute(levels: readonly LevelFile[]): RouteCheck {
+export function validateRoute(levels: readonly LevelFile[], origin?: string): RouteCheck {
   const errors: string[] = [];
   const warnings: string[] = [];
   const seen = new Set<string>();
   for (const level of levels) {
     if (seen.has(level.id)) errors.push(`duplicate level id "${level.id}"`);
     seen.add(level.id);
+  }
+  if (origin !== undefined && !seen.has(origin)) {
+    errors.push(`origin "${origin}" is not a level in the route`);
   }
   for (const level of levels) {
     for (const exit of level.exits) {
@@ -536,12 +572,23 @@ export function levelFileName(level: LevelFile): string {
   return `${slugOf(level.id)}.level.json`;
 }
 
-/** A route exports as one array file, named after its first level. */
+/** A route exports as one route file, named after its first level. */
 export function routeFileName(levels: readonly LevelFile[]): string {
   return `${slugOf(levels[0]?.id ?? "route")}.route.json`;
 }
 
-/** The text of a route file: an array of levels in route order. */
-export function serializeRoute(levels: readonly LevelFile[]): string {
-  return `${JSON.stringify(levels.map(clean), null, 2)}\n`;
+/**
+ * The text of a route file: `{version, id, origin, levels}` with the levels in
+ * route order. The origin is the level the game starts the route on; it
+ * defaults to the first level, and the id to that level's id.
+ */
+export function serializeRoute(
+  levels: readonly LevelFile[],
+  origin?: string | null,
+  id?: string,
+): string {
+  const first = levels[0]?.id ?? "route";
+  const start = origin && levels.some((l) => l.id === origin) ? origin : first;
+  const file = { version: 1, id: id ?? first, origin: start, levels: levels.map(clean) };
+  return `${JSON.stringify(file, null, 2)}\n`;
 }

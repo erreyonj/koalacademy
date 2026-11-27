@@ -1,108 +1,86 @@
 import { describe, expect, it } from "vitest";
 import {
   bottomOpening,
-  containAgainstExitFrame,
   containAgainstOpenings,
-  exitZoneFor,
-  exitZoneReady,
-  leftFrameThroughExit,
-  openingFromExitZone,
+  leftFrameThroughOpening,
   touchedOpening,
+  type FrameOpening,
 } from "../modules/exit-zone";
 import { MASS_HIT_SPEED, SHIP_R, WORLD_H, WORLD_W } from "../modules/sim";
+import { getRoute } from "../routes/registry";
 
-describe("exit zones", () => {
-  it("defines exits for notch, launch-bridge, stairs, and zig", () => {
-    expect(exitZoneFor("notch-calibrate")?.facing).toBe("up");
-    expect(exitZoneFor("launch-bridge")?.facing).toBe("up");
-    expect(exitZoneFor("stairs-anach")?.facing).toBe("right");
-    expect(exitZoneFor("zig-1")?.facing).toBe("up");
-    expect(exitZoneFor("launch-teach")).toBeNull();
+const route = getRoute();
+
+const up: FrameOpening = { facing: "up", x0: 300, x1: 600, y0: WORLD_H, y1: WORLD_H };
+const right: FrameOpening = { facing: "right", x0: WORLD_W, x1: WORLD_W, y0: 900, y1: 1500 };
+
+describe("exit openings", () => {
+  it("builds one opening and one door per authored exit", () => {
+    for (const level of route.levels) {
+      const scene = route.scenes.get(level.id)!;
+      expect(scene.openings).toHaveLength(level.exits.length);
+      expect(scene.doors).toHaveLength(level.exits.length);
+      level.exits.forEach((exit, index) => {
+        expect(scene.openings[index]!.facing).toBe(exit.facing);
+        expect(scene.doors[index]?.to ?? null).toBe(exit.to ?? null);
+      });
+    }
   });
 
-  it("lights every beat that has an exit zone", () => {
-    expect(exitZoneReady("launch-bridge")).toBe(true);
-    expect(exitZoneReady("notch-calibrate")).toBe(true);
-    expect(exitZoneReady("stairs-anach")).toBe(true);
-    expect(exitZoneReady("zig-1")).toBe(true);
-    expect(exitZoneReady("launch-teach")).toBe(false);
-  });
-
-  it("clears only when leaving the frame through an upward exit", () => {
-    const zone = exitZoneFor("notch-calibrate");
-    if (!zone) throw new Error("expected notch exit");
-    // Mid-shaft, past the top of the world.
-    expect(
-      leftFrameThroughExit(zone, { x: 450, y: WORLD_H + 250 }),
-    ).toBe(true);
-    // Still on-screen above the barrier.
-    expect(leftFrameThroughExit(zone, { x: 450, y: WORLD_H - 40 })).toBe(
-      false,
-    );
-    // Off the top but outside the exit opening.
-    expect(leftFrameThroughExit(zone, { x: 40, y: WORLD_H + 250 })).toBe(
-      false,
-    );
+  it("clears only when leaving the frame through an upward opening", () => {
+    expect(leftFrameThroughOpening(up, { x: 450, y: WORLD_H + 250 })).toBe(true);
+    // Still on-screen below the barrier.
+    expect(leftFrameThroughOpening(up, { x: 450, y: WORLD_H - 40 })).toBe(false);
+    // Off the top but outside the gap.
+    expect(leftFrameThroughOpening(up, { x: 40, y: WORLD_H + 250 })).toBe(false);
     // Off the bottom does not count.
-    expect(leftFrameThroughExit(zone, { x: 450, y: -300 })).toBe(false);
+    expect(leftFrameThroughOpening(up, { x: 450, y: -300 })).toBe(false);
   });
 
-  it("clears only when leaving the frame through a rightward exit", () => {
-    const zone = exitZoneFor("stairs-anach");
-    if (!zone) throw new Error("expected stairs exit");
-    expect(
-      leftFrameThroughExit(zone, { x: WORLD_W + 140, y: 1100 }),
-    ).toBe(true);
-    expect(leftFrameThroughExit(zone, { x: WORLD_W - 20, y: 1100 })).toBe(
-      false,
-    );
-    expect(
-      leftFrameThroughExit(zone, { x: WORLD_W + 140, y: 80 }),
-    ).toBe(false);
+  it("clears only when leaving the frame through a rightward opening", () => {
+    expect(leftFrameThroughOpening(right, { x: WORLD_W + 140, y: 1100 })).toBe(true);
+    expect(leftFrameThroughOpening(right, { x: WORLD_W - 20, y: 1100 })).toBe(false);
+    expect(leftFrameThroughOpening(right, { x: WORLD_W + 140, y: 80 })).toBe(false);
   });
 
-  it("seals every edge except the exit gap", () => {
-    const notch = exitZoneFor("notch-calibrate");
-    if (!notch) throw new Error("expected notch exit");
+  it("seals every edge except the opening", () => {
     const slam = MASS_HIT_SPEED + 50;
     const soft = MASS_HIT_SPEED * 0.25;
+    const openings = [up, right];
 
     // Soft bump: still sealed, but not a hull-taxing hit.
-    const softTop = containAgainstExitFrame(
+    const softTop = containAgainstOpenings(
       { x: 40, y: WORLD_H + 20, vx: 0, vy: soft, restingOn: null },
-      notch,
+      openings,
     );
     expect(softTop.hit).toBe(false);
     expect(softTop.body.y).toBeLessThanOrEqual(WORLD_H - SHIP_R + 0.01);
     expect(softTop.body.vy).toBe(0);
 
-    const offTop = containAgainstExitFrame(
+    const offTop = containAgainstOpenings(
       { x: 40, y: WORLD_H + 20, vx: 0, vy: slam, restingOn: null },
-      notch,
+      openings,
     );
     expect(offTop.hit).toBe(true);
     expect(offTop.body.y).toBeLessThanOrEqual(WORLD_H - SHIP_R + 0.01);
-    expect(offTop.body.vy).toBe(0);
 
-    const throughGap = containAgainstExitFrame(
+    const throughGap = containAgainstOpenings(
       { x: 450, y: WORLD_H + 20, vx: 0, vy: slam, restingOn: null },
-      notch,
+      openings,
     );
     expect(throughGap.hit).toBe(false);
     expect(throughGap.body.y).toBe(WORLD_H + 20);
 
-    const stairs = exitZoneFor("stairs-anach");
-    if (!stairs) throw new Error("expected stairs exit");
-    const offRight = containAgainstExitFrame(
+    const offRight = containAgainstOpenings(
       { x: WORLD_W + 20, y: 80, vx: slam, vy: 0, restingOn: null },
-      stairs,
+      openings,
     );
     expect(offRight.hit).toBe(true);
     expect(offRight.body.x).toBeLessThanOrEqual(WORLD_W - SHIP_R + 0.01);
 
-    const rightGap = containAgainstExitFrame(
+    const rightGap = containAgainstOpenings(
       { x: WORLD_W + 20, y: 1100, vx: slam, vy: 0, restingOn: null },
-      stairs,
+      openings,
     );
     expect(rightGap.hit).toBe(false);
     expect(rightGap.body.x).toBe(WORLD_W + 20);
@@ -146,11 +124,8 @@ describe("exit zones", () => {
     // Outside the span.
     expect(touchedOpening(gap, { x: 450, y: 0, vy: -100 })).toBe(false);
     // Top / right exits never fire on touch.
-    const notch = exitZoneFor("notch-calibrate");
-    if (!notch) throw new Error("expected notch exit");
-    expect(
-      touchedOpening(openingFromExitZone(notch), { x: 450, y: 0, vy: -100 }),
-    ).toBe(false);
+    expect(touchedOpening(up, { x: 450, y: 0, vy: -100 })).toBe(false);
+    expect(touchedOpening(right, { x: 450, y: 0, vy: -100 })).toBe(false);
   });
 });
 

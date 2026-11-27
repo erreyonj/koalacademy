@@ -2,34 +2,19 @@ import { describe, expect, it } from "vitest";
 import {
   type Aim,
   type RegionId,
-  LAUNCH_BAND,
-  NOTCH_BLOCK,
-  NOTCH_FLOOR,
-  NOTCH_POCKET,
   PROFILES,
-  SHIP_R,
-  STAIR_BAND,
-  WORLD_W,
-  STAIR_TREADS,
-  ZIG_LEFT,
-  ZIG_PEAK,
-  ZIG_RIGHT,
-  svgViewFor,
   chartShot,
   ledgesFor,
   restBody,
   restOn,
+  svgViewFor,
   toSvg,
 } from "../modules/sim";
-import {
-  LAUNCH_FLOOR_GAP,
-  STAIRS_FLOOR_GAP,
-  ZIG_FLOOR_GAP_LEFT,
-  ZIG_FLOOR_GAP_RIGHT,
-} from "../modules/progress";
-import { INK, insideMass, massesFor } from "../modules/terrain";
+import { insideMass, massesFor } from "../modules/terrain";
+import { getRoute } from "../routes/registry";
 
-const REGION_IDS: RegionId[] = ["launch", "stairs", "notch", "zig"];
+const route = getRoute();
+const REGION_IDS: RegionId[] = route.levels.map((level) => level.id);
 
 function covered(regionId: RegionId, x: number, y: number): string | null {
   const point = toSvg(x, y, regionId);
@@ -41,8 +26,12 @@ describe("terrain masses", () => {
   it("builds the same rock every time", () => {
     for (const id of REGION_IDS) {
       expect(massesFor(id)).toBe(massesFor(id));
-      expect(massesFor(id).length).toBeGreaterThan(0);
     }
+    for (const level of route.levels) {
+      expect(massesFor(level.id)).toBe(route.scenes.get(level.id)!.masses);
+    }
+    // The bare launch pseudo-region (the editor's portrait frame) has no rock.
+    expect(massesFor("launch")).toEqual([]);
   });
 
   it("keeps score marks inside their own rock and inside the frame", () => {
@@ -61,81 +50,51 @@ describe("terrain masses", () => {
   });
 
   it("leaves every rest spot in open sky", () => {
-    const spots: [RegionId, typeof LAUNCH_BAND][] = [
-      ["launch", LAUNCH_BAND],
-      ["stairs", STAIR_BAND],
-      ["notch", NOTCH_POCKET],
-      ["notch", NOTCH_FLOOR],
-      ["notch", NOTCH_BLOCK],
-      ["zig", ZIG_PEAK],
-      ["zig", ZIG_LEFT],
-      ["zig", ZIG_RIGHT],
-    ];
-    for (const [regionId, ledge] of spots) {
-      const body = restOn(ledge);
-      expect(covered(regionId, body.x, body.y)).toBeNull();
+    for (const level of route.levels) {
+      for (const ledge of ledgesFor(level.id)) {
+        const body = restOn(ledge);
+        expect(covered(level.id, body.x, body.y), `${level.id} ${ledge.id}`).toBeNull();
+      }
     }
-    STAIR_TREADS.forEach((tread, index) => {
-      const next = STAIR_TREADS[index + 1];
-      const open = next ? (tread.x0 + next.x0) / 2 : undefined;
-      const body = restOn(tread, open);
-      expect(covered("stairs", body.x, body.y)).toBeNull();
-    });
   });
 
-  it("puts rock right under stair treads, the notch block, and zig shelves", () => {
-    const under = (regionId: RegionId, ledge: typeof LAUNCH_BAND) => {
-      const top = toSvg((ledge.x0 + ledge.x1) / 2, ledge.y, regionId);
-      const probe = { x: top.x, y: top.y + INK };
-      return massesFor(regionId).some((mass) => insideMass(probe, mass));
-    };
-    for (const tread of STAIR_TREADS) expect(under("stairs", tread)).toBe(true);
-    expect(under("notch", NOTCH_BLOCK)).toBe(true);
-    expect(under("zig", ZIG_PEAK)).toBe(true);
-    expect(under("zig", ZIG_LEFT)).toBe(true);
-    expect(under("zig", ZIG_RIGHT)).toBe(true);
+  it("leaves every Enter pose and every Borealis gem in open sky", () => {
+    for (const level of route.levels) {
+      const scene = route.scenes.get(level.id)!;
+      // An Enter may sit just past the frame edge; only in-frame poses are checked.
+      if (scene.start.y > 0 && scene.start.y < 1600) {
+        expect(covered(level.id, scene.start.x, scene.start.y), `${level.id} enter`).toBeNull();
+      }
+      for (const spot of level.borealis) {
+        expect(covered(level.id, spot.x, spot.y), `${level.id} ${spot.id}`).toBeNull();
+      }
+    }
   });
 
   it("keeps every bottom-edge exit gap in open sky", () => {
-    const gaps: [RegionId, { x0: number; x1: number }][] = [
-      ["launch", LAUNCH_FLOOR_GAP],
-      ["stairs", STAIRS_FLOOR_GAP],
-      ["zig", ZIG_FLOOR_GAP_LEFT],
-      ["zig", ZIG_FLOOR_GAP_RIGHT],
-    ];
-    for (const [regionId, gap] of gaps) {
-      for (let x = gap.x0 + 5; x < gap.x1; x += 15) {
-        expect(covered(regionId, x, SHIP_R * 0.5)).toBeNull();
+    for (const level of route.levels) {
+      for (const exit of level.exits) {
+        if (exit.facing !== "down") continue;
+        for (let x = exit.x0 + 5; x < exit.x1; x += 15) {
+          expect(covered(level.id, x, 10), `${level.id} ${exit.id} @${x}`).toBeNull();
+        }
       }
     }
-    // The Zig peak island fills the floor between the two gaps.
-    const mid = (ZIG_FLOOR_GAP_LEFT.x1 + ZIG_FLOOR_GAP_RIGHT.x0) / 2;
-    expect(covered("zig", mid, SHIP_R * 0.5)).toBe("zig-peak");
   });
 
-  it("keeps the Zig cliff bodies whole down to the frame", () => {
-    // Deep in each cliff's lower body: guards the outline-closing bug that
-    // sliced a diagonal out of both cliffs.
-    expect(covered("zig", 30, 400)).toBe("zig-cliff-left");
-    expect(covered("zig", 40, 700)).toBe("zig-cliff-left");
-    expect(covered("zig", WORLD_W - 30, 600)).toBe("zig-cliff-right");
-    expect(covered("zig", WORLD_W - 30, 400)).toBe("zig-cliff-right");
-  });
-
-  it("does not turn rock into ledges", () => {
+  it("registers one ledge per authored band", () => {
     expect(ledgesFor("launch")).toHaveLength(1);
-    expect(ledgesFor("stairs")).toHaveLength(4);
-    expect(ledgesFor("notch")).toHaveLength(3);
-    expect(ledgesFor("zig")).toHaveLength(3);
+    for (const level of route.levels) {
+      const scene = route.scenes.get(level.id)!;
+      expect(ledgesFor(level.id)).toBe(scene.ledges);
+      expect(ledgesFor(level.id).length).toBeGreaterThanOrEqual(level.bands.length);
+    }
   });
 });
 
 describe("clearing shots fly through open sky", () => {
-  // Portrait corridors with verified open paths. Zig/notch lip shots skim
-  // near rock; rest-spot coverage above already guards those lips.
   const shots: [RegionId, Aim][] = [
-    ["launch", { power: 1, angle: 0 }],
-    ["stairs", { power: 0.88, angle: 0.22 }],
+    ["landing1", { power: 0.5, angle: 0 }],
   ];
 
   for (const [regionId, aim] of shots) {

@@ -1,14 +1,14 @@
 /**
- * Tonation: banked energy earned by completing region intervals in pitch order.
+ * Tonation: banked energy earned by completing level intervals in pitch order.
+ * Which levels host an interval lives in `routes/events/`.
  * Borealis collect order is free; only a correct interval sequence awards Tonation.
  */
-import type { BeatId } from "./progress";
 import type { DifficultyId, PitchName } from "./sim";
 
-/** Route Tonation cap (Notch 5 + Stairs 9 + Zig 10). */
+/** Tutorial route Tonation cap (notch1 5 + stairs1 9 + zig1 10). */
 export const TONATION_CAP = 24;
 
-/** Tonic for scale-degree scoring (Stairs / Zig). */
+/** Tonic for scale-degree scoring. */
 export const TONIC: PitchName = "C4";
 
 const DEGREE: Partial<Record<PitchName, number>> = {
@@ -27,14 +27,14 @@ export interface IntervalChallenge {
   pitches: readonly PitchName[];
   /** Short HUD / teacher label. */
   label: string;
-  /** Tonation banked on first successful clear of this beat. */
+  /** Tonation banked on first successful clear of this level. */
   payout: number;
 }
 
 export interface RouteTonation {
   value: number;
-  /** Beats that have already paid out (idempotent awards). */
-  earnedBeatIds: readonly BeatId[];
+  /** Level ids that have already paid out (idempotent awards). */
+  earnedLevelIds: readonly string[];
 }
 
 export interface IntervalAttempt {
@@ -51,35 +51,8 @@ export type CollectResult =
   | { kind: "success"; attempt: IntervalAttempt }
   | { kind: "fail"; attempt: IntervalAttempt };
 
-const CHALLENGES: Partial<Record<BeatId, IntervalChallenge>> = {
-  "notch-calibrate": {
-    // Block (high shelf) E4 → pocket (low shelf) A4.
-    pitches: ["E4", "A4"],
-    label: "Ascending 4th",
-    // Pedagogy payout for a fourth (1+4), not E=3+A=6.
-    payout: 5,
-  },
-  "stairs-anach": {
-    pitches: ["C4", "E4", "G4"],
-    label: "Arpeggio",
-    payout: 9,
-  },
-  "zig-1": {
-    pitches: ["C4", "E4", "A4"],
-    label: "Contour",
-    payout: 10,
-  },
-};
-
-/** Beats that heal on first route clear and host an interval challenge. */
-export const INTERVAL_BEATS: readonly BeatId[] = [
-  "notch-calibrate",
-  "stairs-anach",
-  "zig-1",
-];
-
 export function emptyRouteTonation(): RouteTonation {
-  return { value: 0, earnedBeatIds: [] };
+  return { value: 0, earnedLevelIds: [] };
 }
 
 export function emptyAttempt(): IntervalAttempt {
@@ -88,10 +61,6 @@ export function emptyAttempt(): IntervalAttempt {
 
 export function degreeValue(pitch: PitchName): number {
   return DEGREE[pitch] ?? 0;
-}
-
-export function challengeFor(beatId: BeatId): IntervalChallenge | null {
-  return CHALLENGES[beatId] ?? null;
 }
 
 export function clampTonation(value: number): number {
@@ -157,16 +126,16 @@ export function applyCollect(
   return { kind: "progress", attempt: progress };
 }
 
-/** Bank payout once per beat; clamps to TONATION_CAP. */
+/** Bank payout once per level; clamps to TONATION_CAP. */
 export function awardIfNew(
   route: RouteTonation,
-  beatId: BeatId,
+  levelId: string,
   payout: number,
 ): RouteTonation {
-  if (route.earnedBeatIds.includes(beatId)) return route;
+  if (route.earnedLevelIds.includes(levelId)) return route;
   return {
     value: clampTonation(route.value + payout),
-    earnedBeatIds: [...route.earnedBeatIds, beatId],
+    earnedLevelIds: [...route.earnedLevelIds, levelId],
   };
 }
 

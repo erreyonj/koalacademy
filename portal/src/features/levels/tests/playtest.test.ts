@@ -21,6 +21,7 @@ import {
 } from "../playtest/runtime";
 import { resolveMasses, resolveMassesAgainst } from "../../notehead/modules/collide";
 import { massesFor } from "../../notehead/modules/terrain";
+import { getRoute } from "../../notehead/routes/registry";
 import { fromSvgPoint, type Body, type RegionId } from "../../notehead/modules/sim";
 import { createEditorStore } from "../store";
 import { handleKey } from "../tools";
@@ -112,7 +113,7 @@ describe("playBlocker / buildScene", () => {
 
   it("uses the landscape region for landscape levels", () => {
     const lv = { ...level(), view: "landscape" as const };
-    expect(buildScene(lv)?.regionId).toBe("zig");
+    expect(buildScene(lv)?.regionId).toBe("landscape");
   });
 });
 
@@ -210,15 +211,20 @@ describe("shots", () => {
   });
 });
 
+/** The built-in launch site plus every level of the shipped route. */
+function gameRegions(): RegionId[] {
+  return ["launch", ...getRoute().levels.map((entry) => entry.id)];
+}
+
 describe("sandbox isolation", () => {
   it("never touches the game's region registry", () => {
     const before = JSON.stringify(
-      (["launch", "stairs", "notch", "zig"] as RegionId[]).map((id) => massesFor(id)),
+      gameRegions().map((id) => massesFor(id)),
     );
     const scene = sceneOf(level({ gems: [{ id: "gem-1", x: 450, y: 650 }] }));
     run(scene, createState(scene), (s) => s.collected === 1);
     const after = JSON.stringify(
-      (["launch", "stairs", "notch", "zig"] as RegionId[]).map((id) => massesFor(id)),
+      gameRegions().map((id) => massesFor(id)),
     );
     expect(after).toBe(before);
   });
@@ -227,7 +233,7 @@ describe("sandbox isolation", () => {
 describe("resolveMassesAgainst", () => {
   it("matches resolveMasses for every registry region", () => {
     let checked = 0;
-    for (const id of ["launch", "stairs", "notch", "zig"] as RegionId[]) {
+    for (const id of gameRegions()) {
       const masses = massesFor(id).map((mass) => ({
         id: mass.id,
         outline: mass.outline.map((p) => fromSvgPoint(p.x, p.y, id)),

@@ -271,7 +271,7 @@ export function Inspector({
             onChange={(e) => edit({ ...level, view: e.target.value as LevelFile["view"] })}
           >
             <option value="portrait">portrait 200x360</option>
-            <option value="landscape">landscape 360x200</option>
+            <option value="landscape">landscape 554x308</option>
           </select>
         </Row>
         <p className="text-[10px] leading-snug text-zinc-500">

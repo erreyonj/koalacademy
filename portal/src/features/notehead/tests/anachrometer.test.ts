@@ -19,6 +19,10 @@ import {
   step,
 } from "../modules/sim";
 import { applyWarp, liveLedges } from "../modules/progress";
+import { getRoute } from "../routes/registry";
+
+// Registers the tutorial route's levels with the sim.
+getRoute();
 
 describe("Anachrometer mid-flight pull", () => {
   it("can warp only while airborne with Anachrometer on and no active warp", () => {
@@ -69,10 +73,10 @@ describe("Anachrometer mid-flight pull", () => {
       vy: -200,
       restingOn: null,
     });
-    const aim = aimFromPull("notch", WARP_BAND_ID, -40, -200, 0);
+    const aim = aimFromPull("notch1", WARP_BAND_ID, -40, -200, 0);
     expect(aim.power).toBeGreaterThan(0.08);
     const velocity = launchVelocity(
-      "notch",
+      "notch1",
       WARP_BAND_ID,
       aim,
       PROFILES.easy.aimInset,
@@ -83,7 +87,7 @@ describe("Anachrometer mid-flight pull", () => {
       ...velocity,
       restingOn: null as string | null,
     };
-    const ledges = liveLedges("notch", null);
+    const ledges = liveLedges("notch1", null);
     const first = step(body, ledges, FIXED_DT, undefined, {
       breakSpeed: 0,
       catchBands: true,

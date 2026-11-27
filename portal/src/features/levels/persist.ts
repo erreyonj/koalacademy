@@ -50,7 +50,7 @@ export function saveDraft(
   try {
     storage()?.setItem(
       STORAGE_KEY,
-      JSON.stringify({ activeIndex, origin, route: serializeRoute(levels) }),
+      JSON.stringify({ activeIndex, origin, route: serializeRoute(levels, origin) }),
     );
   } catch {
     // Quota or private mode: autosave is best effort.
@@ -72,10 +72,9 @@ export function loadDraft(): Draft | null {
       const index = Number(saved.activeIndex);
       const activeIndex =
         Number.isInteger(index) && index >= 0 && index < parsed.levels.length ? index : 0;
+      const named = typeof saved.origin === "string" ? saved.origin : undefined;
       const origin =
-        typeof saved.origin === "string" && parsed.levels.some((l) => l.id === saved.origin)
-          ? saved.origin
-          : undefined;
+        named !== undefined && parsed.levels.some((l) => l.id === named) ? named : undefined;
       return { levels: parsed.levels, activeIndex, ...(origin ? { origin } : {}) };
     }
     const legacy = storage()?.getItem(LEGACY_STORAGE_KEY);
@@ -114,8 +113,8 @@ export function downloadLevel(level: LevelFile): void {
 }
 
 /** Browser download of the whole route as one array file. */
-export function downloadRoute(levels: readonly LevelFile[]): void {
-  download(routeFileName(levels), serializeRoute(levels));
+export function downloadRoute(levels: readonly LevelFile[], origin?: string | null): void {
+  download(routeFileName(levels), serializeRoute(levels, origin));
 }
 
 /**
@@ -129,15 +128,19 @@ export function parseLevelTexts(
   if (entries.length === 0) return { ok: false, errors: ["no files selected"] };
   const levels: LevelFile[] = [];
   const errors: string[] = [];
+  let origin: string | undefined;
   for (const { name, text } of entries) {
     const parsed = parseLevelSet(text);
-    if (parsed.ok) levels.push(...parsed.levels);
+    if (parsed.ok) {
+      levels.push(...parsed.levels);
+      origin ??= parsed.origin;
+    }
     else errors.push(...parsed.errors.map((message) => `${name}: ${message}`));
   }
   if (errors.length > 0) return { ok: false, errors };
   const route = validateRoute(levels);
   if (route.errors.length > 0) return { ok: false, errors: route.errors };
-  return { ok: true, levels };
+  return { ok: true, levels, ...(origin !== undefined ? { origin } : {}) };
 }
 
 export async function readLevelFiles(files: readonly File[]): Promise<ParseSetResult> {

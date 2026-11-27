@@ -1,5 +1,10 @@
 import type { ReactNode } from "react";
-import { svgViewFor, zigCameraFrame, type RegionId } from "../modules/sim";
+import {
+  isLandscapeRegion,
+  landscapeCameraFrame,
+  svgViewFor,
+  type RegionId,
+} from "../modules/sim";
 import type { GesturePhase } from "../modules/view";
 import { Sky } from "./Sky";
 import { Terrain } from "./Terrain";
@@ -7,7 +12,7 @@ import { Terrain } from "./Terrain";
 /**
  * The frame every region shares: sky, then rock, then whatever the region
  * adds. Art is clipped to that region's view box (portrait or landscape).
- * Zig uses a zoomed-out camera so the level reads smaller in the same stage.
+ * Landscape levels use a zoomed-out camera so the level reads smaller in the same stage.
  */
 export function SceneFrame({
   regionId,
@@ -23,10 +28,10 @@ export function SceneFrame({
   children: ReactNode;
 }) {
   const content = svgViewFor(regionId);
-  const camera = regionId === "zig" ? zigCameraFrame() : null;
+  const landscape = isLandscapeRegion(regionId);
+  const camera = landscape ? landscapeCameraFrame() : null;
   const W = camera?.view.w ?? content.w;
   const H = camera?.view.h ?? content.h;
-  const landscape = regionId === "zig";
   const playfield = (
     <>
       <Terrain regionId={regionId} />

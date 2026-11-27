@@ -2,7 +2,6 @@
  * Captain monologue (CM) and game interrupt (GI) copy.
  * Draft source: story-content.md — this module is what the game reads.
  */
-import type { BeatId } from "./progress";
 
 export type InterruptKind = "cm" | "gi";
 
@@ -14,7 +13,7 @@ export type StoryEventId =
   | "notch-calibrate-hull-hit"
   | "notch-calibrate-hull-breach"
   | "tonation-first"
-  | "launch-tail-enter";
+  | "8thTail1-enter";
 
 /** Optional one-shot SFX when a CM/GI line begins. */
 export type StoryLineSfx = "anach-repair";
@@ -39,7 +38,7 @@ const EVENTS: Record<StoryEventId, readonly StoryInterrupt[]> = {
       kind: "cm",
       speaker: CAPTAIN,
       lines: [
-        "Darn it!... This planet had a huge Borealis reading, but that landing scattered every one of the ship's Note-Tails...",
+        "Darn it!... This planet has huge raw Borealis readings, but that landing scattered every one of the ship's Note-Tails...",
         "Wait a minute... there's almost no Tonal Force on this planet either!! The ship will need to be recalibrated. At least the Frequency Band is still working...",
       ],
     },
@@ -110,7 +109,7 @@ const EVENTS: Record<StoryEventId, readonly StoryInterrupt[]> = {
       ],
     },
   ],
-  "launch-tail-enter": [
+  "8thTail1-enter": [
     {
       kind: "cm",
       speaker: CAPTAIN,
@@ -131,12 +130,4 @@ export function interruptsForEvent(
   id: StoryEventId,
 ): readonly StoryInterrupt[] {
   return EVENTS[id] ?? [];
-}
-
-/** Story events to queue when entering a beat (debug jump included). */
-export function enterEventsForBeat(id: BeatId): readonly StoryEventId[] {
-  if (id === "launch-teach") return ["launch-enter"];
-  if (id === "notch-calibrate") return ["notch-calibrate-enter"];
-  if (id === "launch-tail") return ["launch-tail-enter"];
-  return [];
 }

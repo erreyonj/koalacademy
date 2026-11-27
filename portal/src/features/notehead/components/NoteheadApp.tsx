@@ -36,7 +36,11 @@ import {
   stepNoteTail,
   TAIL_EIGHTH_ID,
 } from "../modules/note-tail";
-import { chartShotSolid, resolveMasses } from "../modules/collide";
+import {
+  chartShotSolid,
+  previewSubstepSolid,
+  resolveMasses,
+} from "../modules/collide";
 import {
   applyExitBarrierHit,
   applyLandingHit,
@@ -213,6 +217,8 @@ export function NoteheadApp() {
   const hpRef = useRef(maxHp("easy"));
   const stingRef = useRef(0);
   const timeScaleRef = useRef(1);
+  const accRef = useRef(0);
+  const commitSubstepRef = useRef<(() => void) | null>(null);
   const tRef = useRef(0);
   const originX = useRef(0);
   const originY = useRef(0);
@@ -413,6 +419,7 @@ export function NoteheadApp() {
           ? spawnNoteTail(events.noteTail)
           : null;
       timeScaleRef.current = 1;
+      accRef.current = 0;
       stopAnachWarp();
       aimRef.current = { power: 0, angle: 0 };
       visitedRef.current = [];
@@ -548,6 +555,7 @@ export function NoteheadApp() {
         // Same level: keep Borealis and the Tonation attempt.
         bodyRef.current = arrival.body;
         warpRef.current = null;
+        accRef.current = 0;
         stopAnachWarp();
         timeScaleRef.current = 1;
         phaseRef.current = "flight";
@@ -605,35 +613,124 @@ export function NoteheadApp() {
       }
     };
 
+    const substepPose = (): { body: Body; warp: Ledge | null } => {
+      const rem = accRef.current;
+      if (
+        rem <= 1e-6 ||
+        cutsceneOpenRef.current ||
+        screenPhaseRef.current !== "play"
+      ) {
+        return { body: bodyRef.current, warp: warpRef.current };
+      }
+      const pulling = phaseRef.current === "pulling";
+      const airWarp = pulling && warpRef.current !== null;
+      const pullInMotion =
+        pulling &&
+        (airWarp || !bodyRef.current.restingOn || slidingOnStep());
+      const inMotion =
+        phaseRef.current === "flight" ||
+        pullInMotion ||
+        slidingOnStep() ||
+        dockingOnBand();
+      if (!inMotion) {
+        return { body: bodyRef.current, warp: warpRef.current };
+      }
+      const regionId = placeRef.current;
+      const policy = stepPolicyFor(
+        Boolean(slingshotNow()),
+        crossedGoalRef.current,
+      );
+      if (dockingOnBand() && phaseRef.current === "idle") {
+        const docked = step(
+          bodyRef.current,
+          seatLedges(),
+          Math.min(rem, FIXED_DT),
+          undefined,
+          policy,
+        ).body;
+        return { body: docked, warp: warpRef.current };
+      }
+      const ledges = liveLedges(
+        regionId,
+        pulling ? null : warpRef.current,
+        exitBandRef.current,
+      );
+      const openings = gameRoute.scenes.get(regionId)?.openings ?? [];
+      const subBody = previewSubstepSolid(
+        bodyRef.current,
+        ledges,
+        rem,
+        regionId,
+        openings,
+        policy,
+      );
+      let subWarp = warpRef.current;
+      if (subWarp) {
+        if (
+          pulling &&
+          subBody.restingOn &&
+          subBody.restingOn !== WARP_BAND_ID
+        ) {
+          subWarp = null;
+        } else {
+          subWarp = followWarpBand(subBody, subWarp.pitch);
+        }
+      }
+      return { body: subBody, warp: subWarp };
+    };
+
+    commitSubstepRef.current = () => {
+      if (accRef.current <= 1e-6) return;
+      const pose = substepPose();
+      bodyRef.current = pose.body;
+      warpRef.current = pose.warp;
+      tRef.current += Math.min(accRef.current, FIXED_DT);
+      accRef.current = 0;
+    };
+
+    let lastChart: {
+      key: string;
+      value: ReturnType<typeof chartShotSolid>;
+    } | null = null;
+
     const paint = () => {
       const regionId = placeRef.current;
+      const { body: renderBody, warp: renderWarp } = substepPose();
       const sample = {
-        t: tRef.current,
-        body: bodyRef.current,
+        t: tRef.current + Math.min(accRef.current, FIXED_DT),
+        body: renderBody,
         crossedUp: crossedRef.current,
-        apexPitch: pitchAtHeight(apexRef.current),
+        apexPitch: pitchAtHeight(Math.max(apexRef.current, renderBody.y)),
       };
       const aiming =
         phaseRef.current === "pulling" && aimRef.current.power >= 0.08;
       const chartHome =
-        bodyRef.current.restingOn ??
-        (warpRef.current ? WARP_BAND_ID : null);
-      const chart = aiming
-        ? chartShotSolid(
+        renderBody.restingOn ?? (renderWarp ? WARP_BAND_ID : null);
+      let chart: ReturnType<typeof chartShotSolid> | null = null;
+      if (aiming) {
+        const inset = PROFILES[difficultyRef.current].aimInset;
+        const mode = aimModeFor(Boolean(slingshotNow()));
+        const chartKey = `${regionId}|${chartHome ?? ""}|${Math.round(renderBody.x * 4)}|${Math.round(renderBody.y * 4)}|${Math.round(aimRef.current.power * 2000)}|${Math.round(aimRef.current.angle * 2000)}|${inset}|${mode}`;
+        if (lastChart && lastChart.key === chartKey) {
+          chart = lastChart.value;
+        } else {
+          const openings = gameRoute.scenes.get(regionId)?.openings;
+          chart = chartShotSolid(
             regionId,
-            chartHome
-              ? { ...bodyRef.current, restingOn: chartHome }
-              : bodyRef.current,
+            chartHome ? { ...renderBody, restingOn: chartHome } : renderBody,
             aimRef.current,
-            PROFILES[difficultyRef.current].aimInset,
-            aimModeFor(Boolean(slingshotNow())),
-          )
-        : null;
+            inset,
+            mode,
+            openings,
+          );
+          lastChart = { key: chartKey, value: chart };
+        }
+      }
       // Decay the red hit flash between paints.
       stingRef.current = Math.max(0, stingRef.current - 0.018);
       const live = liveLedges(
         regionId,
-        warpRef.current,
+        renderWarp,
         exitBandRef.current,
       );
       const gesture: FrameGesture = {
@@ -643,7 +740,7 @@ export function NoteheadApp() {
         visited: visitedRef.current,
         chart: chart?.points ?? [],
         chartApex: chart?.apex ?? null,
-        warp: warpRef.current,
+        warp: renderWarp,
         exitBand: exitBandRef.current,
         borealis: borealisRef.current,
         noteTail: noteTailRef.current,
@@ -653,7 +750,7 @@ export function NoteheadApp() {
           const band = slingshotBand();
           return lesson && band ? guideY(band, lesson.goal) : null;
         })(),
-        clearance: clearanceBelow(bodyRef.current, live),
+        clearance: clearanceBelow(renderBody, live),
         sting: stingRef.current,
       };
       view.frame(sample, regionById(regionId), gesture);
@@ -1010,7 +1107,7 @@ export function NoteheadApp() {
 
     let raf = 0;
     let last = 0;
-    let acc = 0;
+    accRef.current = 0;
     const loop = (ts: number) => {
       if (document.hidden) {
         last = 0;
@@ -1066,10 +1163,10 @@ export function NoteheadApp() {
         sliding ||
         docking
       ) {
-        acc += dt * timeScaleRef.current;
+        accRef.current += dt * timeScaleRef.current;
         let guard = 0;
         while (
-          acc >= FIXED_DT &&
+          accRef.current >= FIXED_DT &&
           guard < 8 &&
           (phaseRef.current === "flight" ||
             slidingOnStep() ||
@@ -1079,7 +1176,7 @@ export function NoteheadApp() {
                 !bodyRef.current.restingOn ||
                 slidingOnStep())))
         ) {
-          acc -= FIXED_DT;
+          accRef.current -= FIXED_DT;
           guard += 1;
           if (dockingOnBand() && phaseRef.current === "idle") {
             // Idle dock only — no flight side effects.
@@ -1108,6 +1205,8 @@ export function NoteheadApp() {
             stopAnachWarp();
           }
         }
+      } else {
+        accRef.current = 0;
       }
       paint();
       raf = window.requestAnimationFrame(loop);
@@ -1133,6 +1232,7 @@ export function NoteheadApp() {
       view.unmount();
       viewRef.current = null;
       jumpRef.current = null;
+      commitSubstepRef.current = null;
     };
   }, []);
 
@@ -1173,6 +1273,16 @@ export function NoteheadApp() {
         warpRef.current !== null,
       )
     ) {
+      commitSubstepRef.current?.();
+      if (
+        !canWarp(
+          repairRef.current.anachrometer,
+          bodyRef.current.restingOn,
+          warpRef.current !== null,
+        )
+      ) {
+        return;
+      }
       const engaged = applyWarp(bodyRef.current);
       bodyRef.current = engaged.body;
       warpRef.current = engaged.warp;
@@ -1228,8 +1338,12 @@ export function NoteheadApp() {
     aimRef.current = { power: 0, angle: 0 };
     setAimTone(null);
     const airWarp = warpRef.current !== null;
+    if (airWarp || !bodyRef.current.restingOn) {
+      commitSubstepRef.current?.();
+    }
+    const launchAirWarp = warpRef.current !== null;
     if (aim.power < 0.08) {
-      if (airWarp) {
+      if (launchAirWarp) {
         // Cancel warp; keep current velocity and resume flight.
         warpRef.current = null;
         timeScaleRef.current = 1;
@@ -1245,7 +1359,7 @@ export function NoteheadApp() {
       return;
     }
     const home =
-      bodyRef.current.restingOn ?? (airWarp ? WARP_BAND_ID : "");
+      bodyRef.current.restingOn ?? (launchAirWarp ? WARP_BAND_ID : "");
     const velocity = launchVelocity(
       placeRef.current,
       home,

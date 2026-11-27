@@ -1,10 +1,17 @@
 import { describe, expect, it } from "vitest";
-import { resolveMasses, stepSolid, surfaceBelow } from "../modules/collide";
+import {
+  chartShotSolid,
+  previewSubstepSolid,
+  resolveMasses,
+  stepSolid,
+  surfaceBelow,
+} from "../modules/collide";
 import {
   FIXED_DT,
   MASS_HIT_SPEED,
   SHIP_R,
   restOn,
+  step,
 } from "../modules/sim";
 import { insideMass } from "../modules/terrain";
 import { getRoute } from "../routes/registry";
@@ -78,5 +85,65 @@ describe("solid terrain", () => {
     const surface = surfaceBelow(scene.logical, spot.x, 1599);
     expect(surface).not.toBeNull();
     expect(surfaceBelow(scene.logical, spot.x, -50)).toBeNull();
+  });
+
+  it("terminates chartShotSolid without rock-stalling across zig1perspective aims", () => {
+    const zigRoute = getRoute("zig1perspective");
+    const scene = zigRoute.scenes.get("zig1perspective")!;
+    const band = scene.ledges[0]!;
+    const start = restOn(band);
+    for (const power of [0.25, 0.55, 0.85, 1]) {
+      for (let deg = -160; deg <= 160; deg += 20) {
+        const angle = (deg * Math.PI) / 180;
+        const chart = chartShotSolid(
+          "zig1perspective",
+          start,
+          { power, angle },
+          0,
+          "free",
+          scene.openings,
+        );
+        // Sampled every 2 frames + start/end: a 600-frame cap keeps points <= 303,
+        // and rock-wedged shots cut off much earlier instead of burning 1500 frames.
+        expect(chart.points.length).toBeGreaterThan(1);
+        expect(chart.points.length).toBeLessThanOrEqual(304);
+      }
+    }
+  });
+
+  it("interpolates fractional sub-steps smoothly up to FIXED_DT", () => {
+    const scene = route.scenes.get("notch1")!;
+    const fly = {
+      x: 450,
+      y: 700,
+      vx: 180,
+      vy: 420,
+      restingOn: null as string | null,
+    };
+    const zero = previewSubstepSolid(fly, scene.ledges, 0, "notch1", scene.openings);
+    expect(zero).toEqual(fly);
+
+    const half = previewSubstepSolid(
+      fly,
+      scene.ledges,
+      FIXED_DT * 0.5,
+      "notch1",
+      scene.openings,
+    );
+    const full = previewSubstepSolid(
+      fly,
+      scene.ledges,
+      FIXED_DT,
+      "notch1",
+      scene.openings,
+    );
+    const expected = step(fly, scene.ledges, FIXED_DT).body;
+
+    expect(half.x).toBeGreaterThan(fly.x);
+    expect(half.x).toBeLessThan(full.x);
+    expect(half.y).toBeGreaterThan(fly.y);
+    expect(half.y).toBeLessThan(full.y);
+    expect(full.x).toBeCloseTo(expected.x, 5);
+    expect(full.y).toBeCloseTo(expected.y, 5);
   });
 });

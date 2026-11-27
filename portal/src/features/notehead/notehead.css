@@ -393,6 +393,24 @@
   height: 100%;
 }
 
+.notehead-frame-stack {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.notehead-backdrop-svg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  contain: layout paint;
+}
+
+.notehead-live-svg {
+  position: relative;
+  z-index: 1;
+}
+
 .notehead-hint {
   text-align: center;
   font-family: var(--font-mono);
@@ -893,7 +911,6 @@
 .notehead-borealis {
   pointer-events: none;
   opacity: 0.95;
-  mix-blend-mode: screen;
 }
 
 @media (prefers-reduced-motion: no-preference) {

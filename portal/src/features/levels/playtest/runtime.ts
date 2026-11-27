@@ -21,6 +21,7 @@
 import {
   borealisFromSpot,
   previewLevel,
+  type PreviewLevel,
 } from "../adapter";
 import { fromView } from "../geometry";
 import { validateLevel } from "../model";
@@ -78,8 +79,10 @@ export const WARP_MIN_POWER = 0.08;
 export const STALL_FRAMES = 120;
 /** Per-frame travel (logical units) that counts as "not moving". */
 const STALL_STEP = 0.15;
-/** Frames the aim chart simulates at most. */
-const CHART_FRAMES = 900;
+/** Frames the aim chart simulates at most (10 s at 60 Hz). */
+const CHART_FRAMES = 600;
+/** Consecutive stalled preview frames before stopping a rock-wedged chart. */
+const CHART_STALL_LIMIT = 6;
 
 /** Where an exit leads, when the level is part of a route. */
 export interface SceneDoor {
@@ -173,9 +176,12 @@ export function playBlocker(level: LevelFile): string | null {
 }
 
 /** Build the sandbox scene from a level. Null while `playBlocker` has a reason. */
-export function buildScene(level: LevelFile): PlaytestScene | null {
+export function buildScene(
+  level: LevelFile,
+  precomputedPreview?: PreviewLevel,
+): PlaytestScene | null {
   if (staticBlocker(level) !== null || !level.enter) return null;
-  const preview = previewLevel(level, { ticks: false });
+  const preview = precomputedPreview ?? previewLevel(level, { ticks: false });
   return {
     view: level.view,
     regionId: preview.regionId,
@@ -249,8 +255,9 @@ function outOfBounds(body: Body): boolean {
 export function stepBody(
   scene: PlaytestScene,
   body: Body,
+  dt: number = FIXED_DT,
 ): { body: Body; hit: boolean; landedId: string | null } {
-  const result = step(body, scene.ledges, FIXED_DT, GRAVITY, PLAYTEST_POLICY);
+  const result = step(body, scene.ledges, dt, GRAVITY, PLAYTEST_POLICY);
   let next = result.body;
   let hit = false;
   const seat = ledgeById(scene.ledges, next.restingOn);
@@ -479,13 +486,37 @@ export function chartShot(
   const points = [{ x: body.x, y: body.y }];
   let apex = { x: current.x, y: current.y };
   let landedOn: string | null = null;
+  let stillFrames = 0;
 
   for (let frame = 0; frame < CHART_FRAMES && !landedOn; frame++) {
+    const prevX = current.x;
+    const prevY = current.y;
     const result = stepBody(scene, current);
     current = result.body;
     if (frame % 2 === 0) points.push({ x: current.x, y: current.y });
     if (current.y >= apex.y) apex = { x: current.x, y: current.y };
+    if (
+      scene.openings.some(
+        (opening) =>
+          leftFrameThroughOpening(opening, current) ||
+          touchedOpening(opening, current),
+      )
+    ) {
+      points.push({ x: current.x, y: current.y });
+      break;
+    }
     if (outOfBounds(current)) break;
+    const moveDx = current.x - prevX;
+    const moveDy = current.y - prevY;
+    if (!current.restingOn && moveDx * moveDx + moveDy * moveDy < 0.25) {
+      stillFrames += 1;
+      if (stillFrames >= CHART_STALL_LIMIT) {
+        points.push({ x: current.x, y: current.y });
+        break;
+      }
+    } else {
+      stillFrames = 0;
+    }
     if (!result.landedId || !current.restingOn) continue;
     points.push({ x: current.x, y: current.y });
     landedOn = result.landedId;

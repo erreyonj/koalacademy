@@ -3,8 +3,8 @@
  * `routes/scene.ts`); sealed frame edges block every other escape so the ship
  * must leave through an open gap (forward exit and/or reverse travel).
  */
-import { MASS_HIT_SPEED } from "./collide";
 import {
+  MASS_HIT_SPEED,
   SHIP_R,
   WORLD_H,
   WORLD_W,

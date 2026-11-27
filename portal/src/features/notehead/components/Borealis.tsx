@@ -1,7 +1,8 @@
 import borealisArt from "../assets/notehead-borealis-collectible-main.png";
 import { toSvg, type PitchName, type RegionId } from "../modules/sim";
 
-const SIZE = 56;
+/** Cropped 640x640 -> 256x256 orb plate; matches the original 56-unit 1920w scale. */
+const SIZE = (56 * 640) / 1920;
 
 /** Soft PNG orb at a logical-world Borealis point. */
 export function BorealisMark({

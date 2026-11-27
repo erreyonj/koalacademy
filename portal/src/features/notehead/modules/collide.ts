@@ -3,6 +3,12 @@
  * have something to bump into.
  */
 import {
+  containAgainstOpenings,
+  leftFrameThroughOpening,
+  touchedOpening,
+  type FrameOpening,
+} from "./exit-zone";
+import {
   BREAK_SPEED,
   FIXED_DT,
   GRAVITY,
@@ -27,12 +33,122 @@ import { insideMass, massesFor, type Mass, type Point } from "./terrain";
 
 export { MASS_BUMP_SPEED, MASS_HIT_SPEED } from "./sim";
 
+/** Maximum simulated frames for the live trajectory preview (10 s at 60 Hz). */
+const CHART_SOLID_FRAMES = 600;
+/** Squared logical travel per frame below which an unseated preview counts as stalled on rock. */
+const CHART_STALL_STEP_SQ = 0.25;
+/** Consecutive stalled frames before terminating a rock-wedged preview. */
+const CHART_STALL_LIMIT = 6;
+
 export interface LogicalMass {
   id: string;
   outline: Point[];
 }
 
+interface PreparedMass {
+  id: string;
+  outline: readonly Point[];
+  minX: number;
+  minY: number;
+  maxX: number;
+  maxY: number;
+  ax: Float64Array;
+  ay: Float64Array;
+  dx: Float64Array;
+  dy: Float64Array;
+  invLenSq: Float64Array;
+  nx: Float64Array;
+  ny: Float64Array;
+  edgeCount: number;
+}
+
 const logicalCache = new WeakMap<readonly Mass[], readonly LogicalMass[]>();
+const preparedMassCache = new WeakMap<LogicalMass, PreparedMass>();
+const preparedListCache = new WeakMap<
+  readonly LogicalMass[],
+  readonly PreparedMass[]
+>();
+
+function prepareMass(mass: LogicalMass): PreparedMass {
+  const hit = preparedMassCache.get(mass);
+  if (hit) return hit;
+
+  const ring = mass.outline;
+  const n = ring.length;
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+
+  const axArr: number[] = [];
+  const ayArr: number[] = [];
+  const dxArr: number[] = [];
+  const dyArr: number[] = [];
+  const invLenSqArr: number[] = [];
+  const nxArr: number[] = [];
+  const nyArr: number[] = [];
+
+  for (let i = 0; i < n; i++) {
+    const a = ring[i]!;
+    if (a.x < minX) minX = a.x;
+    if (a.x > maxX) maxX = a.x;
+    if (a.y < minY) minY = a.y;
+    if (a.y > maxY) maxY = a.y;
+
+    const b = ring[(i + 1) % n]!;
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const lenSq = dx * dx + dy * dy;
+    if (lenSq < 1e-12) continue;
+
+    const len = Math.sqrt(lenSq);
+    let nx = -dy / len;
+    let ny = dx / len;
+    const probe = {
+      x: a.x + dx * 0.5 + nx * 0.05,
+      y: a.y + dy * 0.5 + ny * 0.05,
+    };
+    if (insideMass(probe, mass)) {
+      nx = -nx;
+      ny = -ny;
+    }
+
+    axArr.push(a.x);
+    ayArr.push(a.y);
+    dxArr.push(dx);
+    dyArr.push(dy);
+    invLenSqArr.push(1 / lenSq);
+    nxArr.push(nx);
+    nyArr.push(ny);
+  }
+
+  const prepared: PreparedMass = {
+    id: mass.id,
+    outline: ring,
+    minX,
+    minY,
+    maxX,
+    maxY,
+    ax: Float64Array.from(axArr),
+    ay: Float64Array.from(ayArr),
+    dx: Float64Array.from(dxArr),
+    dy: Float64Array.from(dyArr),
+    invLenSq: Float64Array.from(invLenSqArr),
+    nx: Float64Array.from(nxArr),
+    ny: Float64Array.from(nyArr),
+    edgeCount: axArr.length,
+  };
+  preparedMassCache.set(mass, prepared);
+  return prepared;
+}
+
+function preparedList(masses: readonly LogicalMass[]): readonly PreparedMass[] {
+  let cached = preparedListCache.get(masses);
+  if (cached) return cached;
+  cached = masses.map(prepareMass);
+  preparedListCache.set(masses, cached);
+  return cached;
+}
 
 function logicalMasses(regionId: RegionId): readonly LogicalMass[] {
   const view = massesFor(regionId);
@@ -48,70 +164,73 @@ function logicalMasses(regionId: RegionId): readonly LogicalMass[] {
   return cached;
 }
 
-function inside(point: Point, outline: readonly Point[]): boolean {
-  return insideMass(point, { outline });
-}
-
-function nearestOnRing(
-  point: Point,
-  ring: readonly Point[],
-): { point: Point; normal: Point; dist: number } {
-  let best = {
-    point: ring[0]!,
-    normal: { x: 0, y: 1 },
-    dist: Infinity,
-  };
-  for (let i = 0; i < ring.length; i++) {
-    const a = ring[i]!;
-    const b = ring[(i + 1) % ring.length]!;
-    const dx = b.x - a.x;
-    const dy = b.y - a.y;
-    const lengthSq = dx * dx + dy * dy || 1;
-    const along = Math.max(
-      0,
-      Math.min(1, ((point.x - a.x) * dx + (point.y - a.y) * dy) / lengthSq),
-    );
-    const px = a.x + dx * along;
-    const py = a.y + dy * along;
-    const dist = Math.hypot(point.x - px, point.y - py);
-    if (dist >= best.dist) continue;
-    // Edge tangent → candidate normal (perpendicular).
-    const len = Math.hypot(dx, dy) || 1;
-    let nx = -dy / len;
-    let ny = dx / len;
-    const probe = { x: px + nx, y: py + ny };
-    if (inside(probe, ring)) {
-      nx = -nx;
-      ny = -ny;
-    }
-    best = { point: { x: px, y: py }, normal: { x: nx, y: ny }, dist };
-  }
-  return best;
-}
-
 function resolveOne(
   body: Body,
-  mass: LogicalMass,
+  prep: PreparedMass,
 ): { body: Body; hit: boolean; into: number; resolved: boolean } {
-  const center = { x: body.x, y: body.y };
-  const buried = inside(center, mass.outline);
-  const near = nearestOnRing(center, mass.outline);
-  if (!buried && near.dist >= SHIP_R - 0.01) {
+  const cx = body.x;
+  const cy = body.y;
+  if (
+    prep.edgeCount === 0 ||
+    cx < prep.minX - SHIP_R ||
+    cx > prep.maxX + SHIP_R ||
+    cy < prep.minY - SHIP_R ||
+    cy > prep.maxY + SHIP_R
+  ) {
     return { body, hit: false, into: 0, resolved: false };
   }
 
-  const n = near.normal;
-  const x = near.point.x + n.x * SHIP_R;
-  const y = near.point.y + n.y * SHIP_R;
+  let bestDistSq = Infinity;
+  let bestPx = 0;
+  let bestPy = 0;
+  let bestNx = 0;
+  let bestNy = 1;
+  const { ax, ay, dx, dy, invLenSq, nx, ny, edgeCount } = prep;
+
+  for (let i = 0; i < edgeCount; i++) {
+    const ex = dx[i]!;
+    const ey = dy[i]!;
+    const rx = cx - ax[i]!;
+    const ry = cy - ay[i]!;
+    let along = (rx * ex + ry * ey) * invLenSq[i]!;
+    if (along < 0) along = 0;
+    else if (along > 1) along = 1;
+    const px = ax[i]! + ex * along;
+    const py = ay[i]! + ey * along;
+    const ox = cx - px;
+    const oy = cy - py;
+    const distSq = ox * ox + oy * oy;
+    if (distSq >= bestDistSq) continue;
+    bestDistSq = distSq;
+    bestPx = px;
+    bestPy = py;
+    bestNx = nx[i]!;
+    bestNy = ny[i]!;
+  }
+
+  const touchLimit = SHIP_R - 0.01;
+  if (bestDistSq >= touchLimit * touchLimit) {
+    const withinBox =
+      cx >= prep.minX &&
+      cx <= prep.maxX &&
+      cy >= prep.minY &&
+      cy <= prep.maxY;
+    if (!withinBox || !insideMass({ x: cx, y: cy }, prep)) {
+      return { body, hit: false, into: 0, resolved: false };
+    }
+  }
+
+  const x = bestPx + bestNx * SHIP_R;
+  const y = bestPy + bestNy * SHIP_R;
   // Speed into the rock (positive = driving into the wall).
-  const into = Math.max(0, -(body.vx * n.x + body.vy * n.y));
+  const into = Math.max(0, -(body.vx * bestNx + body.vy * bestNy));
   // Kill inward velocity; keep tangential slide.
-  const vn = body.vx * n.x + body.vy * n.y;
+  const vn = body.vx * bestNx + body.vy * bestNy;
   let vx = body.vx;
   let vy = body.vy;
   if (vn < 0) {
-    vx -= vn * n.x;
-    vy -= vn * n.y;
+    vx -= vn * bestNx;
+    vy -= vn * bestNy;
   }
   // Clear resting if the rock shoved us; impact HP only on hard contact speed.
   return {
@@ -131,7 +250,7 @@ export function resolveMasses(
   body: Body,
   regionId: RegionId,
 ): { body: Body; hit: boolean; massId: string | null; into: number } {
-  return resolveMassesAgainst(body, logicalMasses(regionId));
+  return resolvePreparedMasses(body, preparedList(logicalMasses(regionId)));
 }
 
 /**
@@ -143,6 +262,13 @@ export function resolveMassesAgainst(
   body: Body,
   masses: readonly LogicalMass[],
 ): { body: Body; hit: boolean; massId: string | null; into: number } {
+  return resolvePreparedMasses(body, preparedList(masses));
+}
+
+function resolvePreparedMasses(
+  body: Body,
+  prepared: readonly PreparedMass[],
+): { body: Body; hit: boolean; massId: string | null; into: number } {
   let current = body;
   let hit = false;
   let massId: string | null = null;
@@ -150,7 +276,8 @@ export function resolveMassesAgainst(
   // A few passes so corners of overlapping masses settle.
   for (let pass = 0; pass < 3; pass++) {
     let moved = false;
-    for (const mass of masses) {
+    for (let i = 0; i < prepared.length; i++) {
+      const mass = prepared[i]!;
       const result = resolveOne(current, mass);
       if (!result.resolved) continue;
       current = result.body;
@@ -195,13 +322,40 @@ export function stepSolid(
   };
 }
 
-/** Shot preview that respects solid rock (used by the live chart). */
+/**
+ * Side-effect-free fractional sub-step (`0 < dt < FIXED_DT`) matching live
+ * `tickSim` (ledges + rock + sealed openings) so slow-mo Anachrometer renders
+ * smoothly at display rate without mutating authoritative fixed-step state.
+ */
+export function previewSubstepSolid(
+  body: Body,
+  ledges: readonly Ledge[],
+  dt: number,
+  regionId: RegionId,
+  openings: readonly FrameOpening[] = [],
+  policy: StepPolicy = { breakSpeed: BREAK_SPEED, catchBands: false },
+): Body {
+  if (dt <= 1e-6) return body;
+  const result = step(body, ledges, Math.min(dt, FIXED_DT), GRAVITY, policy);
+  let next = result.body;
+  const seat = ledgeById(ledges, next.restingOn);
+  if (!next.restingOn || isSlopedStep(seat)) {
+    next = resolveMasses(next, regionId).body;
+    if (openings.length > 0) {
+      next = containAgainstOpenings(next, openings).body;
+    }
+  }
+  return next;
+}
+
+/** Shot preview that respects solid rock and optional sealed level borders. */
 export function chartShotSolid(
   regionId: RegionId,
   body: Body,
   aim: Aim,
   inset = 0,
   mode: AimMode = regionId === "launch" ? "vertical" : "free",
+  openings?: readonly FrameOpening[],
 ): {
   points: { x: number; y: number }[];
   apex: { x: number; y: number } | null;
@@ -211,18 +365,46 @@ export function chartShotSolid(
   const velocity = launchVelocity(regionId, home, aim, inset, mode);
   let current: Body = { ...body, ...velocity, restingOn: null };
   const ledges = ledgesFor(regionId);
+  const prepared = preparedList(logicalMasses(regionId));
+  const hasOpenings = Boolean(openings && openings.length > 0);
+  const policy: StepPolicy = { breakSpeed: BREAK_SPEED, catchBands: true };
   const points = [{ x: body.x, y: body.y }];
   let apex: { x: number; y: number } | null = { x: current.x, y: current.y };
   let landedOn: string | null = null;
+  let stillFrames = 0;
 
-  for (let frame = 0; frame < 1500 && !landedOn; frame++) {
-    const result = stepSolid(current, ledges, FIXED_DT, regionId, GRAVITY, {
-      breakSpeed: BREAK_SPEED,
-      catchBands: true,
-    });
-    current = result.body;
+  for (let frame = 0; frame < CHART_SOLID_FRAMES && !landedOn; frame++) {
+    const prevX = current.x;
+    const prevY = current.y;
+    const result = step(current, ledges, FIXED_DT, GRAVITY, policy);
+    let next = result.body;
+    const seat = ledgeById(ledges, next.restingOn);
+    if (!next.restingOn || isSlopedStep(seat)) {
+      next = resolvePreparedMasses(next, prepared).body;
+      if (hasOpenings && openings) {
+        next = containAgainstOpenings(next, openings).body;
+      }
+    }
+    current = next;
+
     if (frame % 2 === 0) points.push({ x: current.x, y: current.y });
     if (!apex || current.y >= apex.y) apex = { x: current.x, y: current.y };
+
+    if (hasOpenings && openings) {
+      let exited = false;
+      for (let i = 0; i < openings.length; i++) {
+        const op = openings[i]!;
+        if (leftFrameThroughOpening(op, current) || touchedOpening(op, current)) {
+          exited = true;
+          break;
+        }
+      }
+      if (exited) {
+        points.push({ x: current.x, y: current.y });
+        break;
+      }
+    }
+
     if (
       current.y < -240 ||
       current.y > WORLD_H + 240 ||
@@ -231,7 +413,20 @@ export function chartShotSolid(
     ) {
       break;
     }
-    if (isSlopedStep(ledgeById(ledges, current.restingOn))) continue;
+
+    const moveDx = current.x - prevX;
+    const moveDy = current.y - prevY;
+    if (!current.restingOn && moveDx * moveDx + moveDy * moveDy < CHART_STALL_STEP_SQ) {
+      stillFrames += 1;
+      if (stillFrames >= CHART_STALL_LIMIT) {
+        points.push({ x: current.x, y: current.y });
+        break;
+      }
+    } else {
+      stillFrames = 0;
+    }
+
+    if (isSlopedStep(seat)) continue;
     if (!result.landedId) continue;
     points.push({ x: current.x, y: current.y });
     if (!current.restingOn) continue;

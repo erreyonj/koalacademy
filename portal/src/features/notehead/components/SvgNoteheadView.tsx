@@ -2,7 +2,13 @@
 
 import { createRoot, type Root } from "react-dom/client";
 import { wholePulseAmount } from "../modules/anachrometer";
-import { REST_GLOW, easeGlow, glowTarget, type ShipGlow } from "../modules/momentum";
+import {
+  REST_GLOW,
+  easeGlow,
+  glowTarget,
+  trailStrength,
+  type ShipGlow,
+} from "../modules/momentum";
 import type { Ledge, Region, ShotSample } from "../modules/sim";
 import type { FrameGesture, NoteheadView } from "../modules/view";
 import { LevelArt } from "./LevelArt";
@@ -35,10 +41,46 @@ function SceneArt({
 /** How fast the hull settles back to black when warp ends. */
 const WHOLE_RELEASE_RATE = 14;
 
+function frameSignature(
+  sample: ShotSample,
+  region: Region,
+  gesture: FrameGesture,
+  glow: ShipGlow,
+  whole: number,
+): string {
+  let gems = "";
+  for (let i = 0; i < gesture.borealis.length; i++) {
+    const g = gesture.borealis[i]!;
+    gems += g.collected
+      ? "1;"
+      : `${g.x.toFixed(1)},${g.y.toFixed(1)};`;
+  }
+  const tail = gesture.noteTail
+    ? gesture.noteTail.collected
+      ? "1"
+      : `${gesture.noteTail.x.toFixed(1)},${gesture.noteTail.y.toFixed(1)}`
+    : "";
+  const warp = gesture.warp
+    ? `${gesture.warp.x0.toFixed(1)},${gesture.warp.x1.toFixed(1)},${gesture.warp.y.toFixed(1)}`
+    : "";
+  const exit = gesture.exitBand
+    ? `${gesture.exitBand.id},${gesture.exitBand.y.toFixed(1)}`
+    : "";
+  const pull =
+    gesture.phase === "pulling"
+      ? `${gesture.power.toFixed(4)},${gesture.angle.toFixed(4)},${gesture.chart.length}`
+      : "";
+  const brk = gesture.bandBreak
+    ? `${gesture.bandBreak.x.toFixed(1)},${gesture.bandBreak.y.toFixed(1)}`
+    : "";
+  return `${region.id}|${gesture.phase}|${sample.body.x.toFixed(2)},${sample.body.y.toFixed(2)},${sample.body.restingOn ?? ""}|${pull}|${warp}|${exit}|${gesture.guide ?? ""}|${brk}|${gems}|${tail}|${whole.toFixed(3)}|${glow.angle.toFixed(3)},${glow.lift.toFixed(3)},${glow.energy.toFixed(3)},${glow.warn.toFixed(3)},${glow.sting.toFixed(3)}`;
+}
+
 /** SVG adapter for NoteheadView. The sim never imports this module. */
 export class SvgNoteheadView implements NoteheadView {
   private root: Root | null = null;
   private host: HTMLElement | null = null;
+  private mountEl: HTMLDivElement | null = null;
   /** Set when unmount is requested so late rAF paints skip render. */
   private dead = false;
   /** Eased between frames here, so the rim glides when React re-renders the scene. */
@@ -50,11 +92,20 @@ export class SvgNoteheadView implements NoteheadView {
   private wasWarping = false;
   private lastFrame = 0;
   private still = false;
+  private lastSig: string | null = null;
+  private lastChartRef: readonly { x: number; y: number }[] | null = null;
 
   mount(host: HTMLElement): void {
     this.dead = false;
     this.host = host;
-    this.root = createRoot(host);
+    this.lastSig = null;
+    this.lastChartRef = null;
+    const mountEl = document.createElement("div");
+    mountEl.style.width = "100%";
+    mountEl.style.height = "100%";
+    host.replaceChildren(mountEl);
+    this.mountEl = mountEl;
+    this.root = createRoot(mountEl);
     this.still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   }
 
@@ -94,6 +145,23 @@ export class SvgNoteheadView implements NoteheadView {
     } else {
       this.whole = 0;
     }
+
+    const trailAnimated = !this.still && trailStrength(this.glow.energy) > 0.01;
+    if (!trailAnimated) {
+      const sig = frameSignature(sample, region, gesture, this.glow, this.whole);
+      const sameChart =
+        gesture.chart === this.lastChartRef ||
+        (gesture.chart.length === 0 && (this.lastChartRef?.length ?? 0) === 0);
+      if (sig === this.lastSig && sameChart) {
+        return;
+      }
+      this.lastSig = sig;
+      this.lastChartRef = gesture.chart;
+    } else {
+      this.lastSig = null;
+      this.lastChartRef = gesture.chart;
+    }
+
     this.root?.render(
       <SceneArt
         sample={sample}
@@ -115,11 +183,16 @@ export class SvgNoteheadView implements NoteheadView {
     // rendering the parent (Strict Mode remount / beat-jump setState).
     this.dead = true;
     const root = this.root;
+    const mountEl = this.mountEl;
     this.root = null;
+    this.mountEl = null;
     this.host = null;
+    this.lastSig = null;
+    this.lastChartRef = null;
     if (!root) return;
     queueMicrotask(() => {
       root.unmount();
+      mountEl?.remove();
     });
   }
 }

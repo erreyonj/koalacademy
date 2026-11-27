@@ -17,10 +17,18 @@ import { Trajectory } from "../../notehead/components/Trajectory";
 import {
   WARP_BAND_ID,
   WARP_TIME_SCALE,
+  followWarpBand,
   wholePulseAmount,
 } from "../../notehead/modules/anachrometer";
 import { REST_GLOW } from "../../notehead/modules/momentum";
-import { FIXED_DT, toSvg } from "../../notehead/modules/sim";
+import {
+  FIXED_DT,
+  isDockableBand,
+  isSlopedStep,
+  ledgeById,
+  step,
+  toSvg,
+} from "../../notehead/modules/sim";
 import { previewLevel } from "../adapter";
 import { bandEndsView, exitSegmentView, outerRect, scaleOf, viewSizeOf } from "../geometry";
 import type { Action, PlaySession } from "../store";
@@ -36,6 +44,7 @@ import {
   engageWarpState,
   fire,
   resetState,
+  stepBody,
   syncExtras,
   tickBorealis,
   withExtras,
@@ -57,6 +66,70 @@ interface Frame {
   state: PlaytestState;
   /** Hull bleach while warping, 0..1 (wall-clock, like the game's). */
   whole: number;
+  pull: Pull | null;
+}
+
+function sameRestingFrame(prev: Frame, next: Frame): boolean {
+  if (prev.whole !== next.whole || prev.pull !== next.pull) return false;
+  const a = prev.state;
+  const b = next.state;
+  if (
+    a.cleared !== b.cleared ||
+    a.departed !== b.departed ||
+    a.collected !== b.collected ||
+    a.shots !== b.shots ||
+    a.hardHits !== b.hardHits ||
+    a.resets !== b.resets ||
+    a.notice !== b.notice ||
+    a.warp !== b.warp
+  ) {
+    return false;
+  }
+  const ba = a.body;
+  const bb = b.body;
+  if (
+    ba.x !== bb.x ||
+    ba.y !== bb.y ||
+    ba.vx !== bb.vx ||
+    ba.vy !== bb.vy ||
+    ba.restingOn !== bb.restingOn ||
+    Math.hypot(bb.vx, bb.vy) >= 60
+  ) {
+    return false;
+  }
+  if (a.borealis.length !== b.borealis.length) return false;
+  for (let i = 0; i < a.borealis.length; i++) {
+    const ga = a.borealis[i]!;
+    const gb = b.borealis[i]!;
+    if (ga.x !== gb.x || ga.y !== gb.y || ga.collected !== gb.collected) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function previewPlaytestSubstep(
+  scene: PlaytestScene,
+  state: PlaytestState,
+  rem: number,
+): PlaytestState {
+  if (rem <= 1e-6 || state.cleared || state.departed) return state;
+  const dt = Math.min(rem, FIXED_DT);
+  const seat = ledgeById(scene.ledges, state.body.restingOn);
+  if (state.body.restingOn && !isSlopedStep(seat)) {
+    if (!isDockableBand(seat)) return state;
+    const docked = step(state.body, scene.ledges, dt).body;
+    return { ...state, body: docked, clock: state.clock + dt };
+  }
+  const subBody = stepBody(scene, state.body, dt).body;
+  let subWarp = state.warp;
+  if (subWarp) {
+    subWarp =
+      subBody.restingOn && subBody.restingOn !== WARP_BAND_ID
+        ? null
+        : followWarpBand(subBody, subWarp.pitch);
+  }
+  return { ...state, body: subBody, warp: subWarp, clock: state.clock + dt };
 }
 
 function pathOf(points: readonly Pt[], closed = false): string {
@@ -118,6 +191,18 @@ export function PlaytestView({
     [base, session.extraBorealis],
   );
   const preview = useMemo(() => previewLevel(level), [level]);
+  const terrainPaths = useMemo(
+    () =>
+      preview.masses.map((mass) => ({
+        id: mass.id,
+        outline: pathOf(mass.outline, true),
+        ticks:
+          mass.ticks.length > 0
+            ? mass.ticks.map((t) => pathOf(t)).join(" ")
+            : "",
+      })),
+    [preview.masses],
+  );
   const view = level.view;
   const size = viewSizeOf(view);
   const outer = outerRect(view);
@@ -125,6 +210,12 @@ export function PlaytestView({
   const svgRef = useRef<SVGSVGElement>(null);
   const stateRef = useRef<PlaytestState | null>(null);
   const pullRef = useRef<Pull | null>(null);
+  const accRef = useRef(0);
+  const chartCacheRef = useRef<{
+    scene: PlaytestScene;
+    key: string;
+    value: ReturnType<typeof chartShot>;
+  } | null>(null);
   const warpStartRef = useRef(0);
   const indexRef = useRef(index);
   // A state built by travel, waiting for the level swap to render.
@@ -133,7 +224,6 @@ export function PlaytestView({
   const sceneRef = useRef(scene);
   const sessionRef = useRef(session);
   const [frame, setFrame] = useState<Frame | null>(null);
-  const [pull, setPull] = useState<Pull | null>(null);
 
   useEffect(() => {
     sceneRef.current = scene;
@@ -146,8 +236,10 @@ export function PlaytestView({
     if (pendingRef.current?.id === level.id) pendingRef.current = null;
     else stateRef.current = base ? createState(sceneRef.current ?? base) : null;
     pullRef.current = null;
-    setPull(null);
-    setFrame(stateRef.current ? { state: stateRef.current, whole: 0 } : null);
+    accRef.current = 0;
+    setFrame(
+      stateRef.current ? { state: stateRef.current, whole: 0, pull: null } : null,
+    );
   }, [base, index, level.id]);
 
   /**
@@ -172,7 +264,7 @@ export function PlaytestView({
     }
     stateRef.current = make(changed ? scene : (sceneRef.current ?? scene));
     pullRef.current = null;
-    setPull(null);
+    accRef.current = 0;
     return true;
   }
 
@@ -188,7 +280,7 @@ export function PlaytestView({
     if (!base) return;
     let raf = 0;
     let last = performance.now();
-    let acc = 0;
+    accRef.current = 0;
     const loop = (now: number) => {
       const real = Math.min(MAX_FRAME, (now - last) / 1000);
       last = now;
@@ -196,9 +288,9 @@ export function PlaytestView({
       let current = stateRef.current;
       if (current && live) {
         const warping = current.warp !== null;
-        acc += real * (warping ? WARP_TIME_SCALE : 1);
-        while (acc >= FIXED_DT) {
-          acc -= FIXED_DT;
+        accRef.current += real * (warping ? WARP_TIME_SCALE : 1);
+        while (accRef.current >= FIXED_DT) {
+          accRef.current -= FIXED_DT;
           current = advance(live, current, { gems: current.warp === null });
           if (current.departed) break;
         }
@@ -215,7 +307,7 @@ export function PlaytestView({
             );
             current = ok ? stateRef.current! : resetState(live, { ...before, departed: null });
           }
-          acc = 0;
+          accRef.current = 0;
         }
         if (current.warp) {
           current = tickBorealis(current, real);
@@ -224,8 +316,18 @@ export function PlaytestView({
           warpStartRef.current = 0;
         }
         stateRef.current = current;
-        const whole = current.warp ? wholePulseAmount((now - warpStartRef.current) / 1000) : 0;
-        setFrame({ state: current, whole });
+        const renderState = previewPlaytestSubstep(live, current, accRef.current);
+        const whole = renderState.warp
+          ? wholePulseAmount((now - warpStartRef.current) / 1000)
+          : 0;
+        const nextFrame: Frame = {
+          state: renderState,
+          whole,
+          pull: pullRef.current,
+        };
+        setFrame((prev) =>
+          prev && sameRestingFrame(prev, nextFrame) ? prev : nextFrame,
+        );
       }
       raf = window.requestAnimationFrame(loop);
     };
@@ -252,7 +354,7 @@ export function PlaytestView({
       }
       stateRef.current = resetState(live, run);
       pullRef.current = null;
-      setPull(null);
+      accRef.current = 0;
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -281,6 +383,11 @@ export function PlaytestView({
     if (!current.body.restingOn) {
       // Mid-flight: only an Anachrometer warp opens an aim.
       if (!canEngageWarp(current, session.anachrometer)) return;
+      if (accRef.current > 1e-6) {
+        current = previewPlaytestSubstep(scene, current, accRef.current);
+        accRef.current = 0;
+      }
+      if (!canEngageWarp(current, session.anachrometer)) return;
       current = engageWarpState(current, session.anachrometer);
       stateRef.current = current;
       warpStartRef.current = 0;
@@ -290,26 +397,28 @@ export function PlaytestView({
     } catch {
       // Synthetic pointers have nothing to capture.
     }
-    const next = { from: viewPoint(e), drag: { x: 0, y: 0 } };
-    pullRef.current = next;
-    setPull(next);
+    pullRef.current = { from: viewPoint(e), drag: { x: 0, y: 0 } };
   }
 
   function onPointerMove(e: ReactPointerEvent<SVGSVGElement>) {
     const active = pullRef.current;
     if (!active) return;
-    const next = { from: active.from, drag: dragOf(active.from, viewPoint(e)) };
-    pullRef.current = next;
-    setPull(next);
+    pullRef.current = { from: active.from, drag: dragOf(active.from, viewPoint(e)) };
   }
 
   function onPointerUp(e: ReactPointerEvent<SVGSVGElement>) {
     const active = pullRef.current;
     if (!active || !scene) return;
     pullRef.current = null;
-    setPull(null);
     const drag = dragOf(active.from, viewPoint(e));
-    if (stateRef.current) stateRef.current = fire(scene, stateRef.current, drag);
+    let current = stateRef.current;
+    if (current) {
+      if (!current.body.restingOn && accRef.current > 1e-6) {
+        current = previewPlaytestSubstep(scene, current, accRef.current);
+        accRef.current = 0;
+      }
+      stateRef.current = fire(scene, current, drag);
+    }
   }
 
   /** Borealis cursor: click adds or selects, double-click removes. */
@@ -322,6 +431,7 @@ export function PlaytestView({
   }
 
   const state = frame?.state ?? null;
+  const pull = frame?.pull ?? null;
   if (!scene || !state) {
     return (
       <div className="flex h-full items-center justify-center text-sm text-zinc-400">
@@ -338,10 +448,18 @@ export function PlaytestView({
     h: outer.y1 - outer.y0 + pad * 2,
   };
   const ship = toSvg(state.body.x, state.body.y, scene.regionId);
-  const chart =
-    pull && (state.body.restingOn || state.warp)
-      ? chartShot(scene, state.body, pull.drag, state.warp ? WARP_BAND_ID : null)
-      : null;
+  const chartHome = state.warp ? WARP_BAND_ID : null;
+  let chart: ReturnType<typeof chartShot> | null = null;
+  if (pull && (state.body.restingOn || state.warp)) {
+    const chartKey = `${state.body.restingOn ?? chartHome ?? ""}|${Math.round(state.body.x * 4)}|${Math.round(state.body.y * 4)}|${Math.round(pull.drag.x * 4)}|${Math.round(pull.drag.y * 4)}`;
+    const cached = chartCacheRef.current;
+    if (cached && cached.scene === scene && cached.key === chartKey) {
+      chart = cached.value;
+    } else {
+      chart = chartShot(scene, state.body, pull.drag, chartHome);
+      chartCacheRef.current = { scene, key: chartKey, value: chart };
+    }
+  }
   const remaining = state.total - state.collected;
   const exitLit = remaining === 0;
 
@@ -376,11 +494,11 @@ export function PlaytestView({
         <rect x={0} y={0} width={size.w} height={size.h} fill="#0b111d" />
 
         <g pointerEvents="none">
-          {preview.masses.map((mass) => (
+          {terrainPaths.map((mass) => (
             <g key={mass.id} data-testid={`play-${mass.id}`}>
-              <path className="notehead-terrain" d={pathOf(mass.outline, true)} />
+              <path className="notehead-terrain" d={mass.outline} />
               {mass.ticks.length > 0 && (
-                <path className="notehead-terrain-tick" d={mass.ticks.map((t) => pathOf(t)).join(" ")} />
+                <path className="notehead-terrain-tick" d={mass.ticks} />
               )}
             </g>
           ))}

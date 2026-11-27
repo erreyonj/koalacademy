@@ -46,11 +46,11 @@ export function sceneBlocker(level: LevelFile): string | null {
 }
 
 export function buildLevelScene(level: LevelFile): LevelScene {
-  const base = buildScene(level);
+  const preview = previewLevel(level);
+  const base = buildScene(level, preview);
   if (!base) {
     throw new Error(`Level "${level.id}" ${sceneBlocker(level) ?? "cannot be played"}.`);
   }
-  const preview = previewLevel(level);
   return {
     id: level.id,
     level,

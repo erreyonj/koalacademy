@@ -1,5 +1,7 @@
 import { toSvg, type RegionId } from "../modules/sim";
 
+const OPACITY_BUCKETS = 5;
+
 /** Path parameter → stroke opacity. Strong at the start, soft at the tip. */
 function fadeAt(t: number): number {
   return 0.82 * (1 - t * 0.88);
@@ -19,25 +21,35 @@ export function Trajectory({
   const svgPoints = points.map((point) => toSvg(point.x, point.y, regionId));
   const end = svgPoints[svgPoints.length - 1]!;
   const peak = apex ? toSvg(apex.x, apex.y, regionId) : null;
-  const last = svgPoints.length - 1;
+  const segCount = svgPoints.length - 1;
+  const bucketCount = Math.min(OPACITY_BUCKETS, segCount);
+
+  const buckets: { d: string; opacity: number }[] = [];
+  for (let b = 0; b < bucketCount; b++) {
+    const start = Math.floor((b * segCount) / bucketCount);
+    const finish = Math.floor(((b + 1) * segCount) / bucketCount);
+    if (finish <= start) continue;
+    const first = svgPoints[start]!;
+    let d = `M ${first.x.toFixed(1)} ${first.y.toFixed(1)}`;
+    for (let i = start + 1; i <= finish; i++) {
+      const p = svgPoints[i]!;
+      d += ` L ${p.x.toFixed(1)} ${p.y.toFixed(1)}`;
+    }
+    const midT = (start + finish) / (2 * segCount);
+    buckets.push({ d, opacity: fadeAt(midT) });
+  }
 
   return (
     <g data-testid="shot-chart" pointerEvents="none">
-      {svgPoints.slice(1).map((point, index) => {
-        const prev = svgPoints[index]!;
-        const t = (index + 1) / last;
-        return (
-          <line
-            key={index}
-            className="notehead-chart"
-            x1={prev.x.toFixed(1)}
-            y1={prev.y.toFixed(1)}
-            x2={point.x.toFixed(1)}
-            y2={point.y.toFixed(1)}
-            opacity={fadeAt(t)}
-          />
-        );
-      })}
+      {buckets.map((bucket, index) => (
+        <path
+          key={index}
+          className="notehead-chart"
+          d={bucket.d}
+          opacity={bucket.opacity}
+          strokeLinecap="butt"
+        />
+      ))}
       {peak && (
         <circle
           className="notehead-chart-apex"

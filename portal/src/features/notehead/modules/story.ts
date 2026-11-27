@@ -13,6 +13,7 @@ export type StoryEventId =
   | "notch-calibrate-hull-hit"
   | "notch-calibrate-hull-breach"
   | "tonation-first"
+  | "zig-perspective-enter"
   | "8thTail1-enter";
 
 /** Optional one-shot SFX when a CM/GI line begins. */
@@ -26,7 +27,7 @@ export interface StoryInterrupt {
   /** Parallel to `lines` — play when that line index starts. */
   lineSfx?: readonly (StoryLineSfx | null)[];
   /** Optional HUD accent while this interrupt is on screen. */
-  accent?: "hull";
+  accent?: "hull" | "tonation";
 }
 
 const CAPTAIN = "Captain LittleCastle";
@@ -101,11 +102,21 @@ const EVENTS: Record<StoryEventId, readonly StoryInterrupt[]> = {
     {
       kind: "gi",
       speaker: SYSTEM,
+      accent: "tonation",
       lines: [
         "Tonation is the ship's internal energy source.",
         "Collecting Borealis orbs in the correct interval order calibrates Tonation for the ship.",
         "In this route it's gathered by a specific interval group.",
         "Other routes may have other requirements.",
+      ],
+    },
+  ],
+  "zig-perspective-enter": [
+    {
+      kind: "cm",
+      speaker: CAPTAIN,
+      lines: [
+        "Uh-oh... gravitational readings are completely out of whack. No telling what anomalies may occur here...",
       ],
     },
   ],
@@ -125,6 +136,22 @@ const EVENTS: Record<StoryEventId, readonly StoryInterrupt[]> = {
     },
   ],
 };
+
+/**
+ * Whether a level's pending enter story may open. Normally it waits for the
+ * arrival to finish (ship seated, idle). A `mustCatch` Enter point may never
+ * seat on its own, so its story opens while the ship is still in flight.
+ */
+export function enterStoryReady(opts: {
+  pending: boolean;
+  phase: string;
+  seated: boolean;
+  mustCatch: boolean;
+}): boolean {
+  if (!opts.pending) return false;
+  if (opts.phase === "idle" && opts.seated) return true;
+  return opts.mustCatch && opts.phase === "flight";
+}
 
 export function interruptsForEvent(
   id: StoryEventId,

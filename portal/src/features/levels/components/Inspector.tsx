@@ -231,6 +231,19 @@ export function Inspector({
             <NumberField label="y" value={en.y} onCommit={(n) => edit(setEnter(level, { ...en, y: n }))} />
             <NumberField label="vx" value={en.vx} onCommit={(n) => edit(setEnter(level, { ...en, vx: n }))} />
             <NumberField label="vy" value={en.vy} onCommit={(n) => edit(setEnter(level, { ...en, vy: n }))} />
+            <Row label="Must catch">
+              <input
+                type="checkbox"
+                data-testid="enter-must-catch"
+                title="The ship leaves an exit before landing; the player must catch it with an Anachrometer warp."
+                checked={Boolean(en.mustCatch)}
+                onChange={(e) => {
+                  const { mustCatch: _drop, ...rest } = en;
+                  void _drop;
+                  edit(setEnter(level, e.target.checked ? { ...rest, mustCatch: true } : rest));
+                }}
+              />
+            </Row>
           </Section>
         );
       }

@@ -68,6 +68,19 @@ export function applyRegionClearHeal(
   return clampHp(hp + amount, difficulty);
 }
 
+/**
+ * True when leaving a level should heal the hull: it hosts an interval, the
+ * interval was completed, and this level has not healed before. Skipping the
+ * interval carries hull damage forward.
+ */
+export function exitHealsHull(opts: {
+  hasInterval: boolean;
+  intervalCleared: boolean;
+  alreadyHealed: boolean;
+}): boolean {
+  return opts.hasInterval && opts.intervalCleared && !opts.alreadyHealed;
+}
+
 /** Hard breach wipes Tonation; Easy/Medium keep the bank. */
 export function breachWipesTonation(difficulty: DifficultyId): boolean {
   return difficulty === "hard";

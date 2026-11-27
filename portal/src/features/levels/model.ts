@@ -402,6 +402,8 @@ export function validateLevel(input: unknown): string[] {
     const en = lv.enter;
     if (!isObject(en) || ![en.x, en.y, en.vx, en.vy].every(finite)) {
       errors.push("enter must be null or {x,y,vx,vy} numbers");
+    } else if (en.mustCatch !== undefined && typeof en.mustCatch !== "boolean") {
+      errors.push("enter.mustCatch must be a boolean");
     }
   }
 
@@ -435,7 +437,13 @@ function clean(lv: LevelFile): LevelFile {
       pitch: g.pitch,
     })),
     enter: lv.enter
-      ? { x: lv.enter.x, y: lv.enter.y, vx: lv.enter.vx, vy: lv.enter.vy }
+      ? {
+          x: lv.enter.x,
+          y: lv.enter.y,
+          vx: lv.enter.vx,
+          vy: lv.enter.vy,
+          ...(lv.enter.mustCatch ? { mustCatch: true } : {}),
+        }
       : null,
     exits: lv.exits.map((e) => ({
       id: e.id,

@@ -68,23 +68,14 @@ export function clampTonation(value: number): number {
 }
 
 /**
- * HUD pair for the current step of the challenge.
- * Notch: full pair. Multi-note: progressive next two pitches.
+ * HUD pitches for a challenge: every required pitch, in collect order, so the
+ * player always sees the whole interval. Null when there is nothing to chain.
  */
-export function intervalHudPair(
+export function intervalHudPitches(
   challenge: IntervalChallenge,
-  attempt: IntervalAttempt,
-): readonly [PitchName, PitchName] | null {
+): readonly PitchName[] | null {
   const { pitches } = challenge;
-  if (pitches.length < 2) return null;
-  if (attempt.failed || attempt.succeeded) {
-    return [pitches[0]!, pitches[1]!];
-  }
-  const i = attempt.collected.length;
-  if (i >= pitches.length - 1) {
-    return [pitches[pitches.length - 2]!, pitches[pitches.length - 1]!];
-  }
-  return [pitches[i]!, pitches[i + 1]!];
+  return pitches.length < 2 ? null : pitches;
 }
 
 /**

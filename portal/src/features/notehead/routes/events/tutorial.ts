@@ -41,6 +41,7 @@ export const TUTORIAL_EVENTS: RouteEvents = {
       tonation: { pitches: ["C4", "E4", "G4"], label: "Arpeggio", payout: 9 },
     },
     zig1perspective: {
+      enter: ["zig-perspective-enter"],
       tonation: { pitches: ["C4", "E4", "A4"], label: "Contour", payout: 10 },
     },
     "8thTail1": {

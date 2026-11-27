@@ -55,6 +55,16 @@ Fires once per run, the first time an interval in pitch order banks Tonation. On
 - **GI:** In this route it's gathered by a specific interval group.
 - **GI:** Other routes may have other requirements.
 
+## Perspective (`zig1perspective`)
+
+Landscape level whose Enter point is `mustCatch`: the ship leaves an exit before it lands, so the player has to catch it with an Anachrometer warp.
+
+### Enter — CM
+
+Fires as soon as the ship arrives, **while it is still in flight** (it never has to seat first). The ship holds mid-air until the card is dismissed.
+
+- **CM:** Uh-oh... gravitational readings are completely out of whack. No telling what anomalies may occur here...
+
 ## Tail (`8thTail1`)
 
 Launch terrain + Frequency Band. Floating eighth-note Note-Tail pickup.

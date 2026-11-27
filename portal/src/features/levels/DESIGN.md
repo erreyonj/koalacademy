@@ -188,6 +188,7 @@ Height used to map to a pitch (the game's launch ladder), which only made sense 
 
 1. First attempt: block Play if the ship would trigger an exit on frame one. This was too narrow. Moving the enter point up a little moved the trigger to frame two, and the same symptom came back.
 2. Final fix: `playBlocker` flies the level hands-off for up to 10 s (`exitsUnattended` in `playtest/runtime.ts`). If the ship leaves through an exit before it lands on any ledge, Play is disabled with "The ship flies out an exit before it lands on anything. Start it higher or away from the exit." This checks the real condition (nothing playable happens) instead of one frame of it. It uses the same `advance` loop as the run, so the check cannot disagree with the playtest.
+3. Deliberate case: `EnterPoint.mustCatch` (Inspector "Must catch" checkbox, written to the file only when true). A level whose ship is meant to leave an exit, or loop through a portal back into itself, before landing (`zig1perspective`) is only playable by catching the ship with an Anachrometer warp. With the flag set, `playBlocker` skips the unattended-flight check; without it, the message tells the author to set the flag. A playtest of a `mustCatch` level starts with the Anachrometer toggle on (also when a route travels into one). The game uses the same flag to fire the level's enter story while the ship is still in flight (`NoteheadApp` enter gate).
 
 **Design notes from this fix.**
 

@@ -169,8 +169,10 @@ export function exitsUnattended(level: LevelFile): boolean {
 export function playBlocker(level: LevelFile): string | null {
   const fixed = staticBlocker(level);
   if (fixed) return fixed;
-  if (exitsUnattended(level)) {
-    return "The ship flies out an exit before it lands on anything. Start it higher or away from the exit.";
+  // A `mustCatch` Enter point declares this on purpose: the player catches the
+  // ship with an Anachrometer warp, so the hands-off flight is not a defect.
+  if (!level.enter?.mustCatch && exitsUnattended(level)) {
+    return "The ship flies out an exit before it lands on anything. Start it higher or away from the exit, or mark the Enter point Must catch.";
   }
   return null;
 }

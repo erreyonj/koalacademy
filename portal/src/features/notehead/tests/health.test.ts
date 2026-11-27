@@ -5,6 +5,7 @@ import {
   applyRegionClearHeal,
   breachWipesTonation,
   clampHp,
+  exitHealsHull,
   isHardLanding,
   isHardMassHit,
   isSoftMassBump,
@@ -34,6 +35,15 @@ describe("hull HP", () => {
     expect(applyRegionClearHeal(3, "easy")).toBe(6);
     expect(applyRegionClearHeal(7, "medium")).toBe(8);
     expect(applyRegionClearHeal(3, "hard")).toBe(4);
+  });
+
+  it("exit heals only after a completed interval, once per level", () => {
+    const base = { hasInterval: true, intervalCleared: true, alreadyHealed: false };
+    expect(exitHealsHull(base)).toBe(true);
+    // Skipping the interval carries damage forward.
+    expect(exitHealsHull({ ...base, intervalCleared: false })).toBe(false);
+    expect(exitHealsHull({ ...base, alreadyHealed: true })).toBe(false);
+    expect(exitHealsHull({ ...base, hasInterval: false })).toBe(false);
   });
 
   it("only Hard breach wipes Tonation", () => {

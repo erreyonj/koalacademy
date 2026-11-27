@@ -6,7 +6,7 @@ import {
   clampTonation,
   emptyAttempt,
   emptyRouteTonation,
-  intervalHudPair,
+  intervalHudPitches,
   noteTailGateOk,
   tailHullRequired,
   tailTonationRequired,
@@ -50,11 +50,11 @@ describe("Tonation", () => {
     expect(fail.attempt.failed).toBe(true);
   });
 
-  it("shows progressive HUD pairs for multi-note challenges", () => {
+  it("shows every requested pitch in the HUD, whatever the attempt state", () => {
     const stairs = challengeFor("stairs1")!;
-    expect(intervalHudPair(stairs, emptyAttempt())).toEqual(["C4", "E4"]);
-    const afterC = applyCollect(stairs, emptyAttempt(), "C4").attempt;
-    expect(intervalHudPair(stairs, afterC)).toEqual(["E4", "G4"]);
+    expect(intervalHudPitches(stairs)).toEqual(["C4", "E4", "G4"]);
+    expect(intervalHudPitches(challengeFor("notch1")!)).toEqual(["E4", "A4"]);
+    expect(intervalHudPitches({ pitches: ["C4"], label: "One", payout: 1 })).toBeNull();
   });
 
   it("hosts no interval on the levels in between", () => {

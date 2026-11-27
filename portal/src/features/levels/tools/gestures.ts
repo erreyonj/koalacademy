@@ -263,7 +263,15 @@ export function beginEnterAim(ctx: ToolCtx, p: Pt): void {
   const keep = ctx.level.enter
     ? { vx: ctx.level.enter.vx, vy: ctx.level.enter.vy }
     : { vx: 0, vy: 0 };
-  live(ctx, setEnter(ctx.level, { x: anchor.x, y: anchor.y, ...keep }));
+  live(
+    ctx,
+    setEnter(ctx.level, {
+      x: anchor.x,
+      y: anchor.y,
+      ...keep,
+      ...(ctx.level.enter?.mustCatch ? { mustCatch: true } : {}),
+    }),
+  );
   ctx.dispatch({ type: "select", selection: { kind: "enter", id: "enter" } });
   ctx.dispatch({ type: "gesture", gesture: { kind: "enter-aim", anchor, keep } });
 }
@@ -403,6 +411,7 @@ export function continueDrag(ctx: ToolCtx, p: Pt): void {
           y: g.anchor.y,
           vx: round2(vx),
           vy: round2(vy),
+          ...(level.enter?.mustCatch ? { mustCatch: true } : {}),
         }),
       );
       return;

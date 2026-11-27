@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Fragment,
   type PointerEvent as ReactPointerEvent,
   useEffect,
   useRef,
@@ -47,6 +48,7 @@ import {
   applyRegionClearHeal,
   breachWipesTonation,
   clampHp,
+  exitHealsHull,
   hullEnabled,
   isHardLanding,
   isSoftMassBump,
@@ -97,7 +99,7 @@ import {
   awardIfNew,
   emptyAttempt,
   emptyRouteTonation,
-  intervalHudPair,
+  intervalHudPitches,
   noteTailGateOk,
   TONATION_CAP,
   type IntervalAttempt,
@@ -110,6 +112,7 @@ import {
   useThemeMusic,
 } from "@/features/games/theme-music";
 import {
+  enterStoryReady,
   interruptsForEvent,
   type StoryEventId,
   type StoryInterrupt as StoryInterruptData,
@@ -132,14 +135,13 @@ const BREAK_FALL_TIME_SCALE = 0.22;
 /** Hull-breach shatter before GI / level restart. */
 const HULL_BREACH_MS = 880;
 /**
- * Dev chrome (level jump pills + under-stage helper text) — on in local/dev
- * by default; set NEXT_PUBLIC_NOTEHEAD_LEVEL_SELECT=1 to show in a production
- * build, or =0 to force-hide even in development.
+ * Dev chrome (level jump pills + under-stage helper text) — `next dev` only,
+ * never in a production build. Set NEXT_PUBLIC_NOTEHEAD_LEVEL_SELECT=0 to
+ * force-hide it in development too.
  */
 const SHOW_DEV_CHROME =
-  process.env.NEXT_PUBLIC_NOTEHEAD_LEVEL_SELECT === "1" ||
-  (process.env.NODE_ENV === "development" &&
-    process.env.NEXT_PUBLIC_NOTEHEAD_LEVEL_SELECT !== "0");
+  process.env.NODE_ENV === "development" &&
+  process.env.NEXT_PUBLIC_NOTEHEAD_LEVEL_SELECT !== "0";
 
 /** Repairs a place starts with (dev jumps): none at the origin, all after. */
 function repairForPlace(placeId: string, origin: string): ShipRepair {
@@ -323,10 +325,10 @@ export function NoteheadApp() {
   };
 
   const intervalChallenge = eventsFor(gameRoute.id, placeId).tonation ?? null;
-  // attemptTick forces HUD pair refresh when collects change inside the rAF loop.
+  // attemptTick forces a HUD refresh when collects change inside the rAF loop.
   void attemptTick;
-  const intervalPair = intervalChallenge
-    ? intervalHudPair(intervalChallenge, attemptRef.current)
+  const intervalPitches = intervalChallenge
+    ? intervalHudPitches(intervalChallenge)
     : null;
 
   useEffect(() => {
@@ -573,8 +575,13 @@ export function NoteheadApp() {
         return true;
       }
       const events = eventsFor(gameRoute.id, placeRef.current);
-      const firstIntervalClear =
-        Boolean(events.tonation) && !healedRef.current.includes(placeRef.current);
+      const firstIntervalClear = exitHealsHull({
+        hasInterval: Boolean(events.tonation),
+        intervalCleared:
+          attemptRef.current.succeeded ||
+          tonationRef.current.earnedLevelIds.includes(placeRef.current),
+        alreadyHealed: healedRef.current.includes(placeRef.current),
+      });
       if (firstIntervalClear) {
         healedRef.current = [...healedRef.current, placeRef.current];
         setHull(applyRegionClearHeal(hpRef.current, difficultyRef.current));
@@ -1129,14 +1136,20 @@ export function NoteheadApp() {
         return;
       }
       // Enter stories wait for the arrival to finish: the ship has seated.
+      // A `mustCatch` Enter point never seats by itself, so its story opens in flight.
       if (
-        pendingEnterRef.current &&
-        phaseRef.current === "idle" &&
-        bodyRef.current.restingOn
+        enterStoryReady({
+          pending: pendingEnterRef.current !== null,
+          phase: phaseRef.current,
+          seated: Boolean(bodyRef.current.restingOn),
+          mustCatch: Boolean(
+            gameRoute.scenes.get(placeRef.current)?.level.enter?.mustCatch,
+          ),
+        })
       ) {
         const id = pendingEnterRef.current;
         pendingEnterRef.current = null;
-        openEnterRef.current(id);
+        if (id) openEnterRef.current(id);
         if (cutsceneOpenRef.current) {
           paint();
           raf = window.requestAnimationFrame(loop);
@@ -1432,7 +1445,7 @@ export function NoteheadApp() {
         ) : null}
         <div className="notehead-hud">
           <div
-            className="notehead-tonation"
+            className={`notehead-tonation${activeInterrupt?.accent === "tonation" ? " is-gi-pulse" : ""}`}
             role="meter"
             aria-label="Tonation"
             aria-valuemin={0}
@@ -1478,31 +1491,33 @@ export function NoteheadApp() {
               <HullCueMark lit={activeInterrupt?.accent === "hull"} />
             </div>
           )}
-          {intervalChallenge && intervalPair ? (
+          {intervalChallenge && intervalPitches ? (
             <button
               type="button"
               className="notehead-interval-btn"
               data-testid="interval-hud"
               data-idle-flash=""
-              aria-label={`Interval ${intervalChallenge.label} ${intervalPair.join(" ")}`}
+              aria-label={`Interval ${intervalChallenge.label} ${intervalPitches.join(" ")}`}
               onClick={() => {
                 resume();
                 music.start();
-                intervalPair.forEach((pitch, index) => {
+                intervalPitches.forEach((pitch, index) => {
                   window.setTimeout(() => playPitch(pitch), index * 280);
                 });
               }}
             >
               <span>interval:</span>
-              <strong>
-                {intervalPair[0].replace(/\d+$/, "")}
-                <sub>{intervalPair[0].match(/\d+$/)?.[0]}</sub>
-              </strong>
-              <span className="notehead-interval-sep">→</span>
-              <strong>
-                {intervalPair[1].replace(/\d+$/, "")}
-                <sub>{intervalPair[1].match(/\d+$/)?.[0]}</sub>
-              </strong>
+              {intervalPitches.map((pitch, index) => (
+                <Fragment key={`${pitch}-${index}`}>
+                  {index > 0 ? (
+                    <span className="notehead-interval-sep">→</span>
+                  ) : null}
+                  <strong>
+                    {pitch.replace(/\d+$/, "")}
+                    <sub>{pitch.match(/\d+$/)?.[0]}</sub>
+                  </strong>
+                </Fragment>
+              ))}
             </button>
           ) : null}
         </div>

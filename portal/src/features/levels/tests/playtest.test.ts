@@ -6,7 +6,10 @@ import {
   addTerrain,
   createLevel,
   hashSeed,
+  parseLevel,
+  serializeLevel,
   setEnter,
+  validateLevel,
 } from "../model";
 import {
   STALL_FRAMES,
@@ -93,6 +96,32 @@ describe("playBlocker / buildScene", () => {
     expect(playBlocker({ ...lv, enter: { x: 450, y: 800, vx: 0, vy: 0 } })).toBeNull();
     // The static checks still come first.
     expect(playBlocker(level({ exit: false }))).toBe("Add an exit first.");
+  });
+
+  it("lets a mustCatch Enter point through, and keeps the flag in the file", () => {
+    let lv = level({ enter: { x: 18, y: 35.56, vx: 1848.72, vy: 3.8 } });
+    lv = addExit(lv, { id: "exit-2", facing: "down", x0: 18, x1: 774, y0: 0, y1: 0 });
+    expect(playBlocker(lv)).toMatch(/Must catch/);
+    const caught = { ...lv, enter: { ...lv.enter!, mustCatch: true } };
+    expect(playBlocker(caught)).toBeNull();
+    // Round trips through the file format; absent stays absent.
+    const parsed = parseLevel(serializeLevel(caught));
+    expect(parsed.ok && parsed.level.enter?.mustCatch).toBe(true);
+    const plain = parseLevel(serializeLevel(lv));
+    expect(plain.ok && "mustCatch" in plain.level.enter!).toBe(false);
+    // A bad value is rejected.
+    expect(
+      validateLevel({ ...lv, enter: { ...lv.enter!, mustCatch: "yes" } }),
+    ).toContain("enter.mustCatch must be a boolean");
+  });
+
+  it("starts the playtest with the Anachrometer on for a mustCatch level", () => {
+    const lv = level({ enter: { x: 450, y: 800, vx: 0, vy: 0, mustCatch: true } });
+    const store = createEditorStore(lv);
+    store.dispatch({ type: "play", on: true });
+    expect(store.getState().play.anachrometer).toBe(true);
+    store.dispatch({ type: "play", on: false });
+    expect(store.getState().play.anachrometer).toBe(false);
   });
 
   it("builds logical-space masses, ledges, gems, openings and the start body", () => {

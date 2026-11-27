@@ -38,14 +38,14 @@ There is no separate launch site. The run begins on the route's **origin** level
 - **Up / right** exits are forward travel: celebrate, then jump after `departMs` (default 720 ms) to the target's **Enter pose**.
 - **Down** exits are the way back and fire the moment a falling hull touches the floor inside the gap. The ship comes in through the target's own door that leads here (falling in through an up door, or flying in from the right edge), and the arrival plays a short slow-motion (`fallIn`, 0.22 for 900 ms).
 - An exit that leads to the **same level** is a **soft re-entry**: Borealis and the Tonation attempt are kept and the ship re-enters at the Enter pose.
-- Leaving a level through an exit with a Borealis interval heals the hull once (see Hull).
+- Leaving a level through an exit after completing its Borealis interval heals the hull once (see Hull).
 
 Rule: forward arrivals rise or fly in from the Enter pose; reverse arrivals come back through the door they left by.
 
 ## Frequency Band and aim
 
 - Height is a diatonic ruler. Default ladder is one octave of C major, `C4`–`C5`. The scale table is the only place those names live.
-- On ready, and whenever the player taps the interval HUD, the required pair plays.
+- On ready, and whenever the player taps the interval HUD, the required pitches play.
 - The band is flat at rest and sags only while the player pulls.
 - While resting on a Frequency Band, a slight magnetic dock eases the ship to the band center. This does not apply to Anachrometer warp re-pulls (the warp band tracks the ship).
 - **Launch teach** pulls are vertical only (`AimMode: "vertical"`). Sideways drag does not aim.
@@ -80,7 +80,7 @@ While falling faster than `BREAK_SPEED`, the ship does not land on `kind: "band"
 
 Reverse travel uses **floor gaps** (a `down` exit, `bottomOpening(x0, x1)`), not side corners. The floor inside a gap is unsealed; the route fires the moment a **falling** hull touches the floor there (`vy ≤ 0`, `y − SHIP_R ≤ 0`, x inside the span: `touchedOpening`, via `matchDeparture`). Rising enter bodies never fire them, so rise-in arrivals pass through safely. Frame edges that are not an exit stay sealed. The editor playtest refuses to start a level whose ship flies out an exit before landing on anything.
 
-- HUD `interval:` shows the current required pair (progressive on multi-note intervals). Tap it to hear the pair.
+- HUD `interval:` always shows every required pitch of the level's interval (`intervalHudPitches`), regardless of progress. Tap it to hear the whole sequence.
 - The eighth Note-Tail (`LevelEvents.noteTail`, on `8thTail1`) requires Tonation ≥ **19** (Easy/Med) or **24** (Hard), plus hull ≥ **2** (Med) / ≥ **3** (Hard). Easy has no hull gate beyond staying alive.
 
 ## Hull (HP)
@@ -91,7 +91,7 @@ A simple hull bar in the HUD. Easy **10** / Medium **8** / Hard **5** (`profile.
 - Landings on steps / blocks cost 1 HP only when fall speed ≥ `LANDING_HIT_SPEED` (~6 ship-radii freefall). Short hops onto adjacent terrain stay free.
 - Hard rock impacts (`resolveMasses` into a wall at ≥ `MASS_HIT_SPEED`) also cost 1 HP — pocket grazes on a short hop do not.
 - Sealed exit-frame barriers bounce on every dial; they cost 1 HP **only on Hard**.
-- First exit from a level with an interval (`notch1` / `stairs1` / `zig1`) heals Easy/Med **+3**, Hard **+1**.
+- First exit from a level after **completing** its interval (`notch1` / `stairs1` / `zig1`) heals Easy/Med **+3**, Hard **+1**. Leaving without the interval does not heal, so hull damage carries into the next level (`exitHealsHull`).
 - At 0 HP the ship plays a short shatter burst (`phase: "breach"`), then any hull teach GI, then the level restarts with a full hull. **Hard** also wipes the Tonation bank; Easy/Med keep Tonation.
 
 ## Solid terrain

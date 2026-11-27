@@ -505,7 +505,10 @@ function reduceEditor(state: EditorState, action: Action): EditorState {
       // Only a settled, playable level can run.
       const from = action.from === "origin" ? originIndexOf(state) : state.activeIndex;
       if (state.base || state.gesture || playBlocker(state.library[from]!)) return state;
-      return { ...state, playing: true, playFrom: from, hover: null, play: defaultSession() };
+      // A level whose Enter point must be caught is unplayable without the warp.
+      const play = defaultSession();
+      if (state.library[from]!.enter?.mustCatch) play.anachrometer = true;
+      return { ...state, playing: true, playFrom: from, hover: null, play };
     }
     case "session": {
       if (!state.playing) return state;

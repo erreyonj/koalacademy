@@ -332,6 +332,8 @@
   display: inline-flex;
   align-items: center;
   gap: 0.15rem;
+  white-space: nowrap;
+  flex-shrink: 0;
   text-transform: uppercase;
   font-size: 0.68rem;
 }
@@ -1176,6 +1178,21 @@
   border-radius: 0.35rem;
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--nh-band) 50%, transparent);
   background: color-mix(in srgb, var(--nh-band) 18%, transparent);
+}
+
+/* Held while the Tonation GI is on screen: the idle-flash look, persistent. */
+.notehead-tonation.is-gi-pulse {
+  color: var(--nh-ink);
+  border-radius: 0.35rem;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--nh-band) 50%, transparent);
+  background: color-mix(in srgb, var(--nh-band) 18%, transparent);
+  animation: notehead-idle-flash 0.85s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .notehead-tonation.is-gi-pulse {
+    animation: none;
+  }
 }
 
 .notehead-interval-btn[data-idle-flash].is-idle-flash {

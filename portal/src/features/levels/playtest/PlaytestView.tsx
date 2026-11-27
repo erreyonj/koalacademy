@@ -237,6 +237,10 @@ export function PlaytestView({
     else stateRef.current = base ? createState(sceneRef.current ?? base) : null;
     pullRef.current = null;
     accRef.current = 0;
+    // Arriving in a level whose Enter point must be caught: make the warp available.
+    if (level.enter?.mustCatch && !sessionRef.current.anachrometer) {
+      dispatch({ type: "session", patch: { anachrometer: true } });
+    }
     setFrame(
       stateRef.current ? { state: stateRef.current, whole: 0, pull: null } : null,
     );

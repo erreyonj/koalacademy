@@ -45,6 +45,12 @@ export interface EnterPoint {
   y: number;
   vx: number;
   vy: number;
+  /**
+   * The ship leaves an exit (or loops back through a portal) before it lands,
+   * so the player must catch it with an Anachrometer warp to play the level.
+   * Absent means false.
+   */
+  mustCatch?: boolean;
 }
 
 export type ExitFacing = "up" | "right" | "down";
